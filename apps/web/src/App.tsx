@@ -1,8 +1,10 @@
 import { useState, useCallback } from 'react'
-import { convert } from '@md2jira-previewer/core'
+import { convert, convertToAdf } from '@md2jira-previewer/core'
 import { Header } from './components/Header.js'
 import { MarkdownInput } from './components/MarkdownInput.js'
 import { JiraOutput } from './components/JiraOutput.js'
+
+type OutputFormat = 'wiki' | 'adf'
 
 const PLACEHOLDER = `# My Issue
 
@@ -30,14 +32,18 @@ console.log("hello")
 
 export function App() {
   const [markdown, setMarkdown] = useState(PLACEHOLDER)
+  const [format, setFormat] = useState<OutputFormat>('adf')
 
   const jiraOutput = useCallback(() => {
     try {
+      if (format === 'adf') {
+        return JSON.stringify(convertToAdf(markdown), null, 2)
+      }
       return convert(markdown)
     } catch {
       return '// Error converting markdown'
     }
-  }, [markdown])
+  }, [markdown, format])
 
   return (
     <div className="flex h-screen flex-col">
@@ -47,7 +53,12 @@ export function App() {
           <MarkdownInput value={markdown} onChange={setMarkdown} />
         </div>
         <div className="flex flex-1 flex-col">
-          <JiraOutput value={jiraOutput()} />
+          <JiraOutput
+            value={jiraOutput()}
+            format={format}
+            onFormatChange={setFormat}
+            markdown={markdown}
+          />
         </div>
       </main>
     </div>
