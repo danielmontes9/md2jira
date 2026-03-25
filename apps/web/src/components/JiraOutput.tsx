@@ -1,8 +1,9 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { convertToAdf } from '@md2jira-previewer/core'
 import type { AdfDocument, AdfBlockNode, AdfInlineNode, AdfMark } from '@md2jira-previewer/core'
 
 type OutputFormat = 'wiki' | 'adf'
+type ViewMode = 'preview' | 'code'
 
 interface JiraOutputProps {
   value: string
@@ -76,13 +77,20 @@ function adfToHtml(doc: AdfDocument): string {
 
 export function JiraOutput({ value, format, onFormatChange, markdown }: JiraOutputProps) {
   const [copied, setCopied] = useState(false)
+  const [viewMode, setViewMode] = useState<ViewMode>('preview')
+
+  const previewHtml = useMemo(() => {
+    try {
+      const adfDoc = convertToAdf(markdown)
+      return adfToHtml(adfDoc)
+    } catch {
+      return '<p style="color:#ef4444;">Error rendering preview</p>'
+    }
+  }, [markdown])
 
   const handleCopy = useCallback(async () => {
     if (format === 'adf') {
-      // Copy as rich text HTML so Jira Cloud renders it correctly
-      const adfDoc = convertToAdf(markdown)
-      const html = adfToHtml(adfDoc)
-      const blob = new Blob([html], { type: 'text/html' })
+      const blob = new Blob([previewHtml], { type: 'text/html' })
       const textBlob = new Blob([value], { type: 'text/plain' })
       await navigator.clipboard.write([
         new ClipboardItem({
@@ -95,12 +103,12 @@ export function JiraOutput({ value, format, onFormatChange, markdown }: JiraOutp
     }
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
-  }, [value, format, markdown])
+  }, [value, format, previewHtml])
 
   return (
     <div className="flex flex-1 flex-col rounded-lg border border-neutral-800 bg-neutral-900">
       <div className="flex items-center justify-between border-b border-neutral-800 px-4 py-2">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <span className="text-sm font-medium text-neutral-400">Output</span>
           <div className="flex rounded-md border border-neutral-700 text-xs">
             <button
@@ -124,6 +132,28 @@ export function JiraOutput({ value, format, onFormatChange, markdown }: JiraOutp
               Wiki Markup
             </button>
           </div>
+          <div className="flex rounded-md border border-neutral-700 text-xs">
+            <button
+              onClick={() => setViewMode('preview')}
+              className={`px-2 py-1 transition-colors ${
+                viewMode === 'preview'
+                  ? 'bg-neutral-700 text-neutral-100'
+                  : 'text-neutral-400 hover:text-neutral-200'
+              }`}
+            >
+              Preview
+            </button>
+            <button
+              onClick={() => setViewMode('code')}
+              className={`px-2 py-1 transition-colors ${
+                viewMode === 'code'
+                  ? 'bg-neutral-700 text-neutral-100'
+                  : 'text-neutral-400 hover:text-neutral-200'
+              }`}
+            >
+              Code
+            </button>
+          </div>
         </div>
         <button
           onClick={handleCopy}
@@ -136,14 +166,21 @@ export function JiraOutput({ value, format, onFormatChange, markdown }: JiraOutp
               : 'Copy'}
         </button>
       </div>
-      {format === 'adf' && (
+      {format === 'adf' && viewMode === 'code' && (
         <div className="border-b border-neutral-800 bg-neutral-950 px-4 py-1.5 text-xs text-neutral-500">
           Copies as rich text — paste directly into Jira Cloud comments
         </div>
       )}
-      <pre className="flex-1 overflow-auto whitespace-pre-wrap p-4 font-mono text-sm text-neutral-100">
-        {value}
-      </pre>
+      {viewMode === 'code' ? (
+        <pre className="flex-1 overflow-auto whitespace-pre-wrap p-4 font-mono text-sm text-neutral-100">
+          {value}
+        </pre>
+      ) : (
+        <div
+          className="jira-preview flex-1 overflow-auto p-6 text-sm text-neutral-100"
+          dangerouslySetInnerHTML={{ __html: previewHtml }}
+        />
+      )}
     </div>
   )
 }
