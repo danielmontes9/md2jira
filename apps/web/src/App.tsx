@@ -1,10 +1,17 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { convert, convertToAdf } from '@md2jira-previewer/core'
 import { Header } from './components/Header.js'
 import { MarkdownInput } from './components/MarkdownInput.js'
 import { JiraOutput } from './components/JiraOutput.js'
 
 type OutputFormat = 'wiki' | 'adf'
+type Theme = 'light' | 'dark'
+
+function getInitialTheme(): Theme {
+  const stored = localStorage.getItem('theme')
+  if (stored === 'light' || stored === 'dark') return stored
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+}
 
 const PLACEHOLDER = `# My Issue
 
@@ -33,6 +40,16 @@ console.log("hello")
 export function App() {
   const [markdown, setMarkdown] = useState(PLACEHOLDER)
   const [format, setFormat] = useState<OutputFormat>('adf')
+  const [theme, setTheme] = useState<Theme>(getInitialTheme)
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'dark')
+    localStorage.setItem('theme', theme)
+  }, [theme])
+
+  const toggleTheme = useCallback(() => {
+    setTheme((t) => (t === 'dark' ? 'light' : 'dark'))
+  }, [])
 
   const jiraOutput = useCallback(() => {
     try {
@@ -46,13 +63,13 @@ export function App() {
   }, [markdown, format])
 
   return (
-    <div className="flex h-screen flex-col">
-      <Header />
+    <div className="flex h-screen flex-col bg-white dark:bg-neutral-950">
+      <Header theme={theme} onToggleTheme={toggleTheme} />
       <main className="flex flex-1 gap-4 overflow-hidden p-4">
-        <div className="flex flex-1 flex-col">
+        <div className="flex min-h-0 flex-1 flex-col">
           <MarkdownInput value={markdown} onChange={setMarkdown} />
         </div>
-        <div className="flex flex-1 flex-col">
+        <div className="flex min-h-0 flex-1 flex-col">
           <JiraOutput
             value={jiraOutput()}
             format={format}

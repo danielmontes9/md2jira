@@ -106,17 +106,17 @@ export function JiraOutput({ value, format, onFormatChange, markdown }: JiraOutp
   }, [value, format, previewHtml])
 
   return (
-    <div className="flex flex-1 flex-col rounded-lg border border-neutral-800 bg-neutral-900">
-      <div className="flex items-center justify-between border-b border-neutral-800 px-4 py-2">
+    <div className="flex min-h-0 flex-1 flex-col rounded-lg border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
+      <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-2 dark:border-neutral-800">
         <div className="flex items-center gap-3">
-          <span className="text-sm font-medium text-neutral-400">Output</span>
-          <div className="flex rounded-md border border-neutral-700 text-xs">
+          <span className="text-sm font-medium text-neutral-500 dark:text-neutral-400">Output</span>
+          <div className="flex rounded-md border border-neutral-300 text-xs dark:border-neutral-700">
             <button
               onClick={() => onFormatChange('adf')}
               className={`px-2 py-1 transition-colors ${
                 format === 'adf'
-                  ? 'bg-neutral-700 text-neutral-100'
-                  : 'text-neutral-400 hover:text-neutral-200'
+                  ? 'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-neutral-100'
+                  : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200'
               }`}
             >
               Jira Cloud
@@ -125,20 +125,20 @@ export function JiraOutput({ value, format, onFormatChange, markdown }: JiraOutp
               onClick={() => onFormatChange('wiki')}
               className={`px-2 py-1 transition-colors ${
                 format === 'wiki'
-                  ? 'bg-neutral-700 text-neutral-100'
-                  : 'text-neutral-400 hover:text-neutral-200'
+                  ? 'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-neutral-100'
+                  : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200'
               }`}
             >
               Wiki Markup
             </button>
           </div>
-          <div className="flex rounded-md border border-neutral-700 text-xs">
+          <div className="flex rounded-md border border-neutral-300 text-xs dark:border-neutral-700">
             <button
               onClick={() => setViewMode('preview')}
               className={`px-2 py-1 transition-colors ${
                 viewMode === 'preview'
-                  ? 'bg-neutral-700 text-neutral-100'
-                  : 'text-neutral-400 hover:text-neutral-200'
+                  ? 'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-neutral-100'
+                  : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200'
               }`}
             >
               Preview
@@ -147,8 +147,8 @@ export function JiraOutput({ value, format, onFormatChange, markdown }: JiraOutp
               onClick={() => setViewMode('code')}
               className={`px-2 py-1 transition-colors ${
                 viewMode === 'code'
-                  ? 'bg-neutral-700 text-neutral-100'
-                  : 'text-neutral-400 hover:text-neutral-200'
+                  ? 'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-neutral-100'
+                  : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200'
               }`}
             >
               Code
@@ -157,7 +157,7 @@ export function JiraOutput({ value, format, onFormatChange, markdown }: JiraOutp
         </div>
         <button
           onClick={handleCopy}
-          className="rounded-md bg-neutral-800 px-3 py-1 text-xs font-medium text-neutral-300 transition-colors hover:bg-neutral-700"
+          className="rounded-md bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-600 transition-colors hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
         >
           {copied
             ? 'Copied!'
@@ -167,17 +167,17 @@ export function JiraOutput({ value, format, onFormatChange, markdown }: JiraOutp
         </button>
       </div>
       {format === 'adf' && viewMode === 'code' && (
-        <div className="border-b border-neutral-800 bg-neutral-950 px-4 py-1.5 text-xs text-neutral-500">
+        <div className="border-b border-neutral-200 bg-neutral-50 px-4 py-1.5 text-xs text-neutral-400 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-500">
           Copies as rich text — paste directly into Jira Cloud comments
         </div>
       )}
       {viewMode === 'code' ? (
-        <pre className="flex-1 overflow-auto whitespace-pre-wrap p-4 font-mono text-sm text-neutral-100">
+        <pre className="flex-1 overflow-auto whitespace-pre-wrap p-4 font-mono text-sm text-neutral-900 dark:text-neutral-100">
           {value}
         </pre>
       ) : (
         <div
-          className="jira-preview flex-1 overflow-auto p-6 text-sm text-neutral-100"
+          className="jira-preview flex-1 overflow-auto p-6 text-sm text-neutral-900 dark:text-neutral-100"
           dangerouslySetInnerHTML={{ __html: previewHtml }}
         />
       )}
