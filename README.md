@@ -4,13 +4,13 @@
 
 **Convert Markdown to Jira Wiki Markup  instantly, in your browser.**
 
-[![Build Status](https://img.shields.io/github/actions/workflow/status/your-username/md2jira-previewer/ci.yml?branch=main&style=flat-square)](https://github.com/your-username/md2jira-previewer/actions)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/danielmontes9/md2jira-previewer/ci.yml?branch=main&style=flat-square)](https://github.com/danielmontes9/md2jira-previewer/actions)
 [![npm version](https://img.shields.io/npm/v/@md2jira-previewer/core?style=flat-square)](https://www.npmjs.com/package/@md2jira-previewer/core)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](CONTRIBUTING.md)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg?style=flat-square)](https://conventionalcommits.org)
 
-[**Live Demo **](https://your-username.github.io/md2jira-previewer) &nbsp;·&nbsp; [Report Bug](https://github.com/your-username/md2jira-previewer/issues/new?template=bug_report.md) &nbsp;·&nbsp; [Request Feature](https://github.com/your-username/md2jira-previewer/issues/new?template=feature_request.md)
+[**Live Demo**](https://danielmontes9.github.io/md2jira-previewer) &nbsp;·&nbsp; [Report Bug](https://github.com/danielmontes9/md2jira-previewer/issues/new?template=bug_report.md) &nbsp;·&nbsp; [Request Feature](https://github.com/danielmontes9/md2jira-previewer/issues/new?template=feature_request.md)
 
 </div>
 
@@ -49,7 +49,7 @@ Paste your Markdown on the left, get Jira-ready markup on the right. No backend,
 
 ### Web App
 
-Go to [md2jira-previewer.app](https://your-username.github.io/md2jira-previewer)  paste your Markdown, copy the output.
+Go to [danielmontes9.github.io/md2jira-previewer](https://danielmontes9.github.io/md2jira-previewer) — paste your Markdown, copy the output.
 
 ### JavaScript / TypeScript
 
@@ -97,7 +97,7 @@ pnpm add @md2jira-previewer/core
 
 ```bash
 # Requires pnpm and Node.js >= 18
-git clone https://github.com/your-username/md2jira-previewer.git
+git clone https://github.com/danielmontes9/md2jira-previewer.git
 cd md2jira-previewer
 pnpm install
 pnpm --filter web dev
@@ -146,4 +146,4 @@ fix(tables): handle cells with pipe characters
 
 ## License
 
-MIT © [Your Name](https://github.com/your-username)
+MIT © [danielmontes9](https://github.com/danielmontes9)
