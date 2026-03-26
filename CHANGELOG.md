@@ -1,3 +1,11 @@
+## [1.0.1](https://github.com/danielmontes9/md2jira-previewer/compare/v1.0.0...v1.0.1) (2026-03-26)
+
+
+### Bug Fixes
+
+* **ci:** resolve typecheck errors in CI ([775b8ab](https://github.com/danielmontes9/md2jira-previewer/commit/775b8ab2de9933bb32851a0ba3144ec587f63168))
+* **core:** export additional ADF node types and fix implicit any in JiraOutput ([b64262f](https://github.com/danielmontes9/md2jira-previewer/commit/b64262f2da6691db477644fa51abad10cef72212))
+
 # 1.0.0 (2026-03-26)
 
 
