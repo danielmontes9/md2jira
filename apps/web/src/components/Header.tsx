@@ -6,7 +6,17 @@ interface HeaderProps {
 export function Header({ theme, onToggleTheme }: HeaderProps) {
   return (
     <header className="flex items-center justify-between border-b border-neutral-200 px-6 py-4 dark:border-neutral-800">
-      <div />
+      <a
+        href="https://www.buymeacoffee.com/danielmontes9"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <img
+          src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png"
+          alt="Buy Me A Coffee"
+          className="h-10"
+        />
+      </a>
       <div className="flex items-center">
         <h1 className="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-2xl font-bold text-transparent">
           md2jira-previewer

@@ -144,6 +144,14 @@ fix(tables): handle cells with pipe characters
 
 ---
 
+## Support the Project
+
+If you find this tool useful, consider buying me a coffee :)
+
+<a href="https://www.buymeacoffee.com/danielmontes9" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="50" ></a>
+
+---
+
 ## License
 
 MIT © [danielmontes9](https://github.com/danielmontes9)
