@@ -1,3 +1,21 @@
+# [1.1.0](https://github.com/danielmontes9/md2jira-previewer/compare/v1.0.1...v1.1.0) (2026-03-28)
+
+
+### Bug Fixes
+
+* **web:** improve responsive layout across all breakpoints ([7fff025](https://github.com/danielmontes9/md2jira-previewer/commit/7fff0255f8a5a485d55ba10cadfc068063e3f941))
+
+
+### Features
+
+* **web:** add Buy Me a Coffee support button ([e59dffb](https://github.com/danielmontes9/md2jira-previewer/commit/e59dffbcf6170de61a84afa519c55d8156df4a63))
+* **web:** move import/export buttons to markdown panel header ([8be21d1](https://github.com/danielmontes9/md2jira-previewer/commit/8be21d146fd111cef4125dff7ee3d3d85aa5e75c))
+
+
+### Performance Improvements
+
+* **web:** reduce LCP 64% via memoization, lazy assets and code splitting ([f094a33](https://github.com/danielmontes9/md2jira-previewer/commit/f094a33da4237150ca70ad8f657e43176126f102))
+
 ## [1.0.1](https://github.com/danielmontes9/md2jira-previewer/compare/v1.0.0...v1.0.1) (2026-03-26)
 
 
