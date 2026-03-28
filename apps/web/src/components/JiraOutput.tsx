@@ -117,57 +117,72 @@ export function JiraOutput({ value, format, onFormatChange, markdown }: JiraOutp
 
   return (
     <div className="flex min-h-0 flex-1 flex-col rounded-lg border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
-      <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-2 dark:border-neutral-800">
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-medium text-neutral-500 dark:text-neutral-400">Output</span>
-          <div className="flex rounded-md border border-neutral-300 text-xs dark:border-neutral-700">
+      <div className="flex flex-col gap-2 border-b border-neutral-200 px-3 py-2 sm:flex-row sm:items-center sm:justify-between sm:px-4 dark:border-neutral-800">
+        {/* Desktop: left group (Output + tabs) | Mobile: two separate rows */}
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
+          {/* Mobile row 1 */}
+          <div className="flex items-center justify-between gap-2 sm:justify-start">
+            <span className="text-sm font-medium text-neutral-500 dark:text-neutral-400">Output</span>
+            {/* Copy button: mobile only */}
             <button
-              onClick={() => onFormatChange('adf')}
-              className={`px-2 py-1 transition-colors ${
-                format === 'adf'
-                  ? 'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-neutral-100'
-                  : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200'
-              }`}
+              onClick={handleCopy}
+              className="whitespace-nowrap rounded-md bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-600 transition-colors hover:bg-neutral-200 sm:hidden dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
             >
-              Jira Cloud
-            </button>
-            <button
-              onClick={() => onFormatChange('wiki')}
-              className={`px-2 py-1 transition-colors ${
-                format === 'wiki'
-                  ? 'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-neutral-100'
-                  : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200'
-              }`}
-            >
-              Wiki Markup
+              {copied ? 'Copied!' : format === 'adf' ? 'Copy for Jira' : 'Copy'}
             </button>
           </div>
-          <div className="flex rounded-md border border-neutral-300 text-xs dark:border-neutral-700">
-            <button
-              onClick={() => setViewMode('preview')}
-              className={`px-2 py-1 transition-colors ${
-                viewMode === 'preview'
-                  ? 'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-neutral-100'
-                  : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200'
-              }`}
-            >
-              Preview
-            </button>
-            <button
-              onClick={() => setViewMode('code')}
-              className={`px-2 py-1 transition-colors ${
-                viewMode === 'code'
-                  ? 'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-neutral-100'
-                  : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200'
-              }`}
-            >
-              Code
-            </button>
+          {/* Mobile row 2 / Desktop: inline after Output */}
+          <div className="flex items-center gap-2">
+            <div className="flex flex-1 rounded-md border border-neutral-300 text-xs sm:flex-none dark:border-neutral-700">
+              <button
+                onClick={() => onFormatChange('adf')}
+                className={`flex-1 whitespace-nowrap px-2 py-1 transition-colors sm:flex-none ${
+                  format === 'adf'
+                    ? 'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-neutral-100'
+                    : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200'
+                }`}
+              >
+                Jira Cloud
+              </button>
+              <button
+                onClick={() => onFormatChange('wiki')}
+                className={`flex-1 whitespace-nowrap px-2 py-1 transition-colors sm:flex-none ${
+                  format === 'wiki'
+                    ? 'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-neutral-100'
+                    : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200'
+                }`}
+              >
+                Wiki Markup
+              </button>
+            </div>
+            <div className="flex flex-1 rounded-md border border-neutral-300 text-xs sm:flex-none dark:border-neutral-700">
+              <button
+                onClick={() => setViewMode('preview')}
+                className={`flex-1 whitespace-nowrap px-2 py-1 transition-colors sm:flex-none ${
+                  viewMode === 'preview'
+                    ? 'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-neutral-100'
+                    : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200'
+                }`}
+              >
+                Preview
+              </button>
+              <button
+                onClick={() => setViewMode('code')}
+                className={`flex-1 whitespace-nowrap px-2 py-1 transition-colors sm:flex-none ${
+                  viewMode === 'code'
+                    ? 'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-neutral-100'
+                    : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200'
+                }`}
+              >
+                Code
+              </button>
+            </div>
           </div>
         </div>
+        {/* Copy button: desktop only */}
         <button
           onClick={handleCopy}
-          className="rounded-md bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-600 transition-colors hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
+          className="hidden whitespace-nowrap rounded-md bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-600 transition-colors hover:bg-neutral-200 sm:block dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
         >
           {copied ? 'Copied!' : format === 'adf' ? 'Copy for Jira' : 'Copy'}
         </button>

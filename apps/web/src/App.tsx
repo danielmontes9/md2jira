@@ -68,14 +68,17 @@ export function App() {
       <noscript>
         <div className="p-8 text-center">
           <h2 className="text-xl font-bold">md2jira-previewer</h2>
-          <p>Convert Markdown to Jira Wiki Markup and Atlassian Document Format (ADF). Please enable JavaScript to use this tool.</p>
+          <p>
+            Convert Markdown to Jira Wiki Markup and Atlassian Document Format (ADF). Please enable
+            JavaScript to use this tool.
+          </p>
         </div>
       </noscript>
-      <main className="flex flex-1 gap-4 overflow-hidden p-4">
-        <section aria-label="Markdown input" className="flex min-h-0 flex-1 flex-col">
+      <main className="flex flex-1 flex-col gap-4 overflow-auto p-4 sm:flex-row sm:overflow-hidden">
+        <section aria-label="Markdown input" className="flex min-h-64 flex-1 flex-col sm:min-h-0">
           <MarkdownInput value={markdown} onChange={setMarkdown} />
         </section>
-        <section aria-label="Jira output" className="flex min-h-0 flex-1 flex-col">
+        <section aria-label="Jira output" className="flex min-h-64 flex-1 flex-col sm:min-h-0">
           <JiraOutput
             value={jiraOutput()}
             format={format}

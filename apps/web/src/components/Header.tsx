@@ -5,23 +5,24 @@ interface HeaderProps {
 
 export function Header({ theme, onToggleTheme }: HeaderProps) {
   return (
-    <header className="flex items-center justify-between border-b border-neutral-200 px-6 py-4 dark:border-neutral-800">
+    <header className="flex items-center justify-between gap-2 border-b border-neutral-200 px-3 py-3 sm:px-6 sm:py-4 dark:border-neutral-800">
       <a
         href="https://www.buymeacoffee.com/danielmontes9"
         target="_blank"
         rel="noopener noreferrer"
+        className="shrink-0"
       >
         <img
           src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png"
           alt="Buy Me A Coffee"
-          className="h-10"
+          className="h-7 w-auto sm:h-10"
         />
       </a>
-      <div className="flex items-center">
-        <h1 className="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-2xl font-bold text-transparent">
+      <div className="flex min-w-0 flex-1 items-center justify-center">
+        <h1 className="truncate bg-linear-to-r from-blue-400 to-purple-500 bg-clip-text text-base font-bold text-transparent sm:text-2xl">
           md2jira-previewer
         </h1>
-        <span className="ml-3 text-sm text-neutral-500 dark:text-neutral-400">
+        <span className="ml-3 hidden text-sm text-neutral-500 sm:inline dark:text-neutral-400">
           Markdown to Jira Wiki Markup & ADF
         </span>
       </div>
