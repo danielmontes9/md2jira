@@ -7,7 +7,7 @@
     "jsx": "react-jsx",
     "noEmit": true,
     "paths": {
-      "md2jira-core": ["../../packages/core/src/index.ts"]
+      "md2jira-core": ["../../packages/core/dist/index.d.ts", "../../packages/core/src/index.ts"]
     }
   },
   "include": ["src"],
