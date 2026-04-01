@@ -1,5 +1,5 @@
 {
-  "name": "@md2jira-previewer/core",
+  "name": "md2jira-core",
   "version": "0.1.0",
   "description": "Pure TypeScript Markdown to Jira Wiki Markup converter",
   "type": "module",

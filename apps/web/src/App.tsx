@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useMemo } from 'react'
-import { convert, convertToAdf } from '@md2jira-previewer/core'
+import { convert, convertToAdf } from 'md2jira-core'
 import { Header } from './components/Header.js'
 import { MarkdownInput } from './components/MarkdownInput.js'
 import { JiraOutput } from './components/JiraOutput.js'

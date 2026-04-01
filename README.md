@@ -5,7 +5,7 @@
 **Convert Markdown to Jira Wiki Markup and Atlassian Document Format (ADF), instantly in your browser.**
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/danielmontes9/md2jira-previewer/ci.yml?branch=main&style=flat-square)](https://github.com/danielmontes9/md2jira-previewer/actions)
-[![npm version](https://img.shields.io/npm/v/@md2jira-previewer/core?style=flat-square)](https://www.npmjs.com/package/@md2jira-previewer/core)
+[![npm version](https://img.shields.io/npm/v/md2jira-core?style=flat-square)](https://www.npmjs.com/package/md2jira-core)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](CONTRIBUTING.md)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg?style=flat-square)](https://conventionalcommits.org)
@@ -54,7 +54,7 @@ Go to [danielmontes9.github.io/md2jira-previewer](https://danielmontes9.github.i
 ### JavaScript / TypeScript
 
 ```ts
-import { convert } from '@md2jira-previewer/core'
+import { convert } from 'md2jira-core'
 
 const jira = convert(`
 # My Issue
@@ -88,9 +88,9 @@ echo "# Title" | npx md2jira-previewer
 ### Core package
 
 ```bash
-npm install @md2jira-previewer/core
+npm install md2jira-core
 # or
-pnpm add @md2jira-previewer/core
+pnpm add md2jira-core
 ```
 
 ### Run the web app locally
@@ -113,7 +113,7 @@ md2jira-previewer is structured as a **pnpm monorepo** with a strict separation 
 
 ```
 packages/core    Pure TypeScript, no browser deps. Usable in Node, browser, VSCode.
-apps/web         React 18 + Vite + Magic UI. Imports @md2jira-previewer/core.
+apps/web         React 18 + Vite + Magic UI. Imports md2jira-core.
 ```
 
 The core uses a `Markdown  AST (remark)  Transform  Jira string` pipeline. This design allows the same engine to power the web app, CLI, and a future VSCode extension.
@@ -123,7 +123,7 @@ The core uses a `Markdown  AST (remark)  Transform  Jira string` pipeline. This 
 ## Roadmap
 
 - [x] Web App with live preview (MVP)
-- [ ] `@md2jira-previewer/core` published to npm
+- [ ] `md2jira-core` published to npm
 - [ ] CLI (`md2jira-previewer` command)
 - [ ] VSCode Extension
 - [ ] Atlassian Document Format (ADF) output

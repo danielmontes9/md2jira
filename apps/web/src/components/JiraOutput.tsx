@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react'
-import { convertToAdf } from '@md2jira-previewer/core'
+import { convertToAdf } from 'md2jira-core'
 import type {
   AdfDocument,
   AdfBlockNode,
@@ -10,7 +10,7 @@ import type {
   AdfTableRowNode,
   AdfTableHeaderNode,
   AdfTableCellNode,
-} from '@md2jira-previewer/core'
+} from 'md2jira-core'
 
 type OutputFormat = 'wiki' | 'adf'
 type ViewMode = 'preview' | 'code'
@@ -122,7 +122,9 @@ export function JiraOutput({ value, format, onFormatChange, markdown }: JiraOutp
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
           {/* Mobile row 1 */}
           <div className="flex items-center justify-between gap-2 sm:justify-start">
-            <span className="text-sm font-medium text-neutral-500 dark:text-neutral-400">Output</span>
+            <span className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
+              Output
+            </span>
             {/* Copy button: mobile only */}
             <button
               onClick={handleCopy}

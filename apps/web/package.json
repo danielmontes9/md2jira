@@ -11,7 +11,7 @@
     "lint": "eslint src"
   },
   "dependencies": {
-    "@md2jira-previewer/core": "workspace:*",
+    "md2jira-core": "workspace:*",
     "react": "^18.3.0",
     "react-dom": "^18.3.0"
   },

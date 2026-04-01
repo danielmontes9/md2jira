@@ -25,10 +25,10 @@ A clear and concise description of what the bug is.
 ```
 
 **Environment**
-- Target: [ ] Web App  [ ] @md2jira-previewer/core (Node.js)
+- Target: [ ] Web App  [ ] md2jira-core (Node.js)
 - Browser (if web app):
 - Node.js version (if using core package):
-- `@md2jira-previewer/core` version:
+- `md2jira-core` version:
 
 **Additional context**
 <!-- any other relevant information -->

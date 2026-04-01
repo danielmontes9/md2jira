@@ -62,7 +62,7 @@ importers:
 
   apps/web:
     dependencies:
-      '@md2jira-previewer/core':
+      md2jira-core:
         specifier: workspace:*
         version: link:../../packages/core
       react:

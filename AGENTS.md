@@ -11,7 +11,7 @@
 
 - **Web App (MVP)**: React 18 + Vite + Magic UI + Tailwind CSS  live two-panel converter in the browser.
 - **Core package** (`packages/core`): Pure TypeScript, zero browser/React dependencies  the conversion engine.
-- **Future targets**: CLI (`commander`) and VSCode Extension  both will reuse `@md2jira-previewer/core`.
+- **Future targets**: CLI (`commander`) and VSCode Extension  both will reuse `md2jira-core`.
 
 ---
 
@@ -19,7 +19,7 @@
 
 1. **`packages/core` must be 100% framework-agnostic.** Never import React, DOM APIs, `window`, `document`, or any browser-specific module inside `packages/core/`. Violations break CLI and VSCode extension compatibility.
 
-2. **`apps/web` is the only place for React and browser code.** It imports `@md2jira-previewer/core` as a dependency.
+2. **`apps/web` is the only place for React and browser code.** It imports `md2jira-core` as a dependency.
 
 3. **The public API of `packages/core` is `convert(md: string): string`.** Do not change its signature without adding a `BREAKING CHANGE` footer in the commit.
 
@@ -61,7 +61,7 @@ md2jira-previewer/
         ci.yml                 lint + typecheck + test on every PR
         release.yml            semantic-release on merge to main
  packages/
-    core/                      @md2jira-previewer/core  pure TS conversion engine
+    core/                      md2jira-core  pure TS conversion engine
         src/
            index.ts           export convert(md: string): string
            converter.ts       orchestrates the pipeline
