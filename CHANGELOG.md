@@ -7,6 +7,15 @@
 * **core:** add prepublishOnly script and dist verification in release ([1dd2285](https://github.com/danielmontes9/md2jira-previewer/commit/1dd228507e272e146412d2470f3ef68b7e479991))
 * **web:** add vite resolve.alias for md2jira-core to bypass dist resolution ([a20ecd7](https://github.com/danielmontes9/md2jira-previewer/commit/a20ecd72357d89bf60ddf81fa836e1837653c6c5))
 
+## [1.2.2](https://github.com/danielmontes9/md2jira-previewer/compare/v1.2.1...v1.2.2) (2026-04-02)
+
+
+### Bug Fixes
+
+* **ci:** update pnpm filter from 'core' to 'md2jira-core' after rename ([88b6875](https://github.com/danielmontes9/md2jira-previewer/commit/88b68754c3dad4a1b35dbcdae1fe1780930e46da))
+* **core:** add prepublishOnly script and dist verification in release ([1dd2285](https://github.com/danielmontes9/md2jira-previewer/commit/1dd228507e272e146412d2470f3ef68b7e479991))
+* **web:** add vite resolve.alias for md2jira-core to bypass dist resolution ([a20ecd7](https://github.com/danielmontes9/md2jira-previewer/commit/a20ecd72357d89bf60ddf81fa836e1837653c6c5))
+
 ## [1.2.2](https://github.com/danielmontes9/md2jira-previewer/compare/v1.2.1...v1.2.2) (2026-04-01)
 
 
