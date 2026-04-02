@@ -14,7 +14,6 @@ jobs:
       contents: write
       issues: write
       pull-requests: write
-      id-token: write
 
     steps:
       - name: Checkout
@@ -37,14 +36,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build core
-        run: pnpm --filter md2jira-core build
-
-      - name: Verify dist
-        run: ls -la packages/core/dist/
-
       - name: Release
         run: pnpm exec semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
