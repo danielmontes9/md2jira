@@ -12,8 +12,10 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
+  "homepage": "https://github.com/danielmontes9/md2jira-previewer#readme",
   "scripts": {
     "build": "tsc",
     "prepublishOnly": "tsc",
