@@ -1,4 +1,4 @@
-import { useRef, useCallback, useMemo } from 'react'
+import React, { useRef, useCallback, useMemo } from 'react'
 
 interface MarkdownInputProps {
   value: string
@@ -31,6 +31,19 @@ export function MarkdownInput({ value, onChange }: MarkdownInputProps) {
     }
     input.click()
   }, [onChange])
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key !== 'Tab') return
+    e.preventDefault()
+    // execCommand('insertText') is the only mechanism that integrates with the browser's
+    // native undo/redo stack for plain <textarea> elements. Casting through `unknown` to a
+    // fresh interface intentionally drops the @deprecated tag from the lib type so TypeScript
+    // no longer emits the deprecation diagnostic on this intentional call site.
+    const exec = (
+      document as unknown as { execCommand(cmd: string, showUI: boolean, value: string): boolean }
+    ).execCommand
+    exec.call(document, 'insertText', false, '  ')
+  }, [])
 
   const handleExport = useCallback(() => {
     const blob = new Blob([value], { type: 'text/markdown' })
@@ -80,10 +93,13 @@ export function MarkdownInput({ value, onChange }: MarkdownInputProps) {
         </div>
         {/* Textarea */}
         <textarea
+          id="markdown-input"
+          name="markdown-input"
           ref={textareaRef}
           className="flex-1 resize-none bg-transparent p-4 font-mono text-sm leading-6 text-neutral-900 outline-none placeholder:text-neutral-400 dark:text-neutral-100 dark:placeholder:text-neutral-600"
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          onKeyDown={handleKeyDown}
           onScroll={syncScroll}
           placeholder="Paste your Markdown here..."
           spellCheck={false}
