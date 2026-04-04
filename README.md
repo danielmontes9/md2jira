@@ -123,10 +123,10 @@ The core uses a `Markdown  AST (remark)  Transform  Jira string` pipeline. This 
 ## Roadmap
 
 - [x] Web App with live preview (MVP)
-- [ ] `md2jira-core` published to npm
+- [x] `md2jira-core` published to npm
+- [x] Atlassian Document Format (ADF) output
 - [ ] CLI (`md2jira-previewer` command)
 - [ ] VSCode Extension
-- [ ] Atlassian Document Format (ADF) output
 - [ ] Confluence export
 
 ---

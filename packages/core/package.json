@@ -1,6 +1,6 @@
 {
   "name": "md2jira-core",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Pure TypeScript Markdown to Jira Wiki Markup converter",
   "type": "module",
   "main": "./dist/index.js",
@@ -15,7 +15,7 @@
     "dist",
     "README.md"
   ],
-  "homepage": "https://github.com/danielmontes9/md2jira-previewer#readme",
+  "homepage": "https://danielmontes9.github.io/md2jira-previewer/",
   "scripts": {
     "build": "tsc",
     "prepublishOnly": "tsc",
