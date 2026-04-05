@@ -1,5 +1,6 @@
 import React, { useRef, useCallback, useMemo, useState } from 'react'
 import { ShortcutsModal } from './ShortcutsModal.js'
+import { ToastContainer, ToastType } from './Toast.js'
 
 interface MarkdownInputProps {
   value: string
@@ -10,6 +11,17 @@ export function MarkdownInput({ value, onChange }: MarkdownInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const gutterRef = useRef<HTMLDivElement>(null)
   const [showShortcuts, setShowShortcuts] = useState(false)
+  const [toasts, setToasts] = useState<{ id: number; message: string; type: ToastType }[]>([])
+  const toastId = useRef(0)
+
+  const addToast = useCallback((message: string, type: ToastType = 'info') => {
+    const id = ++toastId.current
+    setToasts((prev) => [...prev, { id, message, type }])
+  }, [])
+
+  const removeToast = useCallback((id: number) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id))
+  }, [])
 
   const syncScroll = useCallback(() => {
     if (gutterRef.current && textareaRef.current) {
@@ -20,10 +32,19 @@ export function MarkdownInput({ value, onChange }: MarkdownInputProps) {
   const handleImport = useCallback(() => {
     const input = document.createElement('input')
     input.type = 'file'
-    input.accept = '.md,text/markdown,text/plain'
+    input.accept = '.md,.txt,.text,text/markdown,text/plain'
     input.onchange = () => {
       const file = input.files?.[0]
       if (!file) return
+      const allowed = ['.md', '.txt', '.text']
+      const ext = file.name.slice(file.name.lastIndexOf('.')).toLowerCase()
+      if (!allowed.includes(ext)) {
+        addToast(
+          `Unsupported file type "${ext}". Please import a .md, .txt, or .text file.`,
+          'error'
+        )
+        return
+      }
       const reader = new FileReader()
       reader.onload = (e) => {
         const text = e.target?.result
@@ -32,7 +53,7 @@ export function MarkdownInput({ value, onChange }: MarkdownInputProps) {
       reader.readAsText(file)
     }
     input.click()
-  }, [onChange])
+  }, [onChange, addToast])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     const textarea = e.currentTarget
@@ -333,6 +354,7 @@ export function MarkdownInput({ value, onChange }: MarkdownInputProps) {
         </div>
       </div>
       {showShortcuts && <ShortcutsModal onClose={() => setShowShortcuts(false)} />}
+      <ToastContainer toasts={toasts} onClose={removeToast} />
     </>
   )
 }
