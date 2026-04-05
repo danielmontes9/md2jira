@@ -8,6 +8,8 @@
 
 Zero browser/React dependencies — works in Node.js, Deno, Bun, CLI tools, and VS Code extensions.
 
+![md2jira-previewer — live two-panel converter: paste Markdown on the left, get an instant Jira-ready preview on the right](https://raw.githubusercontent.com/danielmontes9/md2jira-previewer/main/.github/assets/md2jira-previewer.png)
+
 ## Install
 
 ```bash

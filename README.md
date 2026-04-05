@@ -14,6 +14,14 @@
 
 </div>
 
+![md2jira-previewer — live two-panel converter in the browser](.github/assets/md2jira-previewer.png)
+
+> Paste your Markdown on the left, get an instant Jira-ready preview on the right.
+
+![Before vs After — pasting markdown directly into Jira (before) vs using md2jira-previewer to get properly formatted output (after)](.github/assets/md2jira-previewer-before-after-jira.png)
+
+> **Before:** pasting raw Markdown into Jira results in unformatted plain text. **After:** using md2jira-previewer converts it to fully formatted Jira content.
+
 ---
 
 ## What is md2jira-previewer?
