@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useMemo, useState } from 'react'
+import React, { useRef, useCallback, useMemo, useState, useEffect } from 'react'
 import { ShortcutsModal } from './ShortcutsModal.js'
 import { ToastContainer, ToastType } from './Toast.js'
 
@@ -21,6 +21,59 @@ export function MarkdownInput({ value, onChange }: MarkdownInputProps) {
 
   const removeToast = useCallback((id: number) => {
     setToasts((prev) => prev.filter((t) => t.id !== id))
+  }, [])
+
+  // Native copy event listener — more reliable than React's onCopy for clipboard interception.
+  // Ensures the textarea always writes ONLY plain markdown text, clearing any text/html
+  // that a previous "Copy Jira" operation may have left in the system clipboard.
+  useEffect(() => {
+    const textarea = textareaRef.current
+    if (!textarea) return
+    const handleCopy = (e: ClipboardEvent) => {
+      if (!e.clipboardData) return
+      const { selectionStart, selectionEnd } = textarea
+      const selected =
+        selectionStart !== selectionEnd
+          ? textarea.value.substring(selectionStart, selectionEnd)
+          : textarea.value
+      const escaped = selected.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      e.clipboardData.clearData()
+      e.clipboardData.setData('text/plain', selected)
+      e.clipboardData.setData(
+        'text/html',
+        `<pre style="font-family:monospace;white-space:pre-wrap;">${escaped}</pre>`
+      )
+      e.preventDefault()
+    }
+    // Strip rich text (e.g. from VS Code) on paste — keep only plain text.
+    const handlePaste = (e: ClipboardEvent) => {
+      if (!e.clipboardData) return
+      const plain = e.clipboardData.getData('text/plain')
+      e.preventDefault()
+      const { selectionStart, selectionEnd } = textarea
+      const before = textarea.value.substring(0, selectionStart)
+      const after = textarea.value.substring(selectionEnd)
+      const newValue = before + plain + after
+      // Use execCommand so native undo stack is preserved
+      textarea.focus()
+      textarea.setSelectionRange(selectionStart, selectionEnd)
+      ;(
+        document as unknown as { execCommand(cmd: string, showUI: boolean, value: string): boolean }
+      ).execCommand('insertText', false, plain)
+      // Fallback for browsers that block execCommand
+      if (textarea.value !== newValue) {
+        textarea.value = newValue
+        textarea.setSelectionRange(selectionStart + plain.length, selectionStart + plain.length)
+        textarea.dispatchEvent(new Event('input', { bubbles: true }))
+      }
+    }
+
+    textarea.addEventListener('copy', handleCopy)
+    textarea.addEventListener('paste', handlePaste)
+    return () => {
+      textarea.removeEventListener('copy', handleCopy)
+      textarea.removeEventListener('paste', handlePaste)
+    }
   }, [])
 
   const syncScroll = useCallback(() => {
@@ -269,10 +322,23 @@ export function MarkdownInput({ value, onChange }: MarkdownInputProps) {
   const [copied, setCopied] = useState(false)
 
   const handleCopyMd = useCallback(() => {
-    navigator.clipboard.writeText(value).then(() => {
+    // Include text/html wrapping the markdown in <pre> so that Jira's ProseMirror
+    // editor treats the paste as preformatted text instead of auto-converting
+    // markdown syntax to rich text. This matches the behaviour of copying from VS Code.
+    const escaped = value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    const htmlBlob = new Blob(
+      [`<pre style="font-family:monospace;white-space:pre-wrap;">${escaped}</pre>`],
+      { type: 'text/html' }
+    )
+    const textBlob = new Blob([value], { type: 'text/plain' })
+    const done = () => {
       setCopied(true)
       setTimeout(() => setCopied(false), 1500)
-    })
+    }
+    navigator.clipboard
+      .write([new ClipboardItem({ 'text/html': htmlBlob, 'text/plain': textBlob })])
+      .then(done)
+      .catch(() => navigator.clipboard.writeText(value).then(done))
   }, [value])
 
   const handleExport = useCallback(() => {
@@ -293,12 +359,12 @@ export function MarkdownInput({ value, onChange }: MarkdownInputProps) {
 
   return (
     <>
-      <div className="flex min-h-0 flex-1 flex-col rounded-lg border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
-        <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-2 dark:border-neutral-800">
+      <div className="@container flex min-h-0 flex-1 flex-col rounded-lg border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
+        <div className="flex flex-col gap-1 border-b border-neutral-200 px-4 py-2 dark:border-neutral-800 @[425px]:flex-row @[425px]:items-center @[425px]:justify-between">
           <span className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
             Markdown
           </span>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center justify-center gap-1 @[375px]:justify-end">
             <button
               onClick={handleImport}
               className="rounded-md px-2 py-1 text-xs text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"

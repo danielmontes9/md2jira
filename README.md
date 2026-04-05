@@ -34,7 +34,7 @@ Paste your Markdown on the left, get Jira-ready markup on the right. No backend,
 
 ## Features
 
-- **Headers** (h1h6, overflow normalized to h6)
+- **Headers** (h1–h6, overflow normalized to h6)
 - **Text formatting**: bold, italic, strikethrough, inline code
 - **Lists**: unordered and ordered, with nested levels
 - **Links**: `[text](url)` `[text|url]`
