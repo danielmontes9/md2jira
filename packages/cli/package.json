@@ -1,0 +1,45 @@
+{
+  "name": "md2jira-cli",
+  "version": "0.1.0",
+  "description": "CLI to convert Markdown to Jira Wiki Markup",
+  "type": "module",
+  "bin": {
+    "md2jira": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "commander": "^12.1.0",
+    "md2jira-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
+  },
+  "keywords": [
+    "markdown",
+    "jira",
+    "cli",
+    "converter",
+    "jira-wiki-markup"
+  ],
+  "license": "MIT",
+  "homepage": "https://danielmontes9.github.io/md2jira",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/danielmontes9/md2jira.git",
+    "directory": "packages/cli"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

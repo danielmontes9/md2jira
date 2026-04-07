@@ -33,6 +33,14 @@ export default [
     },
   },
   {
+    files: ['packages/cli/**/*.ts'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+  },
+  {
     ignores: [
       '**/dist/**',
       '**/node_modules/**',
