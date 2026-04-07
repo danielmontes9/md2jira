@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/danielmontes9/md2jira/compare/v1.3.0...v1.4.0) (2026-04-07)
+
+
+### Features
+
+* **cli:** add CLI package with file/stdin input and file/stdout output ([2be333e](https://github.com/danielmontes9/md2jira/commit/2be333e762f90c0b47270ed177f356d951901f7b))
+
 # [1.3.0](https://github.com/danielmontes9/md2jira-previewer/compare/v1.2.2...v1.3.0) (2026-04-05)
 
 
