@@ -20,6 +20,7 @@ import type {
 import { unified } from 'unified'
 import remarkParse from 'remark-parse'
 import remarkGfm from 'remark-gfm'
+import { preprocessMarkdown } from './preprocess.js'
 import type {
   AdfBlockNode,
   AdfDocument,
@@ -224,7 +225,7 @@ export function convertToAdf(md: string): AdfDocument {
 
   if (!md.trim()) return emptyDoc
 
-  const tree = unified().use(remarkParse).use(remarkGfm).parse(md)
+  const tree = unified().use(remarkParse).use(remarkGfm).parse(preprocessMarkdown(md))
 
   const content: AdfBlockNode[] = []
   for (const node of tree.children) {

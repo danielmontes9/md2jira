@@ -149,6 +149,22 @@ describe('tables', () => {
     const md = '| Link |\n|------|\n| [Google](https://google.com) |'
     expect(convert(md)).toBe('||Link||\n|[Google|https://google.com]|')
   })
+
+  it('tolerates an empty line left after deleting a row', () => {
+    // Simulates user deleting a row in the editor and leaving an empty line
+    const md = '| Field | Value |\n|-------|-------|\n\n| Status | Done |'
+    expect(convert(md)).toBe('||Field||Value||\n|Status|Done|')
+  })
+
+  it('tolerates multiple empty lines within a table', () => {
+    const md = '| A | B |\n|---|---|\n\n| 1 | 2 |\n\n| 3 | 4 |'
+    expect(convert(md)).toBe('||A||B||\n|1|2|\n|3|4|')
+  })
+
+  it('does not merge content after a genuine paragraph break into the table', () => {
+    const md = '| A | B |\n|---|---|\n| 1 | 2 |\n\nNot a table row'
+    expect(convert(md)).toBe('||A||B||\n|1|2|\n\nNot a table row')
+  })
 })
 
 describe('mixed content', () => {

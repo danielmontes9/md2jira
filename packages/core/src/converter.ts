@@ -7,6 +7,7 @@ import { transformHeading } from './transforms/headers.js'
 import { transformList } from './transforms/lists.js'
 import { transformCodeBlock } from './transforms/codeblocks.js'
 import { transformTable } from './transforms/tables.js'
+import { preprocessMarkdown } from './preprocess.js'
 
 function transformBlockquote(node: Blockquote): string {
   const lines: string[] = []
@@ -54,7 +55,7 @@ function transformNode(node: RootContent): string | null {
 export function convert(md: string): string {
   if (!md.trim()) return ''
 
-  const tree = unified().use(remarkParse).use(remarkGfm).parse(md)
+  const tree = unified().use(remarkParse).use(remarkGfm).parse(preprocessMarkdown(md))
 
   const parts: string[] = []
 
