@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/danielmontes9/md2jira/compare/v1.4.0...v1.4.1) (2026-04-11)
+
+
+### Bug Fixes
+
+* **core:** normalise CRLF line endings and collapse empty lines in tables ([24770d0](https://github.com/danielmontes9/md2jira/commit/24770d0b884b7eab43daa16329936d45d6ca7521))
+
 # [1.4.0](https://github.com/danielmontes9/md2jira/compare/v1.3.0...v1.4.0) (2026-04-07)
 
 
