@@ -1,5 +1,7 @@
-import React, { useRef, useCallback, useMemo, useState, useEffect } from 'react'
-import { ShortcutsModal } from './ShortcutsModal.js'
+import React, { useRef, useCallback, useMemo, useState, useEffect, lazy, Suspense } from 'react'
+const ShortcutsModal = lazy(() =>
+  import('./ShortcutsModal.js').then((m) => ({ default: m.ShortcutsModal }))
+)
 import { ToastContainer, ToastType } from './Toast.js'
 
 interface MarkdownInputProps {
@@ -113,6 +115,9 @@ export function MarkdownInput({ value, onChange }: MarkdownInputProps) {
     const { selectionStart, selectionEnd, value: val } = textarea
 
     // execCommand('insertText') preserves the browser's native undo/redo stack.
+    // NOTE: document.execCommand() is deprecated but has no direct replacement that
+    // preserves native undo/redo. Track https://w3c.github.io/input-events/ for
+    // future InputEvent-based alternatives (e.g. TipTap, Lexical, or ProseMirror).
     // Casting drops the @deprecated tag without using `any`.
     const execInsert = (text: string) => {
       const exec = (
@@ -419,7 +424,9 @@ export function MarkdownInput({ value, onChange }: MarkdownInputProps) {
           />
         </div>
       </div>
-      {showShortcuts && <ShortcutsModal onClose={() => setShowShortcuts(false)} />}
+      <Suspense fallback={null}>
+        {showShortcuts && <ShortcutsModal onClose={() => setShowShortcuts(false)} />}
+      </Suspense>
       <ToastContainer toasts={toasts} onClose={removeToast} />
     </>
   )

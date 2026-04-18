@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { convert, convertToAdf } from 'md2jira-core'
 import { Header } from './components/Header.js'
 import { MarkdownInput } from './components/MarkdownInput.js'
@@ -11,6 +11,28 @@ function getInitialTheme(): Theme {
   const stored = localStorage.getItem('theme')
   if (stored === 'light' || stored === 'dark') return stored
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+}
+
+function encodeMarkdown(md: string): string {
+  return btoa(encodeURIComponent(md))
+}
+
+function decodeMarkdown(encoded: string): string {
+  try {
+    return decodeURIComponent(atob(encoded))
+  } catch {
+    return ''
+  }
+}
+
+function getInitialMarkdown(placeholder: string): string {
+  const params = new URLSearchParams(window.location.search)
+  const encoded = params.get('md')
+  if (encoded) {
+    const decoded = decodeMarkdown(encoded)
+    if (decoded) return decoded
+  }
+  return placeholder
 }
 
 const PLACEHOLDER = `# My Issue
@@ -38,33 +60,66 @@ console.log("hello")
 `
 
 export function App() {
-  const [markdown, setMarkdown] = useState(PLACEHOLDER)
+  const [markdown, setMarkdown] = useState(() => getInitialMarkdown(PLACEHOLDER))
   const [format, setFormat] = useState<OutputFormat>('adf')
   const [theme, setTheme] = useState<Theme>(getInitialTheme)
+  const urlDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark')
     localStorage.setItem('theme', theme)
   }, [theme])
 
+  // Debounced URL deep-linking: update ?md= param 500ms after the user stops typing
+  useEffect(() => {
+    if (urlDebounceRef.current) clearTimeout(urlDebounceRef.current)
+    urlDebounceRef.current = setTimeout(() => {
+      const url = new URL(window.location.href)
+      url.searchParams.set('md', encodeMarkdown(markdown))
+      window.history.replaceState(null, '', url.toString())
+    }, 500)
+    return () => {
+      if (urlDebounceRef.current) clearTimeout(urlDebounceRef.current)
+    }
+  }, [markdown])
+
   const toggleTheme = useCallback(() => {
     setTheme((t) => (t === 'dark' ? 'light' : 'dark'))
   }, [])
 
-  const jiraOutput = useMemo(() => {
+  const { jiraOutput, hasConversionError } = useMemo(() => {
     try {
-      if (format === 'adf') {
-        return JSON.stringify(convertToAdf(markdown), null, 2)
-      }
-      return convert(markdown)
+      const output =
+        format === 'adf'
+          ? JSON.stringify(convertToAdf(markdown), null, 2)
+          : convert(markdown)
+      return { jiraOutput: output, hasConversionError: false }
     } catch {
-      return '// Error converting markdown'
+      return { jiraOutput: '', hasConversionError: true }
     }
   }, [markdown, format])
 
   return (
     <div className="flex h-screen flex-col bg-white dark:bg-neutral-950">
       <Header theme={theme} onToggleTheme={toggleTheme} />
+      {hasConversionError && (
+        <div
+          role="alert"
+          className="flex items-center gap-2 border-b border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/50 dark:text-red-400"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="currentColor"
+            aria-hidden="true"
+            className="shrink-0"
+          >
+            <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm.75 4.5a.75.75 0 0 0-1.5 0v3.5a.75.75 0 0 0 1.5 0V5.5zm-.75 6a.875.875 0 1 0 0-1.75.875.875 0 0 0 0 1.75z" />
+          </svg>
+          Conversion error — check your Markdown for unsupported syntax.
+        </div>
+      )}
       <noscript>
         <div className="p-8 text-center">
           <h2 className="text-xl font-bold">md2jira-previewer</h2>
