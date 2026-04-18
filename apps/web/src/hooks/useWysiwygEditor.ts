@@ -1,7 +1,8 @@
 import { useState, useCallback, useRef, useEffect, type RefObject } from 'react'
-import type TurndownService from 'turndown'
 import DOMPurify from 'dompurify'
 import { execCommand } from '../utils/exec-command.js'
+import { useEditorSelection } from './useEditorSelection.js'
+import { useMarkdownSync } from './useMarkdownSync.js'
 
 interface UseWysiwygEditorOptions {
   previewHtml: string
@@ -22,10 +23,6 @@ export function useWysiwygEditor({
   onMarkdownChange,
 }: UseWysiwygEditorOptions): WysiwygEditorState {
   const editorRef = useRef<HTMLDivElement | null>(null)
-  const savedRangeRef = useRef<Range | null>(null)
-  const updateTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
-  const isEditorUpdateRef = useRef(false)
-  const tdRef = useRef<TurndownService | null>(null)
   const [editModeActive, setEditModeActive] = useState(false)
 
   // Keep a stable ref to the latest onMarkdownChange callback so that
@@ -33,8 +30,18 @@ export function useWysiwygEditor({
   const onMarkdownChangeRef = useRef(onMarkdownChange)
   onMarkdownChangeRef.current = onMarkdownChange
 
-  const [activeBlock, setActiveBlock] = useState<string>('p')
-  const [activeFormats, setActiveFormats] = useState<Set<string>>(new Set())
+  // Selection range management and active-format tracking
+  const { activeBlock, activeFormats, saveRange, restoreRange } = useEditorSelection(
+    editorRef,
+    useCallback(() => setEditModeActive(true), [])
+  )
+
+  // Turndown lazy-loading and debounced markdown sync
+  const { scheduleMarkdownUpdate, isEditorUpdateRef } = useMarkdownSync(
+    editorRef,
+    onMarkdownChangeRef,
+    editModeActive
+  )
 
   // Capture the initial HTML so the editor is populated on mount.
   // Using a ref avoids adding previewHtml to the dep array (which would
@@ -55,79 +62,7 @@ export function useWysiwygEditor({
     }
     if (document.activeElement === editorRef.current) return
     editorRef.current.innerHTML = DOMPurify.sanitize(previewHtml)
-  }, [previewHtml])
-
-  // Lazy-load TurndownService on first edit mode activation
-  useEffect(() => {
-    if (!editModeActive || tdRef.current) return
-    let cancelled = false
-    import('../components/jira-output/turndown-config.js').then(({ createTurndownService }) => {
-      if (!cancelled) tdRef.current = createTurndownService()
-    })
-    return () => {
-      cancelled = true
-    }
-  }, [editModeActive])
-
-  // Cleanup any pending markdown-update timeout on unmount
-  useEffect(() => () => clearTimeout(updateTimeoutRef.current), [])
-
-  // Expose a way for JiraOutput to notify us that edit mode turned on
-  // We detect this via document.activeElement when saveRange is called
-  const updateSelectionState = useCallback(() => {
-    if (!editorRef.current) return
-    const sel = window.getSelection()
-    if (!sel || !editorRef.current.contains(sel.anchorNode)) return
-    setEditModeActive(true)
-    const block = (document.queryCommandValue('formatBlock') || 'p').toLowerCase()
-    setActiveBlock(block)
-    const fmts = new Set<string>()
-    for (const cmd of [
-      'bold',
-      'italic',
-      'underline',
-      'strikeThrough',
-      'subscript',
-      'superscript',
-    ]) {
-      if (document.queryCommandState(cmd)) fmts.add(cmd)
-    }
-    setActiveFormats(fmts)
-  }, [])
-
-  const saveRange = useCallback(() => {
-    const sel = window.getSelection()
-    if (sel && sel.rangeCount > 0 && editorRef.current?.contains(sel.anchorNode)) {
-      savedRangeRef.current = sel.getRangeAt(0).cloneRange()
-    }
-    updateSelectionState()
-  }, [updateSelectionState])
-
-  const restoreRange = useCallback(() => {
-    if (!savedRangeRef.current || !editorRef.current) return
-    if (document.activeElement !== editorRef.current) {
-      editorRef.current.focus()
-    }
-    const sel = window.getSelection()
-    if (sel) {
-      sel.removeAllRanges()
-      sel.addRange(savedRangeRef.current.cloneRange())
-    }
-  }, [])
-
-  const scheduleMarkdownUpdate = useCallback(() => {
-    if (!onMarkdownChangeRef.current || !editorRef.current) return
-    clearTimeout(updateTimeoutRef.current)
-    updateTimeoutRef.current = setTimeout(() => {
-      if (!editorRef.current || !tdRef.current) return
-      isEditorUpdateRef.current = true
-      try {
-        onMarkdownChangeRef.current!(tdRef.current.turndown(editorRef.current.innerHTML))
-      } catch {
-        isEditorUpdateRef.current = false
-      }
-    }, 300)
-  }, [])
+  }, [previewHtml, isEditorUpdateRef])
 
   const exec = useCallback(
     (cmd: string, arg?: string) => {
@@ -138,10 +73,12 @@ export function useWysiwygEditor({
     [restoreRange, scheduleMarkdownUpdate]
   )
 
+  // Security: sanitize all HTML before insertion to prevent XSS from pasted or
+  // externally-generated content. (OWASP A03: Injection)
   const insertHtml = useCallback(
     (html: string) => {
       restoreRange()
-      execCommand('insertHTML', html)
+      execCommand('insertHTML', DOMPurify.sanitize(html))
       scheduleMarkdownUpdate()
     },
     [restoreRange, scheduleMarkdownUpdate]
