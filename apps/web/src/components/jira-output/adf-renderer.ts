@@ -50,6 +50,11 @@ export function adfInlineToHtml(node: AdfInlineNode): string {
           html = `<a href="${safeHref}">${html}</a>`
           break
         }
+        case 'subsup': {
+          const subsupType = (mark as AdfMark & { attrs: { type: 'sub' | 'sup' } }).attrs?.type
+          html = subsupType === 'sub' ? `<sub>${html}</sub>` : `<sup>${html}</sup>`
+          break
+        }
       }
     }
   }

@@ -1,5 +1,5 @@
 export interface AdfMark {
-  type: 'strong' | 'em' | 'strike' | 'code' | 'link'
+  type: 'strong' | 'em' | 'strike' | 'code' | 'link' | 'subsup'
   attrs?: Record<string, string>
 }
 
