@@ -10,7 +10,14 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'icon.svg'],
+      includeAssets: [
+        'favicon.svg',
+        'favicon.ico',
+        'icon.svg',
+        'apple-touch-icon-180x180.png',
+        'pwa-*.png',
+        'maskable-icon-*.png',
+      ],
       manifest: {
         name: 'md2jira Converter',
         short_name: 'md2jira',
@@ -21,16 +28,31 @@ export default defineConfig({
         start_url: '/',
         icons: [
           {
+            src: 'pwa-64x64.png',
+            sizes: '64x64',
+            type: 'image/png',
+          },
+          {
+            src: 'pwa-192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+          },
+          {
+            src: 'pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+          },
+          {
+            src: 'maskable-icon-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
+          {
             src: '/icon.svg',
             sizes: 'any',
             type: 'image/svg+xml',
             purpose: 'any',
-          },
-          {
-            src: '/favicon.svg',
-            sizes: 'any',
-            type: 'image/svg+xml',
-            purpose: 'maskable',
           },
         ],
       },
