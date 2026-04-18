@@ -41,9 +41,16 @@ jobs:
       - name: Test
         run: pnpm test
 
-      - name: Upload coverage
+      - name: Upload core coverage
         uses: codecov/codecov-action@v4
         if: always()
         with:
           files: packages/core/coverage/lcov.info
           flags: core
+
+      - name: Upload web coverage
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: apps/web/coverage/lcov.info
+          flags: web
