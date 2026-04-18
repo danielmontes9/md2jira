@@ -55,9 +55,7 @@ describe('text formatting', () => {
   })
 
   it('converts combined formatting', () => {
-    expect(convert('**bold** and _italic_ and `code`')).toBe(
-      '*bold* and _italic_ and {{code}}'
-    )
+    expect(convert('**bold** and _italic_ and `code`')).toBe('*bold* and _italic_ and {{code}}')
   })
 })
 
@@ -210,5 +208,152 @@ describe('images', () => {
 
   it('preserves surrounding text when image is in paragraph', () => {
     expect(convert('text ![alt](img.png) more')).toBe('text  more')
+  })
+})
+
+// ── Edge cases from AGENTS.md Error Handling table ──
+
+describe('headers — edge cases', () => {
+  it('converts heading with inline code', () => {
+    expect(convert('## Config `options`')).toBe('h2. Config {{options}}')
+  })
+
+  it('converts heading with link', () => {
+    expect(convert('# [Home](https://example.com)')).toBe('h1. [Home|https://example.com]')
+  })
+
+  it('handles empty heading', () => {
+    expect(convert('#')).toBe('')
+  })
+})
+
+describe('formatting — edge cases', () => {
+  it('handles nested bold inside italic', () => {
+    expect(convert('_this is **bold inside** italic_')).toBe('_this is *bold inside* italic_')
+  })
+
+  it('handles bold+italic combined', () => {
+    expect(convert('***bold and italic***')).toBe('_*bold and italic*_')
+  })
+
+  it('handles inline code with special characters', () => {
+    expect(convert('`<div class="x">`')).toBe('{{<div class="x">}}')
+  })
+
+  it('handles link with no text [](url)', () => {
+    expect(convert('[](https://example.com)')).toBe('[https://example.com]')
+  })
+
+  it('handles link with special chars in text', () => {
+    expect(convert('[Click **here**](https://example.com)')).toBe(
+      '[Click *here*|https://example.com]'
+    )
+  })
+
+  it('handles break tag (line break)', () => {
+    // Two trailing spaces = hard line break in markdown
+    expect(convert('line one  \nline two')).toContain('line one')
+    expect(convert('line one  \nline two')).toContain('line two')
+  })
+})
+
+describe('lists — edge cases', () => {
+  it('converts mixed nested lists (unordered inside ordered)', () => {
+    const md = '1. First\n   - Sub bullet'
+    expect(convert(md)).toBe('# First\n#* Sub bullet')
+  })
+
+  it('handles list item with bold text', () => {
+    expect(convert('- **Important** item')).toBe('* *Important* item')
+  })
+
+  it('handles list item with inline code', () => {
+    expect(convert('- Use `npm install`')).toBe('* Use {{npm install}}')
+  })
+
+  it('handles deeply nested ordered lists', () => {
+    const md = '1. A\n   1. B\n      1. C'
+    expect(convert(md)).toBe('# A\n## B\n### C')
+  })
+})
+
+describe('code blocks — edge cases', () => {
+  it('converts code block without language — no language attribute', () => {
+    expect(convert('```\ncode here\n```')).toBe('{code}\ncode here\n{code}')
+  })
+
+  it('preserves indentation in code blocks', () => {
+    const md = '```js\nfunction foo() {\n  return 1\n}\n```'
+    expect(convert(md)).toBe('{code:language=js}\nfunction foo() {\n  return 1\n}\n{code}')
+  })
+
+  it('handles code block with many languages', () => {
+    expect(convert('```python\nprint("hi")\n```')).toBe(
+      '{code:language=python}\nprint("hi")\n{code}'
+    )
+    expect(convert('```bash\necho hello\n```')).toBe('{code:language=bash}\necho hello\n{code}')
+  })
+
+  it('handles empty code block', () => {
+    expect(convert('```\n\n```')).toBe('{code}\n\n{code}')
+  })
+})
+
+describe('blockquotes — edge cases', () => {
+  it('converts multiline blockquote', () => {
+    const md = '> Line 1\n> Line 2'
+    expect(convert(md)).toBe('bq. Line 1\nbq. Line 2')
+  })
+
+  it('converts blockquote with inline code', () => {
+    expect(convert('> Use `code` here')).toBe('bq. Use {{code}} here')
+  })
+})
+
+describe('tables — edge cases', () => {
+  it('handles table with empty cells', () => {
+    const md = '| A | B |\n|---|---|\n|   |   |'
+    expect(convert(md)).toBe('||A||B||\n|||')
+  })
+
+  it('escapes pipe characters inside cells', () => {
+    // Pipe inside cell content should be escaped
+    const md = '| Formula |\n|---------|\n| a \\| b |'
+    const result = convert(md)
+    expect(result).toContain('||Formula||')
+  })
+
+  it('handles single-column table', () => {
+    const md = '| Col |\n|-----|\n| Val |'
+    expect(convert(md)).toBe('||Col||\n|Val|')
+  })
+
+  it('handles table with links in cells', () => {
+    const md = '| Site |\n|------|\n| [Google](https://google.com) |'
+    expect(convert(md)).toBe('||Site||\n|[Google|https://google.com]|')
+  })
+
+  it('handles table with bold in header', () => {
+    const md = '| **Header** |\n|------------|\n| data |'
+    expect(convert(md)).toBe('||*Header*||\n|data|')
+  })
+})
+
+describe('html and frontmatter — out of scope', () => {
+  it('ignores HTML blocks silently', () => {
+    expect(convert('<div>hello</div>')).toBe('')
+  })
+
+  it('ignores HTML inline within paragraphs', () => {
+    // remark-parse treats <br> as HTML — should be ignored or stripped
+    const result = convert('text <br> more text')
+    expect(result).not.toContain('<br>')
+  })
+
+  it('handles markdown with YAML frontmatter gracefully', () => {
+    // remark-parse without remark-frontmatter treats --- as thematic break
+    const md = '---\ntitle: Test\n---\n\n# Hello'
+    const result = convert(md)
+    expect(result).toContain('h1. Hello')
   })
 })

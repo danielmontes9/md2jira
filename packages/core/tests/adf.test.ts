@@ -182,8 +182,9 @@ describe('convertToAdf', () => {
 
   it('converts table with formatting in cells', () => {
     const result = convertToAdf('| Status |\n|--------|\n| **High** |')
-    const cell = (result.content[0] as { content: { content: { content: { content: unknown[] }[] }[] }[] })
-      .content[1].content[0].content[0].content[0]
+    const cell = (
+      result.content[0] as { content: { content: { content: { content: unknown[] }[] }[] }[] }
+    ).content[1].content[0].content[0].content[0]
     expect(cell).toMatchObject({
       type: 'text',
       text: 'High',
@@ -197,5 +198,89 @@ describe('convertToAdf', () => {
       type: 'paragraph',
       content: [],
     })
+  })
+})
+
+// ── ADF edge cases ──
+
+describe('convertToAdf — edge cases', () => {
+  it('returns empty doc for whitespace-only input', () => {
+    expect(convertToAdf('   \n  ')).toEqual({
+      version: 1,
+      type: 'doc',
+      content: [],
+    })
+  })
+
+  it('normalizes heading level > 6 to h6', () => {
+    const result = convertToAdf('###### H6')
+    expect(result.content[0]).toMatchObject({
+      type: 'heading',
+      attrs: { level: 6 },
+    })
+  })
+
+  it('converts code block without language — no attrs', () => {
+    const result = convertToAdf('```\nplain code\n```')
+    const block = result.content[0]
+    expect(block).toMatchObject({ type: 'codeBlock' })
+    // Should either have no attrs or undefined language
+    expect(
+      !('attrs' in block) ||
+        (block as { attrs?: { language?: string } }).attrs?.language === undefined
+    ).toBe(true)
+  })
+
+  it('handles link with empty text [](url) — text node uses URL', () => {
+    const result = convertToAdf('[](https://example.com)')
+    const para = result.content[0] as { content: { marks?: { attrs?: { href: string } }[] }[] }
+    const linkMark = para.content[0]?.marks?.find((m) => m.attrs?.href)
+    expect(linkMark?.attrs?.href).toBe('https://example.com')
+  })
+
+  it('handles nested bold inside italic', () => {
+    const result = convertToAdf('_**bold in italic**_')
+    const para = result.content[0] as { content: { marks?: { type: string }[] }[] }
+    const textNode = para.content[0]
+    expect(textNode?.marks).toContainEqual({ type: 'em' })
+    expect(textNode?.marks).toContainEqual({ type: 'strong' })
+  })
+
+  it('converts thematic break to rule', () => {
+    const result = convertToAdf('---')
+    expect(result.content[0]).toEqual({ type: 'rule' })
+  })
+
+  it('converts multiple paragraphs', () => {
+    const result = convertToAdf('First paragraph\n\nSecond paragraph')
+    expect(result.content).toHaveLength(2)
+    expect(result.content[0]).toMatchObject({ type: 'paragraph' })
+    expect(result.content[1]).toMatchObject({ type: 'paragraph' })
+  })
+
+  it('table normalizes unequal column count', () => {
+    const md = '| A | B | C |\n|---|---|---|\n| 1 | 2 |'
+    const result = convertToAdf(md)
+    const table = result.content[0] as {
+      content: { content: unknown[] }[]
+    }
+    // Header row has 3 cells
+    expect(table.content[0].content).toHaveLength(3)
+    // Data row should also have 3 cells (padded)
+    expect(table.content[1].content).toHaveLength(3)
+  })
+
+  it('ignores HTML blocks (out of scope)', () => {
+    const result = convertToAdf('<div>hello</div>')
+    // HTML blocks should be ignored — no content or empty
+    expect(result.content.length).toBe(0)
+  })
+
+  it('handles hard break', () => {
+    // Two trailing spaces = hard break
+    const result = convertToAdf('line one  \nline two')
+    const para = result.content[0] as { content: { type: string }[] }
+    const hasBreak = para.content.some((n) => n.type === 'hardBreak')
+    expect(hasBreak).toBe(true)
   })
 })

@@ -32,10 +32,7 @@ import type {
   AdfTableRowNode,
 } from './adf-types.js'
 
-function convertInlineToAdf(
-  node: PhrasingContent,
-  parentMarks: AdfMark[] = []
-): AdfInlineNode[] {
+function convertInlineToAdf(node: PhrasingContent, parentMarks: AdfMark[] = []): AdfInlineNode[] {
   switch (node.type) {
     case 'text':
       return [
@@ -47,21 +44,15 @@ function convertInlineToAdf(
       ]
     case 'strong': {
       const marks: AdfMark[] = [...parentMarks, { type: 'strong' }]
-      return (node as Strong).children.flatMap((child) =>
-        convertInlineToAdf(child, marks)
-      )
+      return (node as Strong).children.flatMap((child) => convertInlineToAdf(child, marks))
     }
     case 'emphasis': {
       const marks: AdfMark[] = [...parentMarks, { type: 'em' }]
-      return (node as Emphasis).children.flatMap((child) =>
-        convertInlineToAdf(child, marks)
-      )
+      return (node as Emphasis).children.flatMap((child) => convertInlineToAdf(child, marks))
     }
     case 'delete': {
       const marks: AdfMark[] = [...parentMarks, { type: 'strike' }]
-      return (node as Delete).children.flatMap((child) =>
-        convertInlineToAdf(child, marks)
-      )
+      return (node as Delete).children.flatMap((child) => convertInlineToAdf(child, marks))
     }
     case 'inlineCode':
       return [
@@ -73,13 +64,8 @@ function convertInlineToAdf(
       ]
     case 'link': {
       const linkNode = node as Link
-      const marks: AdfMark[] = [
-        ...parentMarks,
-        { type: 'link', attrs: { href: linkNode.url } },
-      ]
-      return linkNode.children.flatMap((child) =>
-        convertInlineToAdf(child, marks)
-      )
+      const marks: AdfMark[] = [...parentMarks, { type: 'link', attrs: { href: linkNode.url } }]
+      return linkNode.children.flatMap((child) => convertInlineToAdf(child, marks))
     }
     case 'break':
       return [{ type: 'hardBreak' }]
@@ -205,10 +191,21 @@ function transformNodeToAdf(node: RootContent): AdfBlockNode | null {
     case 'table':
       return transformTableToAdf(node as Table)
     case 'html':
+      // Out of scope — ignore silently
       return null
     case 'yaml':
+      // Frontmatter — skip silently
       return null
     default:
+      // Unknown node type — emit a paragraph with raw text as fallback so content
+      // is not silently discarded. Future consumers (CLI, VSCode) benefit from
+      // graceful degradation rather than data loss.
+      if ('value' in node && typeof (node as { value: unknown }).value === 'string') {
+        return {
+          type: 'paragraph',
+          content: [{ type: 'text', text: (node as { value: string }).value }],
+        }
+      }
       return null
   }
 }
