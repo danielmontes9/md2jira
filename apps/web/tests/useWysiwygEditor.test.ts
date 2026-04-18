@@ -1,6 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { useWysiwygEditor } from '../src/hooks/useWysiwygEditor.js'
+import { convertToAdf } from 'md2jira-core'
+import { adfToHtml } from '../src/components/jira-output/adf-renderer.js'
+
+function makeOpts(md: string) {
+  const adf = convertToAdf(md)
+  return { previewHtml: adfToHtml(adf), onMarkdownChange: undefined }
+}
 
 // Minimal mocks needed by jsdom
 beforeEach(() => {
@@ -8,7 +15,7 @@ beforeEach(() => {
 })
 
 describe('useWysiwygEditor', () => {
-  const baseOpts = { markdown: '# Hello', onMarkdownChange: undefined }
+  const baseOpts = makeOpts('# Hello')
 
   it('returns stable editorRef across renders', () => {
     const { result, rerender } = renderHook(() => useWysiwygEditor(baseOpts))
@@ -17,19 +24,10 @@ describe('useWysiwygEditor', () => {
     expect(result.current.editorRef).toBe(ref1)
   })
 
-  it('generates previewHtml from markdown', () => {
-    const { result } = renderHook(() => useWysiwygEditor(baseOpts))
-    expect(result.current.previewHtml).toContain('Hello')
-  })
-
-  it('returns error HTML on broken markdown conversion', () => {
-    // convertToAdf may throw for truly malformed input;
-    // the hook should catch and return an error preview.
-    const { result } = renderHook(() =>
-      useWysiwygEditor({ markdown: '', onMarkdownChange: undefined })
-    )
-    // Empty markdown should still produce valid (possibly empty) HTML without throwing.
-    expect(typeof result.current.previewHtml).toBe('string')
+  it('does not throw with empty previewHtml', () => {
+    expect(() =>
+      renderHook(() => useWysiwygEditor({ previewHtml: '', onMarkdownChange: undefined }))
+    ).not.toThrow()
   })
 
   it('initializes activeBlock to "p"', () => {
@@ -74,14 +72,10 @@ describe('useWysiwygEditor', () => {
     }).not.toThrow()
   })
 
-  it('previewHtml updates when markdown changes', () => {
-    const { result, rerender } = renderHook(
-      ({ md }) => useWysiwygEditor({ markdown: md, onMarkdownChange: undefined }),
-      { initialProps: { md: '# One' } }
-    )
-    const html1 = result.current.previewHtml
-    rerender({ md: '## Two' })
-    expect(result.current.previewHtml).not.toBe(html1)
-    expect(result.current.previewHtml).toContain('Two')
+  it('accepts updated previewHtml without throwing', () => {
+    const opts1 = makeOpts('# One')
+    const opts2 = makeOpts('## Two')
+    const { rerender } = renderHook((opts) => useWysiwygEditor(opts), { initialProps: opts1 })
+    expect(() => rerender(opts2)).not.toThrow()
   })
 })

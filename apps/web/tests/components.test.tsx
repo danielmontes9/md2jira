@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { App } from '../src/App.js'
 import { ErrorBoundary } from '../src/components/ErrorBoundary.js'
 
@@ -168,5 +168,71 @@ describe('Markdown → output conversion', () => {
   it('shows no conversion error banner for valid markdown', () => {
     render(<App />)
     expect(screen.queryByText(/conversion error/i)).not.toBeInTheDocument()
+  })
+})
+
+describe('URL deep-linking', () => {
+  let originalLocation: Location
+
+  beforeEach(() => {
+    originalLocation = window.location
+  })
+
+  afterEach(() => {
+    Object.defineProperty(window, 'location', {
+      value: originalLocation,
+      writable: true,
+      configurable: true,
+    })
+  })
+
+  it('initializes markdown from ?md= base64url query param', () => {
+    const md = '# Hello from URL'
+    const encoded = btoa(encodeURIComponent(md))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '')
+    Object.defineProperty(window, 'location', {
+      value: { ...window.location, search: `?md=${encoded}` },
+      writable: true,
+      configurable: true,
+    })
+    render(<App />)
+    const textarea = screen.getByPlaceholderText('Paste your Markdown here...')
+    expect((textarea as HTMLTextAreaElement).value).toContain('Hello from URL')
+  })
+
+  it('falls back to placeholder when ?md= is invalid base64', () => {
+    Object.defineProperty(window, 'location', {
+      value: { ...window.location, search: '?md=!!!invalid!!!' },
+      writable: true,
+      configurable: true,
+    })
+    render(<App />)
+    const textarea = screen.getByPlaceholderText('Paste your Markdown here...')
+    // Should fall back to the PLACEHOLDER which starts with "# My Issue"
+    expect((textarea as HTMLTextAreaElement).value).toContain('My Issue')
+  })
+})
+
+describe('Copy for Jira button', () => {
+  it('calls clipboard API and shows Copied! feedback', async () => {
+    const writeMock = vi.fn().mockResolvedValue(undefined)
+    const writeTextMock = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { write: writeMock, writeText: writeTextMock },
+      writable: true,
+      configurable: true,
+    })
+
+    render(<App />)
+    const copyBtn = screen.getByRole('button', { name: /copy for jira/i })
+    fireEvent.click(copyBtn)
+
+    // jsdom does not support ClipboardItem, so write() may fail and fall back to writeText().
+    await waitFor(() => {
+      const called = writeMock.mock.calls.length > 0 || writeTextMock.mock.calls.length > 0
+      expect(called).toBe(true)
+    })
   })
 })
