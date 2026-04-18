@@ -363,13 +363,12 @@ export function JiraOutput({
     }
   }, [markdown])
 
-  // Initialize editor on mount
+  // Initialize editor on mount — intentionally runs once
   useEffect(() => {
     if (editorRef.current) {
       editorRef.current.innerHTML = previewHtml
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, []) // run only on mount
 
   // Sync editor when markdown changes from the left panel (not while user edits here)
   useEffect(() => {
