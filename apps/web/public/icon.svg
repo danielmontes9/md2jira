@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#1d4ed8"/>
+  <text
+    x="256" y="348"
+    text-anchor="middle"
+    font-family="ui-monospace, 'Cascadia Code', Menlo, monospace"
+    font-size="210"
+    font-weight="700"
+    fill="white"
+    letter-spacing="-8"
+  >md</text>
+</svg>
