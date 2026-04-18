@@ -7,6 +7,12 @@
  * without resorting to `any`.
  *
  * @see https://w3c.github.io/input-events/ — future InputEvent-based alternative
+ *
+ * MIGRATION TRACKING (tech debt):
+ * When Chrome/Firefox announce a removal timeline for execCommand, migrate the
+ * WYSIWYG toolbar to a proper rich-text library (preferred: TipTap / ProseMirror).
+ * Set VITE_ENABLE_WYSIWYG=false to disable the WYSIWYG mode entirely in CI or
+ * preview environments. Track progress in the project's issue tracker.
  */
 
 type ExecDoc = { execCommand(cmd: string, showUI: boolean, value: string): boolean }
