@@ -18,8 +18,9 @@ export function Modal({ onClose, ariaLabelledBy, children }: ModalProps) {
       e.preventDefault() // suppress default close so we control it
       onClose()
     }
-    dialog.addEventListener('cancel', handleCancel)
-    return () => dialog.removeEventListener('cancel', handleCancel)
+    const ac = new AbortController()
+    dialog.addEventListener('cancel', handleCancel, { signal: ac.signal })
+    return () => ac.abort()
   }, [onClose])
 
   return (

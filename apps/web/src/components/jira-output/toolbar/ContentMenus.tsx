@@ -64,9 +64,7 @@ export function ListsMenu({ exec, insertHtml, close, openKey, onOpen }: ListsMen
           role="menuitem"
           onMouseDown={(e) => {
             e.preventDefault()
-            insertHtml(
-              '<ul style="list-style:none;padding-left:0"><li><input type="checkbox">&nbsp;Task</li></ul>'
-            )
+            exec('toggleTaskList')
             close()
           }}
           className={`${DROP_ITEM_CLS} justify-between`}
@@ -115,6 +113,7 @@ export function ColorMenu({ exec, close, openKey, onOpen }: ColorMenuProps) {
               className="h-6 w-6 rounded border border-neutral-300 transition-transform hover:scale-110 dark:border-neutral-600"
               style={{ background: color }}
               title={color}
+              aria-label={color}
             />
           ))}
         </div>
@@ -123,7 +122,7 @@ export function ColorMenu({ exec, close, openKey, onOpen }: ColorMenuProps) {
             role="option"
             onMouseDown={(e) => {
               e.preventDefault()
-              exec('removeFormat')
+              exec('foreColor')
               close()
             }}
             className="w-full rounded py-1 text-xs text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
@@ -165,6 +164,7 @@ export function EmojiMenu({ exec, close, openKey, onOpen }: EmojiMenuProps) {
       >
         <input
           type="text"
+          aria-label="Search emojis"
           placeholder="Search..."
           value={emojiSearch}
           onChange={(e) => setEmojiSearch(e.target.value)}
@@ -242,9 +242,7 @@ export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertM
           role="menuitem"
           onMouseDown={(e) => {
             e.preventDefault()
-            insertHtml(
-              '<ul style="list-style:none;padding-left:0"><li><input type="checkbox">&nbsp;Action item</li></ul>'
-            )
+            exec('toggleTaskList')
             close()
           }}
           className={DROP_ITEM_CLS}

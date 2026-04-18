@@ -1,4 +1,3 @@
-export { escapeHtml } from './escape-html.js'
 import { escapeHtml } from './escape-html.js'
 
 /**

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { highlightJson, escapeHtml } from '../src/utils/highlight-json.js'
+import { highlightJson } from '../src/utils/highlight-json.js'
+import { escapeHtml } from '../src/utils/escape-html.js'
 
 describe('escapeHtml', () => {
   it('returns empty string for empty input', () => {

@@ -24,6 +24,26 @@ export function createTurndownService(): TurndownService {
 
   td.keep(['sub', 'sup'])
 
+  // Task list items: <li data-type="taskItem" data-checked="true|false">
+  // Must be registered before the generic bullet-list rules so the more specific
+  // filter wins (Turndown checks rules in registration order).
+  td.addRule('taskListItem', {
+    filter: (node) =>
+      node.nodeName === 'LI' && (node as HTMLElement).getAttribute('data-type') === 'taskItem',
+    replacement: (content: string, node: Node) => {
+      const el = node as HTMLElement
+      const checked = el.getAttribute('data-checked') === 'true'
+      const text = content.replace(/\n+/g, ' ').trim()
+      return `\n- [${checked ? 'x' : ' '}] ${text}`
+    },
+  })
+
+  td.addRule('taskList', {
+    filter: (node) =>
+      node.nodeName === 'UL' && (node as HTMLElement).getAttribute('data-type') === 'taskList',
+    replacement: (content: string) => `\n\n${content.trim()}\n\n`,
+  })
+
   td.addRule('strikethrough', {
     filter: (node) => ['S', 'DEL', 'STRIKE'].includes(node.nodeName),
     replacement: (content: string) => `~~${content}~~`,

@@ -4,7 +4,6 @@ import { useClipboardEvents } from '../src/hooks/useClipboardEvents.js'
 import type { RefObject } from 'react'
 
 describe('useClipboardEvents', () => {
-  const mockOnChange = vi.fn()
   const mockAddToast = vi.fn()
   let textareaEl: HTMLTextAreaElement
 
@@ -21,15 +20,13 @@ describe('useClipboardEvents', () => {
 
   it('returns copiedMd as false on initial render', () => {
     const ref = { current: null } as RefObject<HTMLTextAreaElement>
-    const { result } = renderHook(() => useClipboardEvents('', mockOnChange, ref, mockAddToast))
+    const { result } = renderHook(() => useClipboardEvents('', ref, mockAddToast))
     expect(result.current.copiedMd).toBe(false)
   })
 
   it('does not throw when textareaRef.current is null', () => {
     const ref = { current: null } as RefObject<HTMLTextAreaElement>
-    expect(() =>
-      renderHook(() => useClipboardEvents('text', mockOnChange, ref, mockAddToast))
-    ).not.toThrow()
+    expect(() => renderHook(() => useClipboardEvents('text', ref, mockAddToast))).not.toThrow()
   })
 
   it('copy event writes plain text and <pre>-wrapped HTML to clipboard', () => {
@@ -37,7 +34,7 @@ describe('useClipboardEvents', () => {
     textareaEl.value = '# Hello'
     textareaEl.setSelectionRange(0, 7)
 
-    renderHook(() => useClipboardEvents('# Hello', mockOnChange, ref, mockAddToast))
+    renderHook(() => useClipboardEvents('# Hello', ref, mockAddToast))
 
     const clipboardData = { clearData: vi.fn(), setData: vi.fn() }
     const copyEvent = Object.assign(new Event('copy'), {
@@ -54,7 +51,7 @@ describe('useClipboardEvents', () => {
     const ref = { current: textareaEl } as RefObject<HTMLTextAreaElement>
     document.execCommand = vi.fn().mockReturnValue(false)
 
-    renderHook(() => useClipboardEvents('', mockOnChange, ref, mockAddToast))
+    renderHook(() => useClipboardEvents('', ref, mockAddToast))
 
     const preventDefaultSpy = vi.fn()
     const clipboardData = { getData: vi.fn().mockReturnValue('pasted') }
@@ -80,9 +77,7 @@ describe('useClipboardEvents', () => {
     })
 
     const ref = { current: null } as RefObject<HTMLTextAreaElement>
-    const { result } = renderHook(() =>
-      useClipboardEvents('# Hello', mockOnChange, ref, mockAddToast)
-    )
+    const { result } = renderHook(() => useClipboardEvents('# Hello', ref, mockAddToast))
 
     await act(async () => {
       result.current.handleCopyMd()
@@ -106,9 +101,7 @@ describe('useClipboardEvents', () => {
     })
 
     const ref = { current: null } as RefObject<HTMLTextAreaElement>
-    const { result } = renderHook(() =>
-      useClipboardEvents('# Hello', mockOnChange, ref, mockAddToast)
-    )
+    const { result } = renderHook(() => useClipboardEvents('# Hello', ref, mockAddToast))
 
     await act(async () => {
       result.current.handleCopyMd()

@@ -90,6 +90,26 @@ describe('createTurndownService', () => {
     expect(result).toContain('```')
     expect(result).toContain('print("hi")')
   })
+
+  it('converts TipTap taskList to GFM checkboxes', () => {
+    const td = createTurndownService()
+    const html =
+      '<ul data-type="taskList">' +
+      '<li data-type="taskItem" data-checked="true"><div><p>Done</p></div></li>' +
+      '<li data-type="taskItem" data-checked="false"><div><p>Todo</p></div></li>' +
+      '</ul>'
+    const result = td.turndown(html)
+    expect(result).toContain('- [x] Done')
+    expect(result).toContain('- [ ] Todo')
+  })
+
+  it('converts unchecked task list item', () => {
+    const td = createTurndownService()
+    const html =
+      '<ul data-type="taskList"><li data-type="taskItem" data-checked="false"><div><p>Pending</p></div></li></ul>'
+    const result = td.turndown(html)
+    expect(result).toContain('- [ ] Pending')
+  })
 })
 
 // ── Roundtrip integration: Markdown → ADF → HTML → Turndown → Markdown ───────

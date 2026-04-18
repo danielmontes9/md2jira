@@ -142,13 +142,27 @@ describe('EditorToolbar', () => {
     expect(execMock).toHaveBeenCalledWith('foreColor', color)
   })
 
-  it('ColorMenu "Remove color" calls exec("removeFormat")', () => {
+  it('ColorMenu "Remove color" calls exec("foreColor") with no argument to unset color', () => {
     renderToolbar()
     const colorBtn = screen.getByTitle('Text color').closest('button')!
     fireEvent.mouseDown(colorBtn)
     const removeBtn = screen.getByText('Remove color')
     fireEvent.mouseDown(removeBtn)
-    expect(execMock).toHaveBeenCalledWith('removeFormat')
+    expect(execMock).toHaveBeenCalledWith('foreColor')
+  })
+
+  it('ListsMenu Task list calls exec("toggleTaskList")', () => {
+    renderToolbar()
+    // Open the lists dropdown (it uses IconListBullet — find by aria-haspopup=menu near it)
+    const menuTriggers = screen
+      .getAllByRole('button')
+      .filter((btn) => btn.getAttribute('aria-haspopup') === 'menu')
+    // ListsMenu is the 3rd menu trigger (TextStyle, Format, Lists)
+    const listsBtn = menuTriggers[2]!
+    fireEvent.mouseDown(listsBtn)
+    const taskBtn = screen.getByText('Task list')
+    fireEvent.mouseDown(taskBtn)
+    expect(execMock).toHaveBeenCalledWith('toggleTaskList')
   })
 
   it('EmojiMenu opens on mousedown and shows a search input', () => {

@@ -93,6 +93,9 @@ function execTiptapCommand(editor: Editor, cmd: string, arg?: string): void {
         }
       }
       break
+    case 'toggleTaskList':
+      chain.toggleTaskList().run()
+      break
     case 'insertText':
       if (arg) chain.insertContent(arg).run()
       break
@@ -188,7 +191,9 @@ export function useTiptapEditor({
               const md = tdRef.current!.turndown(html)
               isExternalUpdateRef.current = true
               onMarkdownChangeRef.current?.(md)
-              isExternalUpdateRef.current = false
+              queueMicrotask(() => {
+                isExternalUpdateRef.current = false
+              })
             })
             .catch(() => {
               tdLoadingRef.current = false
@@ -200,7 +205,9 @@ export function useTiptapEditor({
           const md = tdRef.current.turndown(html)
           isExternalUpdateRef.current = true
           onMarkdownChangeRef.current?.(md)
-          isExternalUpdateRef.current = false
+          queueMicrotask(() => {
+            isExternalUpdateRef.current = false
+          })
         } catch {
           // Turndown conversion failed — don't crash the editor
         }
@@ -223,7 +230,9 @@ export function useTiptapEditor({
     const sanitized = DOMPurify.sanitize(previewHtml)
     isExternalUpdateRef.current = true
     editor.commands.setContent(sanitized)
-    isExternalUpdateRef.current = false
+    queueMicrotask(() => {
+      isExternalUpdateRef.current = false
+    })
   }, [previewHtml, editor])
 
   const exec = useCallback(

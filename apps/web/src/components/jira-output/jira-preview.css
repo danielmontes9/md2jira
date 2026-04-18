@@ -209,6 +209,49 @@
   margin: 0.1em 0;
 }
 
+/* Task lists (TipTap TaskList / ADF taskList) */
+.jira-preview ul[data-type='taskList'] {
+  list-style: none;
+  padding-left: 0.25em;
+}
+
+.jira-preview li[data-type='taskItem'] {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5em;
+  margin: 0.2em 0;
+}
+
+.jira-preview li[data-type='taskItem'] > label {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  cursor: pointer;
+  user-select: none;
+}
+
+.jira-preview li[data-type='taskItem'] input[type='checkbox'] {
+  accent-color: #2563eb;
+  cursor: pointer;
+}
+
+/* Subscript and superscript */
+.jira-preview sub,
+.jira-preview sup {
+  font-size: 0.75em;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+
+.jira-preview sub {
+  bottom: -0.25em;
+}
+
+.jira-preview sup {
+  top: -0.5em;
+}
+
 .jira-preview table {
   border-collapse: collapse;
   width: 100%;

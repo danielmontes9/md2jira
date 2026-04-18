@@ -1,4 +1,6 @@
 import { useState, useCallback, useEffect, useRef, type RefObject } from 'react'
+// NOTE: value is kept as a param (not read inside the effect) so that
+// handleCopyMd always captures the latest markdown via closure.
 import { escapeHtml } from '../utils/escape-html.js'
 import type { ToastType } from '../components/Toast.js'
 
@@ -12,7 +14,6 @@ import type { ToastType } from '../components/Toast.js'
  */
 export function useClipboardEvents(
   value: string,
-  onChange: (v: string) => void,
   textareaRef: RefObject<HTMLTextAreaElement>,
   addToast: (msg: string, type: ToastType) => void
 ): { copiedMd: boolean; handleCopyMd: () => void } {
@@ -60,12 +61,11 @@ export function useClipboardEvents(
       textarea.dispatchEvent(new Event('input', { bubbles: true }))
     }
 
-    textarea.addEventListener('copy', handleCopy)
-    textarea.addEventListener('paste', handlePaste)
-    return () => {
-      textarea.removeEventListener('copy', handleCopy)
-      textarea.removeEventListener('paste', handlePaste)
-    }
+    const ac = new AbortController()
+    const { signal } = ac
+    textarea.addEventListener('copy', handleCopy, { signal })
+    textarea.addEventListener('paste', handlePaste, { signal })
+    return () => ac.abort()
     // textareaRef is the only dep needed: handlers read textarea.value directly
     // from the DOM element (always current) so stale-closure for `value` is not
     // possible. Adding `value` or `onChange` would re-register listeners on every

@@ -88,6 +88,7 @@ export default defineConfig({
         manualChunks: {
           'react-vendor': ['react', 'react-dom'],
           turndown: ['turndown'],
+          tiptap: ['@tiptap/react', '@tiptap/starter-kit', '@tiptap/pm'],
         },
       },
     },
