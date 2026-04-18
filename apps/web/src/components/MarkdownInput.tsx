@@ -2,31 +2,24 @@ import { useRef, useCallback, useMemo, useState, lazy, Suspense, memo } from 're
 const ShortcutsModal = lazy(() =>
   import('./ShortcutsModal.js').then((m) => ({ default: m.ShortcutsModal }))
 )
-import { ToastContainer, ToastType } from './Toast.js'
 import { useMarkdownShortcuts } from '../hooks/useMarkdownShortcuts.js'
 import { useClipboardEvents } from '../hooks/useClipboardEvents.js'
 import { useFileImportExport } from '../hooks/useFileImportExport.js'
+import { useToast } from '../context/ToastContext.js'
 
 interface MarkdownInputProps {
   value: string
   onChange: (value: string) => void
 }
 
+const TOOLBAR_BTN_CLS =
+  'rounded-md px-2 py-1 text-xs text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200'
+
 export const MarkdownInput = memo(function MarkdownInput({ value, onChange }: MarkdownInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const gutterRef = useRef<HTMLDivElement>(null)
   const [showShortcuts, setShowShortcuts] = useState(false)
-  const [toasts, setToasts] = useState<{ id: number; message: string; type: ToastType }[]>([])
-  const toastId = useRef(0)
-
-  const addToast = useCallback((message: string, type: ToastType = 'info') => {
-    const id = ++toastId.current
-    setToasts((prev) => [...prev, { id, message, type }])
-  }, [])
-
-  const removeToast = useCallback((id: number) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id))
-  }, [])
+  const addToast = useToast()
 
   const { copiedMd, handleCopyMd } = useClipboardEvents(value, onChange, textareaRef, addToast)
   const { fileInputRef, handleImport, handleFileChange, handleExport } = useFileImportExport(
@@ -59,28 +52,28 @@ export const MarkdownInput = memo(function MarkdownInput({ value, onChange }: Ma
           <div className="flex items-center justify-center gap-1 @[375px]:justify-end">
             <button
               onClick={handleImport}
-              className="rounded-md px-2 py-1 text-xs text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
+              className={TOOLBAR_BTN_CLS}
               aria-label="Import Markdown file"
             >
               Import
             </button>
             <button
               onClick={handleExport}
-              className="rounded-md px-2 py-1 text-xs text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
+              className={TOOLBAR_BTN_CLS}
               aria-label="Export Markdown file"
             >
               Export
             </button>
             <button
               onClick={() => setShowShortcuts(true)}
-              className="rounded-md px-2 py-1 text-xs text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
+              className={TOOLBAR_BTN_CLS}
               aria-label="Show keyboard shortcuts"
             >
               Shortcuts
             </button>
             <button
               onClick={handleCopyMd}
-              className="rounded-md px-2 py-1 text-xs text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
+              className={TOOLBAR_BTN_CLS}
               aria-label="Copy Markdown to clipboard"
             >
               {copiedMd ? 'Copied!' : 'Copy MD'}
@@ -123,7 +116,6 @@ export const MarkdownInput = memo(function MarkdownInput({ value, onChange }: Ma
         className="sr-only"
         onChange={handleFileChange}
       />
-      <ToastContainer toasts={toasts} onClose={removeToast} />
     </>
   )
 })

@@ -1,9 +1,9 @@
 import { useState, useCallback, type RefObject } from 'react'
 import type { OutputFormat } from '../types.js'
+import { useToast } from '../context/ToastContext.js'
 
 export interface JiraCopyState {
   copied: boolean
-  copyError: boolean
   handleCopy: () => Promise<void>
 }
 
@@ -14,6 +14,7 @@ export interface JiraCopyState {
  *   so rich Jira editors receive formatted content.
  * - Wiki Markup format: plain text write only.
  * - Falls back to writeText() if write() is unsupported (e.g. Firefox, sandboxed iframes).
+ * - Shows a toast notification if all clipboard methods fail.
  */
 export function useJiraCopy(
   value: string,
@@ -21,7 +22,7 @@ export function useJiraCopy(
   editorRef: RefObject<HTMLDivElement>
 ): JiraCopyState {
   const [copied, setCopied] = useState(false)
-  const [copyError, setCopyError] = useState(false)
+  const addToast = useToast()
 
   const handleCopy = useCallback(async () => {
     try {
@@ -40,14 +41,13 @@ export function useJiraCopy(
       try {
         await navigator.clipboard.writeText(value)
       } catch {
-        setCopyError(true)
-        setTimeout(() => setCopyError(false), 2000)
+        addToast('Failed to copy to clipboard', 'error')
         return
       }
     }
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
-  }, [value, format, editorRef])
+  }, [value, format, editorRef, addToast])
 
-  return { copied, copyError, handleCopy }
+  return { copied, handleCopy }
 }
