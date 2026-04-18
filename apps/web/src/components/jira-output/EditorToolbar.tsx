@@ -69,6 +69,46 @@ const CheckIcon = () => (
   </svg>
 )
 
+const TEXT_STYLES: { label: string; tag: string; cls: string }[] = [
+  { label: 'Normal text', tag: 'p', cls: 'text-sm' },
+  { label: 'Heading 1', tag: 'H1', cls: 'text-xl font-bold' },
+  { label: 'Heading 2', tag: 'H2', cls: 'text-lg font-bold' },
+  { label: 'Heading 3', tag: 'H3', cls: 'text-base font-bold' },
+  { label: 'Heading 4', tag: 'H4', cls: 'text-sm font-bold' },
+  { label: 'Heading 5', tag: 'H5', cls: 'text-xs font-bold' },
+  { label: 'Heading 6', tag: 'H6', cls: 'text-xs font-semibold' },
+]
+
+type FormatItem = { label: string; shortcut: string; iconCls: string; icon: string; cmd: string }
+
+const FORMAT_ITEMS: FormatItem[] = [
+  { label: 'Bold', shortcut: `${MOD_KEY}+B`, iconCls: 'font-bold', icon: 'B', cmd: 'bold' },
+  { label: 'Italic', shortcut: `${MOD_KEY}+I`, iconCls: 'italic', icon: 'I', cmd: 'italic' },
+  {
+    label: 'Underline',
+    shortcut: `${MOD_KEY}+U`,
+    iconCls: 'underline',
+    icon: 'U',
+    cmd: 'underline',
+  },
+  {
+    label: 'Strikethrough',
+    shortcut: `${MOD_KEY}+Shift+S`,
+    iconCls: 'line-through',
+    icon: 'S',
+    cmd: 'strikeThrough',
+  },
+  { label: 'Subscript', shortcut: `${MOD_KEY}+,`, iconCls: '', icon: 'X₁', cmd: 'subscript' },
+  { label: 'Superscript', shortcut: `${MOD_KEY}+.`, iconCls: '', icon: 'X¹', cmd: 'superscript' },
+  {
+    label: 'Clear formatting',
+    shortcut: `${MOD_KEY}+\\`,
+    iconCls: '',
+    icon: '✕',
+    cmd: 'removeFormat',
+  },
+]
+
 /**
  * WYSIWYG editor toolbar using document.execCommand() for text formatting.
  *
@@ -134,17 +174,7 @@ export function EditorToolbar({
         }
       >
         <div className={DROP_CLS} style={{ minWidth: 190 }}>
-          {(
-            [
-              { label: 'Normal text', tag: 'p', cls: 'text-sm' },
-              { label: 'Heading 1', tag: 'H1', cls: 'text-xl font-bold' },
-              { label: 'Heading 2', tag: 'H2', cls: 'text-lg font-bold' },
-              { label: 'Heading 3', tag: 'H3', cls: 'text-base font-bold' },
-              { label: 'Heading 4', tag: 'H4', cls: 'text-sm font-bold' },
-              { label: 'Heading 5', tag: 'H5', cls: 'text-xs font-bold' },
-              { label: 'Heading 6', tag: 'H6', cls: 'text-xs font-semibold' },
-            ] as { label: string; tag: string; cls: string }[]
-          ).map(({ label, tag, cls }) => {
+          {TEXT_STYLES.map(({ label, tag, cls }) => {
             const isActive = activeBlock === tag.toLowerCase()
             return (
               <button
@@ -180,59 +210,7 @@ export function EditorToolbar({
         }
       >
         <div className={DROP_CLS} style={{ minWidth: 215 }}>
-          {(
-            [
-              {
-                label: 'Bold',
-                shortcut: `${MOD_KEY}+B`,
-                iconCls: 'font-bold',
-                icon: 'B',
-                cmd: 'bold',
-              },
-              {
-                label: 'Italic',
-                shortcut: `${MOD_KEY}+I`,
-                iconCls: 'italic',
-                icon: 'I',
-                cmd: 'italic',
-              },
-              {
-                label: 'Underline',
-                shortcut: `${MOD_KEY}+U`,
-                iconCls: 'underline',
-                icon: 'U',
-                cmd: 'underline',
-              },
-              {
-                label: 'Strikethrough',
-                shortcut: `${MOD_KEY}+Shift+S`,
-                iconCls: 'line-through',
-                icon: 'S',
-                cmd: 'strikeThrough',
-              },
-              {
-                label: 'Subscript',
-                shortcut: `${MOD_KEY}+,`,
-                iconCls: '',
-                icon: 'X₁',
-                cmd: 'subscript',
-              },
-              {
-                label: 'Superscript',
-                shortcut: `${MOD_KEY}+.`,
-                iconCls: '',
-                icon: 'X¹',
-                cmd: 'superscript',
-              },
-              {
-                label: 'Clear formatting',
-                shortcut: `${MOD_KEY}+\\`,
-                iconCls: '',
-                icon: '✕',
-                cmd: 'removeFormat',
-              },
-            ] as { label: string; shortcut: string; iconCls: string; icon: string; cmd: string }[]
-          ).map(({ label, shortcut, iconCls, icon, cmd }) => {
+          {FORMAT_ITEMS.map(({ label, shortcut, iconCls, icon, cmd }) => {
             const isActive = activeFormats.has(cmd)
             return (
               <button

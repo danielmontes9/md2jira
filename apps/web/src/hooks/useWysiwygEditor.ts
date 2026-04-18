@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
+import { useState, useCallback, useRef, useEffect, useMemo, type RefObject } from 'react'
 import type TurndownService from 'turndown'
 import { convertToAdf } from 'md2jira-core'
 import { adfToHtml } from '../components/jira-output/adf-renderer.js'
@@ -9,8 +9,7 @@ interface UseWysiwygEditorOptions {
 }
 
 export interface WysiwygEditorState {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  editorRef: React.RefObject<any>
+  editorRef: RefObject<HTMLDivElement>
   activeBlock: string
   activeFormats: Set<string>
   previewHtml: string
@@ -46,7 +45,7 @@ export function useWysiwygEditor({
     if (editorRef.current) {
       editorRef.current.innerHTML = previewHtml
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, []) // intentional: runs once on mount to set initial HTML
 
   // Sync editor when markdown changes externally (not while user edits here)
   useEffect(() => {

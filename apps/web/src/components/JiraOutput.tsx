@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, memo } from 'react'
 import { useWysiwygEditor } from '../hooks/useWysiwygEditor.js'
 import { EditorToolbar } from './jira-output/EditorToolbar.js'
 
@@ -59,7 +59,7 @@ function CopyEditGroup({
   )
 }
 
-export function JiraOutput({
+export const JiraOutput = memo(function JiraOutput({
   value,
   format,
   onFormatChange,
@@ -76,15 +76,20 @@ export function JiraOutput({
   })
 
   const handleCopy = useCallback(async () => {
-    if (format === 'adf') {
-      const currentHtml = editorRef.current?.innerHTML ?? ''
-      const blob = new Blob([currentHtml], { type: 'text/html' })
-      const textBlob = new Blob([value], { type: 'text/plain' })
-      await navigator.clipboard.write([
-        new ClipboardItem({ 'text/html': blob, 'text/plain': textBlob }),
-      ])
-    } else {
-      await navigator.clipboard.writeText(value)
+    try {
+      if (format === 'adf') {
+        const currentHtml = editorRef.current?.innerHTML ?? ''
+        const blob = new Blob([currentHtml], { type: 'text/html' })
+        const textBlob = new Blob([value], { type: 'text/plain' })
+        await navigator.clipboard.write([
+          new ClipboardItem({ 'text/html': blob, 'text/plain': textBlob }),
+        ])
+      } else {
+        await navigator.clipboard.writeText(value)
+      }
+    } catch {
+      // Fallback for browsers that block the Clipboard API (e.g. Firefox, sandboxed iframes)
+      await navigator.clipboard.writeText(value).catch(() => {})
     }
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
@@ -221,4 +226,4 @@ export function JiraOutput({
       )}
     </div>
   )
-}
+})
