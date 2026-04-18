@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
+import type React from 'react'
 import { useFileImportExport } from '../src/hooks/useFileImportExport.js'
 import type { ChangeEvent } from 'react'
 
@@ -24,7 +25,9 @@ describe('useFileImportExport', () => {
   it('handleImport triggers click on the file input element', () => {
     const { result } = renderHook(() => useFileImportExport('', mockOnChange, mockAddToast))
     const mockClick = vi.fn()
-    result.current.fileInputRef.current = { click: mockClick } as unknown as HTMLInputElement
+    ;(result.current.fileInputRef as React.MutableRefObject<HTMLInputElement | null>).current = {
+      click: mockClick,
+    } as unknown as HTMLInputElement
     act(() => {
       result.current.handleImport()
     })

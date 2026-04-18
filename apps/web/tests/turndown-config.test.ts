@@ -60,6 +60,36 @@ describe('createTurndownService', () => {
     expect(result).toContain('|')
     expect(result).toContain('---')
   })
+
+  it('converts table cell with inline formatting', () => {
+    const td = createTurndownService()
+    const html = '<table><tr><th>Name</th></tr><tr><td><strong>bold</strong> text</td></tr></table>'
+    const result = td.turndown(html)
+    expect(result).toContain('**bold**')
+  })
+
+  it('converts multi-row table preserving all rows', () => {
+    const td = createTurndownService()
+    const html = '<table><tr><th>H</th></tr><tr><td>R1</td></tr><tr><td>R2</td></tr></table>'
+    const result = td.turndown(html)
+    expect(result).toContain('R1')
+    expect(result).toContain('R2')
+  })
+
+  it('converts empty table cells', () => {
+    const td = createTurndownService()
+    const html = '<table><tr><th>A</th><th>B</th></tr><tr><td></td><td>val</td></tr></table>'
+    const result = td.turndown(html)
+    expect(result).toContain('val')
+  })
+
+  it('converts code block with language class', () => {
+    const td = createTurndownService()
+    const html = '<pre><code class="language-python">print("hi")</code></pre>'
+    const result = td.turndown(html)
+    expect(result).toContain('```')
+    expect(result).toContain('print("hi")')
+  })
 })
 
 // ── Roundtrip integration: Markdown → ADF → HTML → Turndown → Markdown ───────

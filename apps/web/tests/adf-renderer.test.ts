@@ -23,6 +23,26 @@ describe('adfInlineToHtml', () => {
     expect(adfInlineToHtml(node)).toBe('<em>hello</em>')
   })
 
+  it('wraps subsup mark with type sub as <sub>', () => {
+    const node: AdfInlineNode = {
+      type: 'text',
+      text: 'n',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      marks: [{ type: 'subsup', attrs: { type: 'sub' } } as any],
+    }
+    expect(adfInlineToHtml(node)).toBe('<sub>n</sub>')
+  })
+
+  it('wraps subsup mark with type sup as <sup>', () => {
+    const node: AdfInlineNode = {
+      type: 'text',
+      text: 'x',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      marks: [{ type: 'subsup', attrs: { type: 'sup' } } as any],
+    }
+    expect(adfInlineToHtml(node)).toBe('<sup>x</sup>')
+  })
+
   it('wraps code mark', () => {
     const node: AdfInlineNode = { type: 'text', text: 'x', marks: [{ type: 'code' }] }
     expect(adfInlineToHtml(node)).toBe('<code>x</code>')
@@ -130,5 +150,106 @@ describe('adfToHtml', () => {
       content: [{ type: 'unknown' as any, content: [] }],
     }
     expect(adfToHtml(doc)).toBe('')
+  })
+
+  it('converts a code block without language', () => {
+    const doc: AdfDocument = {
+      version: 1,
+      type: 'doc',
+      content: [{ type: 'codeBlock', content: [{ type: 'text', text: 'const x = 1' }] }],
+    }
+    const html = adfToHtml(doc)
+    expect(html).toContain('<pre>')
+    expect(html).toContain('const x = 1')
+  })
+
+  it('converts a code block with language attr (renders language- class)', () => {
+    const doc: AdfDocument = {
+      version: 1,
+      type: 'doc',
+      content: [
+        {
+          type: 'codeBlock',
+          attrs: { language: 'typescript' },
+          content: [{ type: 'text', text: 'const x: number = 1' }],
+        },
+      ],
+    }
+    const html = adfToHtml(doc)
+    expect(html).toContain('<pre><code class="language-typescript">')
+    expect(html).toContain('const x: number = 1')
+  })
+
+  it('converts a blockquote', () => {
+    const doc: AdfDocument = {
+      version: 1,
+      type: 'doc',
+      content: [
+        {
+          type: 'blockquote',
+          content: [{ type: 'paragraph', content: [{ type: 'text', text: 'quoted' }] }],
+        },
+      ],
+    }
+    const html = adfToHtml(doc)
+    expect(html).toContain('<blockquote>')
+    expect(html).toContain('quoted')
+  })
+
+  it('converts a table with header and body rows', () => {
+    const doc: AdfDocument = {
+      version: 1,
+      type: 'doc',
+      content: [
+        {
+          type: 'table',
+          attrs: { isNumberColumnEnabled: false, layout: 'default' },
+          content: [
+            {
+              type: 'tableRow',
+              content: [
+                {
+                  type: 'tableHeader',
+                  content: [{ type: 'paragraph', content: [{ type: 'text', text: 'H1' }] }],
+                },
+              ],
+            },
+            {
+              type: 'tableRow',
+              content: [
+                {
+                  type: 'tableCell',
+                  content: [{ type: 'paragraph', content: [{ type: 'text', text: 'C1' }] }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    }
+    const html = adfToHtml(doc)
+    expect(html).toContain('<th>')
+    expect(html).toContain('H1')
+    expect(html).toContain('<td>')
+    expect(html).toContain('C1')
+  })
+
+  it('converts an ordered list', () => {
+    const doc: AdfDocument = {
+      version: 1,
+      type: 'doc',
+      content: [
+        {
+          type: 'orderedList',
+          content: [
+            {
+              type: 'listItem',
+              content: [{ type: 'paragraph', content: [{ type: 'text', text: 'first' }] }],
+            },
+          ],
+        },
+      ],
+    }
+    expect(adfToHtml(doc)).toBe('<ol><li><p>first</p></li></ol>')
   })
 })

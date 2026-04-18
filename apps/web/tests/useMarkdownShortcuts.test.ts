@@ -278,4 +278,36 @@ describe('useMarkdownShortcuts', () => {
     press('d', { ctrl: true })
     expect(ta.value).toBe('hello world\nhello world')
   })
+
+  // ── Heading cycle via Ctrl+Shift+H ──────────────────────────────────────────
+
+  it('Ctrl+Shift+H adds h1 prefix to plain text', () => {
+    ta.value = 'plain text'
+    ta.selectionStart = ta.selectionEnd = 5
+    press('h', { ctrl: true, shift: true })
+    expect(ta.value).toBe('# plain text')
+  })
+
+  it('Ctrl+Shift+H cycles h1 to h2', () => {
+    ta.value = '# heading'
+    ta.selectionStart = ta.selectionEnd = 5
+    press('h', { ctrl: true, shift: true })
+    expect(ta.value).toBe('## heading')
+  })
+
+  it('Ctrl+Shift+H on h3 removes heading prefix', () => {
+    ta.value = '### heading'
+    ta.selectionStart = ta.selectionEnd = 5
+    press('h', { ctrl: true, shift: true })
+    expect(ta.value).toBe('heading')
+  })
+
+  // ── Enter — auto-continue edge cases ────────────────────────────────────────
+
+  it('Enter after task list item continues with task list prefix', () => {
+    ta.value = '- [x] done'
+    ta.selectionStart = ta.selectionEnd = 10
+    press('Enter')
+    expect(ta.value).toBe('- [x] done\n- [ ] ')
+  })
 })
