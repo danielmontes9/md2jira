@@ -8,6 +8,14 @@ import { useMarkdownShortcuts } from '../src/hooks/useMarkdownShortcuts.js'
  * The closure captures `ta` so it always targets the textarea created per test.
  */
 function makeExecCommandStub(getTa: () => HTMLTextAreaElement) {
+  // jsdom does not implement execCommand — define it so vi.spyOn can wrap it
+  if (!Object.prototype.hasOwnProperty.call(document, 'execCommand')) {
+    Object.defineProperty(document, 'execCommand', {
+      value: () => false,
+      writable: true,
+      configurable: true,
+    })
+  }
   return vi.spyOn(document, 'execCommand').mockImplementation((cmd, _showUI, val = '') => {
     if (cmd !== 'insertText') return true
     const ta = getTa()

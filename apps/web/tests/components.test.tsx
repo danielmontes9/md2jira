@@ -15,7 +15,9 @@ Object.defineProperty(window, 'localStorage', {
 describe('App', () => {
   it('renders the page title', () => {
     render(<App />)
-    expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { level: 1, name: /md2jira-previewer/i })
+    ).toBeInTheDocument()
   })
 
   it('renders the Markdown textarea', () => {
