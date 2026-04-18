@@ -1,6 +1,8 @@
-import { useState, useCallback, memo } from 'react'
+import { useState, memo } from 'react'
 import { useWysiwygEditor } from '../hooks/useWysiwygEditor.js'
+import { useJiraCopy } from '../hooks/useJiraCopy.js'
 import { EditorToolbar } from './jira-output/EditorToolbar.js'
+import './jira-output/jira-preview.css'
 import type { OutputFormat, ViewMode } from '../types.js'
 
 interface JiraOutputProps {
@@ -68,8 +70,6 @@ export const JiraOutput = memo(function JiraOutput({
   isPending,
   onMarkdownChange,
 }: JiraOutputProps) {
-  const [copied, setCopied] = useState(false)
-  const [copyError, setCopyError] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>('preview')
   const [editMode, setEditMode] = useState(false)
 
@@ -78,31 +78,7 @@ export const JiraOutput = memo(function JiraOutput({
     onMarkdownChange,
   })
 
-  const handleCopy = useCallback(async () => {
-    try {
-      if (format === 'adf') {
-        const currentHtml = editorRef.current?.innerHTML ?? ''
-        const blob = new Blob([currentHtml], { type: 'text/html' })
-        const textBlob = new Blob([value], { type: 'text/plain' })
-        await navigator.clipboard.write([
-          new ClipboardItem({ 'text/html': blob, 'text/plain': textBlob }),
-        ])
-      } else {
-        await navigator.clipboard.writeText(value)
-      }
-    } catch {
-      // Fallback for browsers that block the Clipboard API (e.g. Firefox, sandboxed iframes)
-      try {
-        await navigator.clipboard.writeText(value)
-      } catch {
-        setCopyError(true)
-        setTimeout(() => setCopyError(false), 2000)
-        return
-      }
-    }
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }, [value, format, editorRef])
+  const { copied, copyError, handleCopy } = useJiraCopy(value, format, editorRef)
 
   const canEdit =
     import.meta.env.VITE_ENABLE_WYSIWYG !== 'false' &&
