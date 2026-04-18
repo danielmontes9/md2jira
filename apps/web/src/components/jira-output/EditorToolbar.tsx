@@ -54,7 +54,7 @@ export function EditorToolbar({
     >
       <TextStyleMenu {...menuProps} activeBlock={activeBlock} />
       <FormatMenu {...menuProps} activeFormats={activeFormats} />
-      <ListsMenu {...menuProps} />
+      <ListsMenu {...menuProps} activeFormats={activeFormats} />
       <ColorMenu {...menuProps} />
 
       <div className="mx-1 h-4 w-px bg-neutral-200 dark:bg-neutral-700" />
@@ -63,10 +63,10 @@ export function EditorToolbar({
       <button
         onMouseDown={(e) => {
           e.preventDefault()
-          insertHtml('<pre><code>// code here</code></pre><p><br></p>')
+          exec('toggleCodeBlock')
         }}
         title="Code snippet"
-        className={BTN_CLS}
+        className={`${BTN_CLS} ${activeBlock === 'pre' ? 'bg-neutral-100 dark:bg-neutral-800' : ''}`}
       >
         <IconCodeBrackets />
       </button>

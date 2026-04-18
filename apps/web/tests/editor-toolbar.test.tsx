@@ -47,11 +47,11 @@ describe('EditorToolbar', () => {
     expect(execMock).toHaveBeenCalledWith('redo')
   })
 
-  it('calls insertHtml with a code block when Code Snippet button is pressed', () => {
+  it('calls exec("toggleCodeBlock") when Code Snippet button is pressed', () => {
     renderToolbar()
     const codeBtn = screen.getByTitle('Code snippet')
     fireEvent.mouseDown(codeBtn)
-    expect(insertHtmlMock).toHaveBeenCalledWith(expect.stringContaining('<pre><code>'))
+    expect(execMock).toHaveBeenCalledWith('toggleCodeBlock')
   })
 
   it('does not render a disabled Image button (images are out of scope)', () => {

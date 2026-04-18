@@ -67,14 +67,7 @@ interface FormatMenuProps extends ToolbarMenuProps {
   activeFormats: Set<string>
 }
 
-export function FormatMenu({
-  exec,
-  insertHtml,
-  close,
-  openKey,
-  onOpen,
-  activeFormats,
-}: FormatMenuProps) {
+export function FormatMenu({ exec, close, openKey, onOpen, activeFormats }: FormatMenuProps) {
   return (
     <ToolbarDropdown
       dropKey="format"
@@ -119,16 +112,19 @@ export function FormatMenu({
           role="menuitem"
           onMouseDown={(e) => {
             e.preventDefault()
-            insertHtml('<code>code</code>')
+            exec('toggleCode')
             close()
           }}
-          className={`${DROP_ITEM_CLS} justify-between`}
+          className={`${DROP_ITEM_CLS} justify-between ${activeFormats.has('code') ? 'bg-neutral-100 dark:bg-neutral-800' : ''}`}
         >
           <span className="flex items-center gap-2">
             <span className="w-5 text-center font-mono text-xs">{'{}'}</span>
             Code
           </span>
-          <span className="text-xs text-neutral-400">{`${MOD_KEY}+Shift+M`}</span>
+          <span className="flex items-center gap-2">
+            {activeFormats.has('code') && <CheckIcon />}
+            <span className="text-xs text-neutral-400">{`${MOD_KEY}+Shift+M`}</span>
+          </span>
         </button>
       </div>
     </ToolbarDropdown>

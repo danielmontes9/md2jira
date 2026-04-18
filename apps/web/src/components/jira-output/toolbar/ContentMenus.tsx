@@ -19,9 +19,10 @@ import { IconListBullet } from '../../icons.js'
 interface ListsMenuProps extends ToolbarMenuProps {
   openKey: DropKey | null
   onOpen: (key: DropKey) => void
+  activeFormats: Set<string>
 }
 
-export function ListsMenu({ exec, close, openKey, onOpen }: ListsMenuProps) {
+export function ListsMenu({ exec, close, openKey, onOpen, activeFormats }: ListsMenuProps) {
   return (
     <ToolbarDropdown
       dropKey="lists"
@@ -43,7 +44,7 @@ export function ListsMenu({ exec, close, openKey, onOpen }: ListsMenuProps) {
             exec('insertUnorderedList')
             close()
           }}
-          className={`${DROP_ITEM_CLS} justify-between`}
+          className={`${DROP_ITEM_CLS} justify-between ${activeFormats.has('insertUnorderedList') ? 'bg-neutral-100 dark:bg-neutral-800' : ''}`}
         >
           <span>Bullet list</span>
           <span className="text-xs text-neutral-400">{`${MOD_KEY}+Shift+8`}</span>
@@ -55,7 +56,7 @@ export function ListsMenu({ exec, close, openKey, onOpen }: ListsMenuProps) {
             exec('insertOrderedList')
             close()
           }}
-          className={`${DROP_ITEM_CLS} justify-between`}
+          className={`${DROP_ITEM_CLS} justify-between ${activeFormats.has('insertOrderedList') ? 'bg-neutral-100 dark:bg-neutral-800' : ''}`}
         >
           <span>Numbered list</span>
           <span className="text-xs text-neutral-400">{`${MOD_KEY}+Shift+7`}</span>
@@ -67,7 +68,7 @@ export function ListsMenu({ exec, close, openKey, onOpen }: ListsMenuProps) {
             exec('toggleTaskList')
             close()
           }}
-          className={`${DROP_ITEM_CLS} justify-between`}
+          className={`${DROP_ITEM_CLS} justify-between ${activeFormats.has('toggleTaskList') ? 'bg-neutral-100 dark:bg-neutral-800' : ''}`}
         >
           <span>Task list</span>
           <span className="text-xs text-neutral-400">{`${MOD_KEY}+Shift+6`}</span>
@@ -220,6 +221,7 @@ export function EmojiMenu({ exec, close, openKey, onOpen }: EmojiMenuProps) {
 // ── Insert Menu ──
 
 interface InsertMenuProps extends ToolbarMenuProps {
+  insertHtml: (html: string) => void
   openKey: DropKey | null
   onOpen: (key: DropKey) => void
 }

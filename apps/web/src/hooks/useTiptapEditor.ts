@@ -102,6 +102,12 @@ function execTiptapCommand(editor: Editor, cmd: string, arg?: string): void {
     case 'toggleBlockquote':
       chain.toggleBlockquote().run()
       break
+    case 'toggleCode':
+      chain.toggleCode().run()
+      break
+    case 'toggleCodeBlock':
+      chain.toggleCodeBlock().run()
+      break
     case 'insertText':
       if (arg) chain.insertContent(arg).run()
       break
@@ -128,6 +134,11 @@ function getActiveFormats(editor: Editor): Set<string> {
   if (editor.isActive('strike')) fmts.add('strikeThrough')
   if (editor.isActive('subscript')) fmts.add('subscript')
   if (editor.isActive('superscript')) fmts.add('superscript')
+  if (editor.isActive('code')) fmts.add('code')
+  if (editor.isActive('bulletList')) fmts.add('insertUnorderedList')
+  if (editor.isActive('orderedList')) fmts.add('insertOrderedList')
+  if (editor.isActive('taskList')) fmts.add('toggleTaskList')
+  if (editor.isActive('blockquote')) fmts.add('toggleBlockquote')
   return fmts
 }
 
