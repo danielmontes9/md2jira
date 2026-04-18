@@ -79,6 +79,8 @@ describe('useTiptapEditor', () => {
       ['toggleTaskList'],
       ['insertTable'],
       ['toggleBlockquote'],
+      ['toggleCode'],
+      ['toggleCodeBlock'],
       ['undo'],
       ['redo'],
       ['removeFormat'],

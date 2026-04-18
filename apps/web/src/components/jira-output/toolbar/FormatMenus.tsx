@@ -42,6 +42,7 @@ export function TextStyleMenu({ exec, close, openKey, onOpen, activeBlock }: Tex
             <button
               key={tag}
               role="menuitem"
+              aria-pressed={isActive}
               onMouseDown={(e) => {
                 e.preventDefault()
                 exec('formatBlock', tag)
@@ -90,6 +91,7 @@ export function FormatMenu({ exec, close, openKey, onOpen, activeFormats }: Form
             <button
               key={label}
               role="menuitem"
+              aria-pressed={isActive}
               onMouseDown={(e) => {
                 e.preventDefault()
                 exec(cmd)
@@ -110,6 +112,7 @@ export function FormatMenu({ exec, close, openKey, onOpen, activeFormats }: Form
         })}
         <button
           role="menuitem"
+          aria-pressed={activeFormats.has('code')}
           onMouseDown={(e) => {
             e.preventDefault()
             exec('toggleCode')

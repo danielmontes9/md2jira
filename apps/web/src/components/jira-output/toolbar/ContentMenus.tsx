@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useDeferredValue } from 'react'
 // TEXT_COLORS and EMOJI_CATEGORIES are static data co-located in the lazy
 // EditorToolbar chunk. They are NOT in the initial bundle because EditorToolbar
 // is lazy-loaded via React.lazy — these constants only load on first render.
@@ -44,6 +44,7 @@ export function ListsMenu({ exec, close, openKey, onOpen, activeFormats }: Lists
             exec('insertUnorderedList')
             close()
           }}
+          aria-pressed={activeFormats.has('insertUnorderedList')}
           className={`${DROP_ITEM_CLS} justify-between ${activeFormats.has('insertUnorderedList') ? 'bg-neutral-100 dark:bg-neutral-800' : ''}`}
         >
           <span>Bullet list</span>
@@ -56,6 +57,7 @@ export function ListsMenu({ exec, close, openKey, onOpen, activeFormats }: Lists
             exec('insertOrderedList')
             close()
           }}
+          aria-pressed={activeFormats.has('insertOrderedList')}
           className={`${DROP_ITEM_CLS} justify-between ${activeFormats.has('insertOrderedList') ? 'bg-neutral-100 dark:bg-neutral-800' : ''}`}
         >
           <span>Numbered list</span>
@@ -68,6 +70,7 @@ export function ListsMenu({ exec, close, openKey, onOpen, activeFormats }: Lists
             exec('toggleTaskList')
             close()
           }}
+          aria-pressed={activeFormats.has('toggleTaskList')}
           className={`${DROP_ITEM_CLS} justify-between ${activeFormats.has('toggleTaskList') ? 'bg-neutral-100 dark:bg-neutral-800' : ''}`}
         >
           <span>Task list</span>
@@ -145,6 +148,7 @@ interface EmojiMenuProps extends ToolbarMenuProps {
 
 export function EmojiMenu({ exec, close, openKey, onOpen }: EmojiMenuProps) {
   const [emojiSearch, setEmojiSearch] = useState('')
+  const deferredSearch = useDeferredValue(emojiSearch)
 
   return (
     <ToolbarDropdown
@@ -175,7 +179,7 @@ export function EmojiMenu({ exec, close, openKey, onOpen }: EmojiMenuProps) {
         {emojiSearch ? (
           <div className="flex flex-wrap gap-0.5">
             {[...new Set(Object.values(EMOJI_CATEGORIES).flat())]
-              .filter((em) => em.includes(emojiSearch))
+              .filter((em) => em.includes(deferredSearch))
               .map((em, i) => (
                 <button
                   key={i}

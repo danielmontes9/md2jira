@@ -220,4 +220,43 @@ describe('EditorToolbar', () => {
     fireEvent.mouseDown(dividerItem)
     expect(execMock).toHaveBeenCalledWith('insertHorizontalRule')
   })
+
+  it('Code Snippet button has aria-pressed="true" when activeBlock is "pre"', () => {
+    renderToolbar(new Set(), 'pre')
+    const codeBtn = screen.getByTitle('Code snippet')
+    expect(codeBtn).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('Code Snippet button has aria-pressed="false" when activeBlock is "p"', () => {
+    renderToolbar(new Set(), 'p')
+    const codeBtn = screen.getByTitle('Code snippet')
+    expect(codeBtn).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('FormatMenu Bold item has aria-pressed="true" when bold is in activeFormats', () => {
+    renderToolbar(new Set(['bold']))
+    const bBtn = screen.getByTitle('Format text').closest('button')!
+    fireEvent.mouseDown(bBtn)
+    const boldItem = screen.getByText('Bold').closest('button')!
+    expect(boldItem).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('FormatMenu Bold item has aria-pressed="false" when bold is not in activeFormats', () => {
+    renderToolbar(new Set())
+    const bBtn = screen.getByTitle('Format text').closest('button')!
+    fireEvent.mouseDown(bBtn)
+    const boldItem = screen.getByText('Bold').closest('button')!
+    expect(boldItem).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('ListsMenu Bullet list item has aria-pressed="true" when bullet list is active', () => {
+    renderToolbar(new Set(['insertUnorderedList']))
+    const menuTriggers = screen
+      .getAllByRole('button')
+      .filter((btn) => btn.getAttribute('aria-haspopup') === 'menu')
+    const listsBtn = menuTriggers[2]!
+    fireEvent.mouseDown(listsBtn)
+    const bulletItem = screen.getByText('Bullet list').closest('button')!
+    expect(bulletItem).toHaveAttribute('aria-pressed', 'true')
+  })
 })

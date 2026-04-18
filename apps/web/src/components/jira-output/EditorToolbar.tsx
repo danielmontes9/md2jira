@@ -66,6 +66,7 @@ export function EditorToolbar({
           exec('toggleCodeBlock')
         }}
         title="Code snippet"
+        aria-pressed={activeBlock === 'pre'}
         className={`${BTN_CLS} ${activeBlock === 'pre' ? 'bg-neutral-100 dark:bg-neutral-800' : ''}`}
       >
         <IconCodeBrackets />
