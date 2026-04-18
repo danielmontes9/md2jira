@@ -5,6 +5,7 @@ import { Header } from './components/Header.js'
 import { MarkdownInput } from './components/MarkdownInput.js'
 import { JiraOutput } from './components/JiraOutput.js'
 import { ErrorBoundary } from './components/ErrorBoundary.js'
+import { ToastProvider } from './context/ToastContext.js'
 import type { OutputFormat } from './types.js'
 import { IconAlertOcticon } from './components/icons.js'
 
@@ -98,13 +99,18 @@ export function App() {
   // Debounced URL deep-linking: update ?md= param 500ms after the user stops typing
   useEffect(() => {
     const handle = setTimeout(() => {
-      const encoded = encodeMarkdown(markdown)
       const url = new URL(window.location.href)
-      if (encoded.length <= URL_MD_MAX_ENCODED) {
-        url.searchParams.set('md', encoded)
-      } else {
-        // Document too large — remove the param to avoid truncated/broken URLs
+      if (!markdown) {
+        // Clear the param when the editor is empty
         url.searchParams.delete('md')
+      } else {
+        const encoded = encodeMarkdown(markdown)
+        if (encoded.length <= URL_MD_MAX_ENCODED) {
+          url.searchParams.set('md', encoded)
+        } else {
+          // Document too large — remove the param to avoid truncated/broken URLs
+          url.searchParams.delete('md')
+        }
       }
       window.history.replaceState(null, '', url.toString())
     }, 500)
@@ -137,43 +143,45 @@ export function App() {
   }, [deferredMarkdown, format])
 
   return (
-    <div className="flex h-screen flex-col bg-white dark:bg-neutral-950">
-      <Header theme={theme} onToggleTheme={toggleTheme} />
-      {hasConversionError && (
-        <div
-          role="alert"
-          className="flex items-center gap-2 border-b border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/50 dark:text-red-400"
-        >
-          <IconAlertOcticon className="h-4 w-4 shrink-0" />
-          Conversion error — check your Markdown for unsupported syntax.
-        </div>
-      )}
-      <noscript>
-        <div style={{ padding: '2rem', textAlign: 'center' }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>md2jira-previewer</h2>
-          <p>
-            Convert Markdown to Jira Wiki Markup and Atlassian Document Format (ADF). Please enable
-            JavaScript to use this tool.
-          </p>
-        </div>
-      </noscript>
-      <main className="flex flex-1 flex-col gap-4 overflow-auto p-4 sm:flex-row sm:overflow-hidden">
-        <section aria-label="Markdown input" className="flex min-h-64 flex-1 flex-col sm:min-h-0">
-          <MarkdownInput value={markdown} onChange={setMarkdown} />
-        </section>
-        <section aria-label="Jira output" className="flex min-h-64 flex-1 flex-col sm:min-h-0">
-          <ErrorBoundary>
-            <JiraOutput
-              value={jiraOutput}
-              format={format}
-              onFormatChange={setFormat}
-              previewHtml={previewHtml}
-              isPending={isPending}
-              onMarkdownChange={setMarkdown}
-            />
-          </ErrorBoundary>
-        </section>
-      </main>
-    </div>
+    <ToastProvider>
+      <div className="flex h-screen flex-col bg-white dark:bg-neutral-950">
+        <Header theme={theme} onToggleTheme={toggleTheme} />
+        {hasConversionError && (
+          <div
+            role="alert"
+            className="flex items-center gap-2 border-b border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/50 dark:text-red-400"
+          >
+            <IconAlertOcticon className="h-4 w-4 shrink-0" />
+            Conversion error — check your Markdown for unsupported syntax.
+          </div>
+        )}
+        <noscript>
+          <div style={{ padding: '2rem', textAlign: 'center' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>md2jira-previewer</h2>
+            <p>
+              Convert Markdown to Jira Wiki Markup and Atlassian Document Format (ADF). Please
+              enable JavaScript to use this tool.
+            </p>
+          </div>
+        </noscript>
+        <main className="flex flex-1 flex-col gap-4 overflow-auto p-4 sm:flex-row sm:overflow-hidden">
+          <section aria-label="Markdown input" className="flex min-h-64 flex-1 flex-col sm:min-h-0">
+            <MarkdownInput value={markdown} onChange={setMarkdown} />
+          </section>
+          <section aria-label="Jira output" className="flex min-h-64 flex-1 flex-col sm:min-h-0">
+            <ErrorBoundary>
+              <JiraOutput
+                value={jiraOutput}
+                format={format}
+                onFormatChange={setFormat}
+                previewHtml={previewHtml}
+                isPending={isPending}
+                onMarkdownChange={setMarkdown}
+              />
+            </ErrorBoundary>
+          </section>
+        </main>
+      </div>
+    </ToastProvider>
   )
 }

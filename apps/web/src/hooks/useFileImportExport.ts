@@ -50,6 +50,8 @@ export function useFileImportExport(
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
+    // Security: filename is hardcoded to avoid path-traversal risks if the
+    // imported filename were ever passed through here.
     a.download = 'document.md'
     a.style.display = 'none'
     document.body.appendChild(a)
