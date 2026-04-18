@@ -110,6 +110,25 @@ describe('ErrorBoundary', () => {
     expect(screen.getByText('recovered')).toBeInTheDocument()
     spy.mockRestore()
   })
+
+  it('calls onError callback when child throws', () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const onError = vi.fn()
+    const Boom = () => {
+      throw new Error('boundary-test')
+    }
+    render(
+      <ErrorBoundary onError={onError}>
+        <Boom />
+      </ErrorBoundary>
+    )
+    expect(onError).toHaveBeenCalledOnce()
+    expect(onError).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'boundary-test' }),
+      expect.objectContaining({ componentStack: expect.any(String) })
+    )
+    spy.mockRestore()
+  })
 })
 
 describe('Markdown → output conversion', () => {
