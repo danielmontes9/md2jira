@@ -29,7 +29,11 @@ export const MarkdownInput = memo(function MarkdownInput({ value, onChange }: Ma
   }, [])
 
   const { copiedMd, handleCopyMd } = useClipboardEvents(value, onChange, textareaRef, addToast)
-  const { handleImport, handleExport } = useFileImportExport(value, onChange, addToast)
+  const { fileInputRef, handleImport, handleFileChange, handleExport } = useFileImportExport(
+    value,
+    onChange,
+    addToast
+  )
 
   const syncScroll = useCallback(() => {
     if (gutterRef.current && textareaRef.current) {
@@ -110,6 +114,15 @@ export const MarkdownInput = memo(function MarkdownInput({ value, onChange }: Ma
       <Suspense fallback={null}>
         {showShortcuts && <ShortcutsModal onClose={() => setShowShortcuts(false)} />}
       </Suspense>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".md,.txt,.text,text/markdown,text/plain"
+        aria-hidden="true"
+        tabIndex={-1}
+        className="sr-only"
+        onChange={handleFileChange}
+      />
       <ToastContainer toasts={toasts} onClose={removeToast} />
     </>
   )

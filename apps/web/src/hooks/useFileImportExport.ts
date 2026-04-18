@@ -1,20 +1,30 @@
-import { useCallback } from 'react'
+import { useRef, useCallback, type ChangeEvent, type RefObject } from 'react'
 import type { ToastType } from '../components/Toast.js'
 
-/** Handles Markdown file import (file picker) and export (anchor download). */
+export interface FileImportExportState {
+  fileInputRef: RefObject<HTMLInputElement>
+  handleImport: () => void
+  handleFileChange: (e: ChangeEvent<HTMLInputElement>) => void
+  handleExport: () => void
+}
+
+/** Handles Markdown file import (declarative file input) and export (anchor download). */
 export function useFileImportExport(
   value: string,
   onChange: (v: string) => void,
   addToast: (msg: string, type: ToastType) => void
-): { handleImport: () => void; handleExport: () => void } {
+): FileImportExportState {
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
   const handleImport = useCallback(() => {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = '.md,.txt,.text,text/markdown,text/plain'
-    input.style.display = 'none'
-    input.onchange = () => {
-      input.remove()
-      const file = input.files?.[0]
+    fileInputRef.current?.click()
+  }, [])
+
+  const handleFileChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0]
+      // Reset so the same file can be re-selected in subsequent imports
+      e.target.value = ''
       if (!file) return
       const allowed = ['.md', '.txt', '.text']
       const ext = file.name.slice(file.name.lastIndexOf('.')).toLowerCase()
@@ -26,15 +36,14 @@ export function useFileImportExport(
         return
       }
       const reader = new FileReader()
-      reader.onload = (e) => {
-        const text = e.target?.result
+      reader.onload = (ev) => {
+        const text = ev.target?.result
         if (typeof text === 'string') onChange(text)
       }
       reader.readAsText(file)
-    }
-    document.body.appendChild(input)
-    input.click()
-  }, [onChange, addToast])
+    },
+    [onChange, addToast]
+  )
 
   const handleExport = useCallback(() => {
     const blob = new Blob([value], { type: 'text/markdown' })
@@ -49,5 +58,5 @@ export function useFileImportExport(
     URL.revokeObjectURL(url)
   }, [value])
 
-  return { handleImport, handleExport }
+  return { fileInputRef, handleImport, handleFileChange, handleExport }
 }
