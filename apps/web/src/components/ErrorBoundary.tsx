@@ -1,8 +1,10 @@
-import { Component, ReactNode } from 'react'
+import { Component, ReactNode, ErrorInfo } from 'react'
 
 interface Props {
   children: ReactNode
   fallback?: ReactNode
+  /** Optional error reporter — called in componentDidCatch. Integrate Sentry or similar here. */
+  onError?: (error: Error, info: ErrorInfo) => void
 }
 
 interface State {
@@ -19,6 +21,12 @@ export class ErrorBoundary extends Component<Props, State> {
   static getDerivedStateFromError(error: unknown): State {
     const message = error instanceof Error ? error.message : String(error)
     return { hasError: true, message }
+  }
+
+  override componentDidCatch(error: Error, info: ErrorInfo): void {
+    // Always log to console so the error appears in CI/DevTools.
+    console.error('[ErrorBoundary]', error, info.componentStack)
+    this.props.onError?.(error, info)
   }
 
   private handleRetry = () => {
