@@ -7,7 +7,7 @@ export function Header({ theme, onToggleTheme }: HeaderProps) {
   return (
     <header className="flex flex-col gap-y-2 border-b border-neutral-200 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-x-2 sm:px-6 sm:py-4 dark:border-neutral-800">
       {/* Row 1 (mobile) / Center (desktop) */}
-      <h1 className="text-center sm:order-2 sm:min-w-0 sm:flex-1 truncate bg-linear-to-r from-blue-400 to-purple-500 bg-clip-text text-base font-bold text-transparent sm:text-2xl">
+      <h1 className="text-center sm:order-2 sm:min-w-0 sm:flex-1 truncate bg-linear-to-r from-blue-800 to-blue-300 bg-clip-text text-base font-bold text-transparent sm:text-2xl">
         md2jira-previewer
         <span className="ml-2 hidden text-sm font-normal text-neutral-500 sm:inline dark:text-neutral-400">
           Markdown to Jira Wiki Markup & ADF
