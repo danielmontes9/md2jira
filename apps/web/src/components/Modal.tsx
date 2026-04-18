@@ -1,8 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 
-const FOCUSABLE =
-  'a[href],button:not([disabled]),input,textarea,select,[tabindex]:not([tabindex="-1"])'
-
 interface ModalProps {
   onClose: () => void
   ariaLabelledBy: string
@@ -10,50 +7,33 @@ interface ModalProps {
 }
 
 export function Modal({ onClose, ariaLabelledBy, children }: ModalProps) {
-  const dialogRef = useRef<HTMLDivElement>(null)
+  const dialogRef = useRef<HTMLDialogElement>(null)
 
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose()
-        return
-      }
-      if (e.key === 'Tab' && dialogRef.current) {
-        const focusable = Array.from(dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE))
-        if (focusable.length === 0) return
-        const first = focusable[0]!
-        const last = focusable[focusable.length - 1]!
-        if (e.shiftKey) {
-          if (document.activeElement === first) {
-            e.preventDefault()
-            last.focus()
-          }
-        } else {
-          if (document.activeElement === last) {
-            e.preventDefault()
-            first.focus()
-          }
-        }
-      }
+    const dialog = dialogRef.current
+    if (!dialog) return
+    dialog.showModal()
+    // The native `cancel` event fires when the user presses Escape.
+    const handleCancel = (e: Event) => {
+      e.preventDefault() // suppress default close so we control it
+      onClose()
     }
-    document.addEventListener('keydown', handler)
-    const first = dialogRef.current?.querySelector<HTMLElement>(FOCUSABLE)
-    first?.focus()
-    return () => document.removeEventListener('keydown', handler)
+    dialog.addEventListener('cancel', handleCancel)
+    return () => dialog.removeEventListener('cancel', handleCancel)
   }, [onClose])
 
   return (
-    <div
+    <dialog
       ref={dialogRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+      // Make the <dialog> itself the full-viewport overlay so backdrop clicks
+      // can be detected via e.target === e.currentTarget.
+      className="fixed inset-0 m-0 flex h-dvh w-full max-h-none max-w-none items-center justify-center border-0 bg-black/50 p-4 backdrop-blur-sm backdrop:bg-transparent"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose()
       }}
-      role="dialog"
-      aria-modal="true"
       aria-labelledby={ariaLabelledBy}
     >
       {children}
-    </div>
+    </dialog>
   )
 }
