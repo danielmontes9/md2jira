@@ -35,6 +35,7 @@ export const Header = memo(function Header({ theme, onToggleTheme }: HeaderProps
             href="https://www.buymeacoffee.com/danielmontes9"
             target="_blank"
             rel="noopener noreferrer"
+            aria-label="Support the project — Buy me a coffee"
             className="shrink-0 sm:order-1"
           >
             {bmacError ? (

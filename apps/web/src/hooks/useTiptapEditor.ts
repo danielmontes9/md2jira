@@ -96,6 +96,12 @@ function execTiptapCommand(editor: Editor, cmd: string, arg?: string): void {
     case 'toggleTaskList':
       chain.toggleTaskList().run()
       break
+    case 'insertTable':
+      chain.insertTable({ rows: 2, cols: 2, withHeaderRow: true }).run()
+      break
+    case 'toggleBlockquote':
+      chain.toggleBlockquote().run()
+      break
     case 'insertText':
       if (arg) chain.insertContent(arg).run()
       break

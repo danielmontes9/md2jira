@@ -21,7 +21,7 @@ interface ListsMenuProps extends ToolbarMenuProps {
   onOpen: (key: DropKey) => void
 }
 
-export function ListsMenu({ exec, insertHtml, close, openKey, onOpen }: ListsMenuProps) {
+export function ListsMenu({ exec, close, openKey, onOpen }: ListsMenuProps) {
   return (
     <ToolbarDropdown
       dropKey="lists"
@@ -270,12 +270,7 @@ export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertM
           role="menuitem"
           onMouseDown={(e) => {
             e.preventDefault()
-            insertHtml(
-              '<table style="border-collapse:collapse;width:100%">' +
-                '<tr><th style="border:1px solid #dfe1e6;padding:6px 8px;background:#f4f5f7">Column 1</th><th style="border:1px solid #dfe1e6;padding:6px 8px;background:#f4f5f7">Column 2</th></tr>' +
-                '<tr><td style="border:1px solid #dfe1e6;padding:6px 8px">&nbsp;</td><td style="border:1px solid #dfe1e6;padding:6px 8px">&nbsp;</td></tr>' +
-                '</table><p><br></p>'
-            )
+            exec('insertTable')
             close()
           }}
           className={DROP_ITEM_CLS}
@@ -305,9 +300,7 @@ export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertM
           role="menuitem"
           onMouseDown={(e) => {
             e.preventDefault()
-            insertHtml(
-              '<blockquote style="border-left:3px solid #dfe1e6;margin:4px 0;padding:4px 12px;color:#5e6c84"><p>Quote here</p></blockquote><p><br></p>'
-            )
+            exec('toggleBlockquote')
             close()
           }}
           className={DROP_ITEM_CLS}

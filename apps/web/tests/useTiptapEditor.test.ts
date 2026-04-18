@@ -77,6 +77,8 @@ describe('useTiptapEditor', () => {
       ['insertOrderedList'],
       ['insertHorizontalRule'],
       ['toggleTaskList'],
+      ['insertTable'],
+      ['toggleBlockquote'],
       ['undo'],
       ['redo'],
       ['removeFormat'],

@@ -194,13 +194,22 @@ describe('EditorToolbar', () => {
     expect(screen.getByText('Table')).toBeInTheDocument()
   })
 
-  it('InsertMenu Table item calls insertHtml with a table', () => {
+  it('InsertMenu Table item calls exec("insertTable")', () => {
     renderToolbar()
     const insertBtn = screen.getByTitle('Insert elements').closest('button')!
     fireEvent.mouseDown(insertBtn)
     const tableItem = screen.getByText('Table')
     fireEvent.mouseDown(tableItem)
-    expect(insertHtmlMock).toHaveBeenCalledWith(expect.stringContaining('<table'))
+    expect(execMock).toHaveBeenCalledWith('insertTable')
+  })
+
+  it('InsertMenu Quote item calls exec("toggleBlockquote")', () => {
+    renderToolbar()
+    const insertBtn = screen.getByTitle('Insert elements').closest('button')!
+    fireEvent.mouseDown(insertBtn)
+    const quoteItem = screen.getByText('Quote')
+    fireEvent.mouseDown(quoteItem)
+    expect(execMock).toHaveBeenCalledWith('toggleBlockquote')
   })
 
   it('InsertMenu Divider item calls exec("insertHorizontalRule")', () => {
