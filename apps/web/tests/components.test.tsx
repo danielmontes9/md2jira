@@ -89,4 +89,23 @@ describe('ErrorBoundary', () => {
     expect(screen.getByText('custom fallback')).toBeInTheDocument()
     spy.mockRestore()
   })
+
+  it('recovers when Retry is clicked', () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    let shouldThrow = true
+    const MaybeThrow = () => {
+      if (shouldThrow) throw new Error('boom')
+      return <span>recovered</span>
+    }
+    render(
+      <ErrorBoundary>
+        <MaybeThrow />
+      </ErrorBoundary>
+    )
+    expect(screen.getByRole('alert')).toBeInTheDocument()
+    shouldThrow = false
+    fireEvent.click(screen.getByRole('button', { name: /retry/i }))
+    expect(screen.getByText('recovered')).toBeInTheDocument()
+    spy.mockRestore()
+  })
 })

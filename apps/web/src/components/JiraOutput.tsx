@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback } from 'react'
 import { useWysiwygEditor } from '../hooks/useWysiwygEditor.js'
 import { EditorToolbar } from './jira-output/EditorToolbar.js'
 
@@ -75,8 +75,6 @@ export function JiraOutput({
     onMarkdownChange,
   })
 
-  const updateTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
-
   const handleCopy = useCallback(async () => {
     if (format === 'adf') {
       const currentHtml = editorRef.current?.innerHTML ?? ''
@@ -98,9 +96,6 @@ export function JiraOutput({
     viewMode === 'preview' &&
     !!onMarkdownChange
   const showToolbar = canEdit && editMode
-
-  // Silence unused warning — updateTimeoutRef kept for future use
-  void updateTimeoutRef
 
   return (
     <div className="@container flex min-h-0 flex-1 flex-col rounded-lg border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">

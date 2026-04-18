@@ -1,4 +1,4 @@
-import { useState, Fragment, lazy, Suspense } from 'react'
+import { useState, Fragment, lazy, Suspense, memo } from 'react'
 
 const InfoModal = lazy(() => import('./InfoModal.js').then((m) => ({ default: m.InfoModal })))
 
@@ -7,7 +7,7 @@ interface HeaderProps {
   onToggleTheme: () => void
 }
 
-export function Header({ theme, onToggleTheme }: HeaderProps) {
+export const Header = memo(function Header({ theme, onToggleTheme }: HeaderProps) {
   const [infoOpen, setInfoOpen] = useState(false)
 
   return (
@@ -144,4 +144,4 @@ export function Header({ theme, onToggleTheme }: HeaderProps) {
       </Suspense>
     </Fragment>
   )
-}
+})

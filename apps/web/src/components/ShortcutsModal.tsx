@@ -1,14 +1,11 @@
-import { useEffect, useRef } from 'react'
+import { MOD_KEY } from '../utils/keyboard.js'
+import { Modal } from './Modal.js'
 
 interface ShortcutsModalProps {
   onClose: () => void
 }
 
-const FOCUSABLE =
-  'a[href],button:not([disabled]),input,textarea,select,[tabindex]:not([tabindex="-1"])'
-
-const isMac = typeof navigator !== 'undefined' && /Mac/.test(navigator.userAgent)
-const mod = isMac ? '⌘' : 'Ctrl'
+const mod = MOD_KEY
 
 const GROUPS = [
   {
@@ -49,50 +46,9 @@ const GROUPS = [
 ]
 
 export function ShortcutsModal({ onClose }: ShortcutsModalProps) {
-  const dialogRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose()
-        return
-      }
-      // Focus trap
-      if (e.key === 'Tab' && dialogRef.current) {
-        const focusable = Array.from(dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE))
-        if (focusable.length === 0) return
-        const first = focusable[0]!
-        const last = focusable[focusable.length - 1]!
-        if (e.shiftKey) {
-          if (document.activeElement === first) {
-            e.preventDefault()
-            last.focus()
-          }
-        } else {
-          if (document.activeElement === last) {
-            e.preventDefault()
-            first.focus()
-          }
-        }
-      }
-    }
-    document.addEventListener('keydown', handleKey)
-    // Auto-focus close button
-    const first = dialogRef.current?.querySelector<HTMLElement>(FOCUSABLE)
-    first?.focus()
-    return () => document.removeEventListener('keydown', handleKey)
-  }, [onClose])
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="shortcuts-modal-title"
-    >
+    <Modal onClose={onClose} ariaLabelledBy="shortcuts-modal-title">
       <div
-        ref={dialogRef}
         className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-xl border border-neutral-200 bg-white p-6 shadow-2xl dark:border-neutral-800 dark:bg-neutral-900"
         onClick={(e) => e.stopPropagation()}
       >
@@ -154,6 +110,6 @@ export function ShortcutsModal({ onClose }: ShortcutsModalProps) {
           ))}
         </div>
       </div>
-    </div>
+    </Modal>
   )
 }

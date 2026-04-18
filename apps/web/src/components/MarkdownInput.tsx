@@ -1,4 +1,13 @@
-import React, { useRef, useCallback, useMemo, useState, useEffect, lazy, Suspense } from 'react'
+import React, {
+  useRef,
+  useCallback,
+  useMemo,
+  useState,
+  useEffect,
+  lazy,
+  Suspense,
+  memo,
+} from 'react'
 const ShortcutsModal = lazy(() =>
   import('./ShortcutsModal.js').then((m) => ({ default: m.ShortcutsModal }))
 )
@@ -9,7 +18,7 @@ interface MarkdownInputProps {
   onChange: (value: string) => void
 }
 
-export function MarkdownInput({ value, onChange }: MarkdownInputProps) {
+export const MarkdownInput = memo(function MarkdownInput({ value, onChange }: MarkdownInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const gutterRef = useRef<HTMLDivElement>(null)
   const [showShortcuts, setShowShortcuts] = useState(false)
@@ -430,4 +439,4 @@ export function MarkdownInput({ value, onChange }: MarkdownInputProps) {
       <ToastContainer toasts={toasts} onClose={removeToast} />
     </>
   )
-}
+})

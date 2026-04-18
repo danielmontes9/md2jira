@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import type TurndownService from 'turndown'
 import { convertToAdf } from 'md2jira-core'
 import { adfToHtml } from '../components/jira-output/adf-renderer.js'
@@ -33,13 +33,13 @@ export function useWysiwygEditor({
   const [activeBlock, setActiveBlock] = useState<string>('p')
   const [activeFormats, setActiveFormats] = useState<Set<string>>(new Set())
 
-  // Compute preview HTML from markdown
-  let previewHtml: string
-  try {
-    previewHtml = adfToHtml(convertToAdf(markdown))
-  } catch {
-    previewHtml = '<p style="color:#ef4444;">Error rendering preview</p>'
-  }
+  const previewHtml = useMemo(() => {
+    try {
+      return adfToHtml(convertToAdf(markdown))
+    } catch {
+      return '<p style="color:#ef4444;">Error rendering preview</p>'
+    }
+  }, [markdown])
 
   // Initialize editor on mount
   useEffect(() => {
