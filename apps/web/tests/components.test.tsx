@@ -109,3 +109,62 @@ describe('ErrorBoundary', () => {
     spy.mockRestore()
   })
 })
+
+describe('Markdown → output conversion', () => {
+  it('converts markdown headings to Jira Wiki Markup in code view', () => {
+    render(<App />)
+    const textarea = screen.getByPlaceholderText('Paste your Markdown here...')
+    fireEvent.change(textarea, { target: { value: '# Hello World' } })
+
+    // Switch to Wiki Markup format
+    const wikiBtn = screen.getAllByRole('button', { name: /wiki markup/i })
+    fireEvent.click(wikiBtn[0]!)
+
+    // Switch to Code view to inspect raw output
+    const codeBtns = screen.getAllByRole('button', { name: /^code$/i })
+    fireEvent.click(codeBtns[0]!)
+
+    const pre = document.querySelector('pre')
+    expect(pre?.textContent).toContain('h1. Hello World')
+  })
+
+  it('produces JSON ADF output for Jira Cloud format', () => {
+    render(<App />)
+    const textarea = screen.getByPlaceholderText('Paste your Markdown here...')
+    fireEvent.change(textarea, { target: { value: '# Test' } })
+
+    // Jira Cloud (ADF) is the default format — switch to Code view
+    const codeBtns = screen.getAllByRole('button', { name: /^code$/i })
+    fireEvent.click(codeBtns[0]!)
+
+    const pre = document.querySelector('pre')
+    expect(pre?.textContent).toContain('"type": "doc"')
+  })
+
+  it('shows different output when toggling between ADF and Wiki formats', () => {
+    render(<App />)
+    const textarea = screen.getByPlaceholderText('Paste your Markdown here...')
+    fireEvent.change(textarea, { target: { value: '**bold**' } })
+
+    const codeBtns = screen.getAllByRole('button', { name: /^code$/i })
+    fireEvent.click(codeBtns[0]!)
+
+    // ADF output is JSON
+    const preAdf = document.querySelector('pre')
+    const adfText = preAdf?.textContent ?? ''
+    expect(adfText).toContain('"type": "doc"')
+
+    // Switch to Wiki Markup
+    const wikiBtn = screen.getAllByRole('button', { name: /wiki markup/i })
+    fireEvent.click(wikiBtn[0]!)
+
+    const preWiki = document.querySelector('pre')
+    expect(preWiki?.textContent).not.toContain('"type": "doc"')
+    expect(preWiki?.textContent).toContain('*bold*')
+  })
+
+  it('shows no conversion error banner for valid markdown', () => {
+    render(<App />)
+    expect(screen.queryByText(/conversion error/i)).not.toBeInTheDocument()
+  })
+})

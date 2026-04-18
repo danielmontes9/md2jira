@@ -51,6 +51,24 @@ function ToolbarDropdown({
   )
 }
 
+const ChevronDown = () => (
+  <svg
+    className="h-2.5 w-2.5 shrink-0"
+    viewBox="0 0 10 6"
+    fill="currentColor"
+    aria-hidden="true"
+    style={{ pointerEvents: 'none' }}
+  >
+    <path d="M0 0l5 6 5-6z" />
+  </svg>
+)
+
+const CheckIcon = () => (
+  <svg className="h-3.5 w-3.5 shrink-0 text-blue-600" viewBox="0 0 16 16" fill="currentColor">
+    <path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0z" />
+  </svg>
+)
+
 /**
  * WYSIWYG editor toolbar using document.execCommand() for text formatting.
  *
@@ -92,24 +110,6 @@ export function EditorToolbar({
     'relative flex h-7 items-center gap-0.5 rounded px-1.5 text-xs text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800 select-none'
   const dropItemCls =
     'flex w-full items-center px-4 py-1.5 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800'
-
-  const ChevronDown = () => (
-    <svg
-      className="h-2.5 w-2.5 shrink-0"
-      viewBox="0 0 10 6"
-      fill="currentColor"
-      aria-hidden="true"
-      style={{ pointerEvents: 'none' }}
-    >
-      <path d="M0 0l5 6 5-6z" />
-    </svg>
-  )
-
-  const CheckIcon = () => (
-    <svg className="h-3.5 w-3.5 shrink-0 text-blue-600" viewBox="0 0 16 16" fill="currentColor">
-      <path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0z" />
-    </svg>
-  )
 
   return (
     <div
@@ -461,8 +461,7 @@ export function EditorToolbar({
           />
           {emojiSearch ? (
             <div className="flex flex-wrap gap-0.5">
-              {Object.values(EMOJI_CATEGORIES)
-                .flat()
+              {[...new Set(Object.values(EMOJI_CATEGORIES).flat())]
                 .filter((em) => em.includes(emojiSearch))
                 .map((em, i) => (
                   <button

@@ -46,7 +46,9 @@ export function Modal({ onClose, ariaLabelledBy, children }: ModalProps) {
     <div
       ref={dialogRef}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
-      onClick={onClose}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose()
+      }}
       role="dialog"
       aria-modal="true"
       aria-labelledby={ariaLabelledBy}

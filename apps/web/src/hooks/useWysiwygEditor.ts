@@ -71,6 +71,9 @@ export function useWysiwygEditor({
     }
   }, [editModeActive])
 
+  // Cleanup any pending markdown-update timeout on unmount
+  useEffect(() => () => clearTimeout(updateTimeoutRef.current), [])
+
   // Expose a way for JiraOutput to notify us that edit mode turned on
   // We detect this via document.activeElement when saveRange is called
   const updateSelectionState = useCallback(() => {
