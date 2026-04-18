@@ -143,6 +143,10 @@ export function useTiptapEditor({
       StarterKit.configure({
         // We use the table, taskList, horizontalRule extensions separately
         heading: { levels: [1, 2, 3, 4, 5, 6] },
+        // StarterKit v3 bundles Underline; disable it here to prevent duplicate
+        // extension registration with the explicit Underline import below,
+        // which is required so chain.toggleUnderline() resolves correctly.
+        underline: false,
       }),
       Underline,
       Subscript,

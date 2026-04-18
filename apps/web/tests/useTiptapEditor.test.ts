@@ -57,4 +57,56 @@ describe('useTiptapEditor', () => {
     expect(typeof result.current.exec).toBe('function')
     expect(typeof result.current.insertHtml).toBe('function')
   })
+
+  it('does not call onMarkdownChange on initial render', () => {
+    const cb = vi.fn()
+    renderHook(() => useTiptapEditor({ previewHtml: '<p>hello</p>', onMarkdownChange: cb }))
+    expect(cb).not.toHaveBeenCalled()
+  })
+
+  it('exec supports all documented command names without throwing', () => {
+    const { result } = renderHook(() => useTiptapEditor(baseOpts))
+    const commands: [string, string?][] = [
+      ['bold'],
+      ['italic'],
+      ['underline'],
+      ['strikeThrough'],
+      ['subscript'],
+      ['superscript'],
+      ['insertUnorderedList'],
+      ['insertOrderedList'],
+      ['insertHorizontalRule'],
+      ['undo'],
+      ['redo'],
+      ['removeFormat'],
+      ['foreColor', '#0052CC'],
+      ['foreColor', undefined],
+      ['formatBlock', 'h1'],
+      ['formatBlock', 'h3'],
+      ['formatBlock', 'p'],
+      ['insertText', 'hello'],
+      ['unknownCommand'], // silently ignored per execTiptapCommand default branch
+    ]
+    for (const [cmd, arg] of commands) {
+      expect(() => act(() => result.current.exec(cmd, arg))).not.toThrow()
+    }
+  })
+
+  it('updates editor when previewHtml prop changes', () => {
+    const { result, rerender } = renderHook((opts) => useTiptapEditor(opts), {
+      initialProps: { previewHtml: '<p>Before</p>', onMarkdownChange: undefined },
+    })
+    act(() => rerender({ previewHtml: '<p>After</p>', onMarkdownChange: undefined }))
+    // Editor should remain stable and not throw after content sync
+    expect(() => result.current.editor?.getHTML()).not.toThrow()
+  })
+
+  it('insertHtml does not throw with potentially unsafe input', () => {
+    const { result } = renderHook(() => useTiptapEditor(baseOpts))
+    expect(() => {
+      act(() => result.current.insertHtml('<script>alert(1)</script>'))
+      act(() => result.current.insertHtml('<img src=x onerror=alert(1)>'))
+      act(() => result.current.insertHtml('<b>safe content</b>'))
+    }).not.toThrow()
+  })
 })

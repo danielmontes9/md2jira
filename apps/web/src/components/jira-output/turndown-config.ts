@@ -4,12 +4,12 @@ import TurndownService from 'turndown'
  * Creates and configures a TurndownService instance for converting the
  * WYSIWYG editor's HTML back to Markdown.
  *
- * NOTE: The WYSIWYG editor relies on document.execCommand() which is deprecated
- * per the HTML spec (https://developer.mozilla.org/docs/Web/API/Document/execCommand).
- * execCommand() remains the only cross-browser mechanism for formatting a
- * contentEditable element without a full rich-text library. A future migration
- * to TipTap (ProseMirror-based) is recommended to replace both the contentEditable
- * approach and this Turndown HTML→Markdown roundtrip.
+ * Used by useTiptapEditor: when the user edits content in the TipTap editor,
+ * the result of editor.getHTML() is converted back to Markdown via this service
+ * so the Markdown input panel and the ?md= URL param stay in sync.
+ *
+ * Future: replace with a ProseMirror-native Markdown serializer to eliminate
+ * this HTML→Markdown roundtrip and reduce the Turndown + DOMPurify bundle cost.
  */
 export function createTurndownService(): TurndownService {
   const td = new TurndownService({

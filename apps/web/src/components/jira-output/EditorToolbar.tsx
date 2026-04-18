@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { MOD_KEY } from '../../utils/keyboard.js'
 import { type DropKey, BTN_CLS } from './toolbar/shared.js'
 import { TextStyleMenu, FormatMenu } from './toolbar/FormatMenus.js'
@@ -22,6 +22,7 @@ export function EditorToolbar({
   activeBlock,
   activeFormats,
 }: EditorToolbarProps) {
+  const toolbarRef = useRef<HTMLDivElement>(null)
   const [openKey, setOpenKey] = useState<DropKey | null>(null)
 
   const open = useCallback((key: DropKey) => {
@@ -35,7 +36,7 @@ export function EditorToolbar({
     document.addEventListener(
       'mousedown',
       (e: MouseEvent) => {
-        if (!(e.target as Element).closest('[data-toolbar]')) close()
+        if (toolbarRef.current && !toolbarRef.current.contains(e.target as Node)) close()
       },
       { signal: ac.signal }
     )
@@ -46,7 +47,7 @@ export function EditorToolbar({
 
   return (
     <div
-      data-toolbar
+      ref={toolbarRef}
       role="toolbar"
       aria-label="Text formatting"
       className="flex flex-wrap items-center gap-px border-b border-neutral-200 bg-neutral-50 px-2 py-1 dark:border-neutral-800 dark:bg-neutral-950"

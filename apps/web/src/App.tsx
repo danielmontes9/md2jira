@@ -54,7 +54,7 @@ function getInitialMarkdown(placeholder: string): string {
   return placeholder
 }
 
-const PLACEHOLDER = `# My Issue
+export const PLACEHOLDER = `# My Issue
 
 Some **bold** text, _italic_, and ~~strikethrough~~.
 
