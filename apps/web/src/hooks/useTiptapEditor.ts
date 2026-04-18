@@ -162,6 +162,8 @@ export function useTiptapEditor({
   // Lazy-loaded TurndownService for HTML→Markdown conversion
   const tdRef = useRef<import('turndown') | null>(null)
   const tdLoadingRef = useRef(false)
+  // Stable reference to the current editor — keeps exec/insertHtml stable across renders
+  const editorRef = useRef<Editor | null>(null)
 
   const extensions = useMemo(
     () => [
@@ -193,91 +195,91 @@ export function useTiptapEditor({
     content: DOMPurify.sanitize(previewHtml),
     editable: false,
     onUpdate: ({ editor: ed }) => {
-      if (isExternalUpdateRef.current) return
-      const cb = onMarkdownChangeRef.current
-      if (!cb) return
+        if (isExternalUpdateRef.current) return
+        const cb = onMarkdownChangeRef.current
+        if (!cb) return
 
-      clearTimeout(updateTimeoutRef.current)
-      updateTimeoutRef.current = setTimeout(() => {
-        if (!onMarkdownChangeRef.current) return
-        // Lazy-load Turndown
-        if (!tdRef.current) {
-          if (tdLoadingRef.current) return
-          tdLoadingRef.current = true
-          import('../components/jira-output/turndown-config.js')
-            .then(({ createTurndownService }) => {
-              tdRef.current = createTurndownService()
-              tdLoadingRef.current = false
-              // Re-trigger the update now that Turndown is ready
-              const html = ed.getHTML()
-              const md = tdRef.current!.turndown(html)
-              isExternalUpdateRef.current = true
-              onMarkdownChangeRef.current?.(md)
-              queueMicrotask(() => {
-                isExternalUpdateRef.current = false
+        clearTimeout(updateTimeoutRef.current)
+        updateTimeoutRef.current = setTimeout(() => {
+          if (!onMarkdownChangeRef.current) return
+          // Lazy-load Turndown
+          if (!tdRef.current) {
+            if (tdLoadingRef.current) return
+            tdLoadingRef.current = true
+            import('../components/jira-output/turndown-config.js')
+              .then(({ createTurndownService }) => {
+                tdRef.current = createTurndownService()
+                tdLoadingRef.current = false
+                // Re-trigger the update now that Turndown is ready
+                const html = ed.getHTML()
+                const md = tdRef.current!.turndown(html)
+                isExternalUpdateRef.current = true
+                onMarkdownChangeRef.current?.(md)
+                queueMicrotask(() => {
+                  isExternalUpdateRef.current = false
+                })
               })
+              .catch(() => {
+                tdLoadingRef.current = false
+              })
+            return
+          }
+          try {
+            const html = ed.getHTML()
+            const md = tdRef.current.turndown(html)
+            isExternalUpdateRef.current = true
+            onMarkdownChangeRef.current?.(md)
+            queueMicrotask(() => {
+              isExternalUpdateRef.current = false
             })
-            .catch(() => {
-              tdLoadingRef.current = false
-            })
-          return
-        }
-        try {
-          const html = ed.getHTML()
-          const md = tdRef.current.turndown(html)
-          isExternalUpdateRef.current = true
-          onMarkdownChangeRef.current?.(md)
-          queueMicrotask(() => {
-            isExternalUpdateRef.current = false
-          })
-        } catch {
-          // Turndown conversion failed — don't crash the editor
-        }
-      }, debounceMs)
-    },
+          } catch {
+            // Turndown conversion failed — don't crash the editor
+          }
+        }, debounceMs)
+      },
   })
+  // useEditor() is still called unconditionally to satisfy React hooks rules;
+  // TipTap v3 does not expose a shouldCreate option in UseEditorOptions.
+  const activeEditor = shouldCreate ? editor : null
 
-  // Cleanup debounce timeout on unmount
-  useEffect(() => () => clearTimeout(updateTimeoutRef.current), [])
+  // Keep ref in sync so exec/insertHtml always see the latest editor instance
+  // without needing to list it as a useCallback dependency.
+  editorRef.current = activeEditor
 
   // Sync external previewHtml into editor (only when not editing)
+  // Uses activeEditor (not the raw editor) so we skip the sync when shouldCreate=false.
   useEffect(() => {
-    if (!editor) return
+    if (!activeEditor) return
     if (isExternalUpdateRef.current) {
       isExternalUpdateRef.current = false
       return
     }
     // Don't overwrite content while the user is focused in the editor
-    if (editor.isFocused) return
+    if (activeEditor.isFocused) return
     const sanitized = DOMPurify.sanitize(previewHtml)
     isExternalUpdateRef.current = true
-    editor.commands.setContent(sanitized)
+    activeEditor.commands.setContent(sanitized)
     queueMicrotask(() => {
       isExternalUpdateRef.current = false
     })
-  }, [previewHtml, editor])
+  }, [previewHtml, activeEditor])
 
   const exec = useCallback(
     (cmd: string, arg?: string) => {
-      if (!editor) return
-      execTiptapCommand(editor, cmd, arg)
+      if (!editorRef.current) return
+      execTiptapCommand(editorRef.current, cmd, arg)
     },
-    [editor]
+    [] // stable — uses editorRef so no dependency on editor instance
   )
 
   const insertHtml = useCallback(
     (html: string) => {
-      if (!editor) return
+      if (!editorRef.current) return
       const sanitized = DOMPurify.sanitize(html)
-      editor.chain().focus().insertContent(sanitized).run()
+      editorRef.current.chain().focus().insertContent(sanitized).run()
     },
-    [editor]
+    [] // stable — uses editorRef so no dependency on editor instance
   )
-
-  // When shouldCreate is false, behave as if the editor is unavailable.
-  // useEditor() is still called unconditionally to satisfy React hooks rules;
-  // TipTap v3 does not expose a shouldCreate option in UseEditorOptions.
-  const activeEditor = shouldCreate ? editor : null
 
   const activeBlock = activeEditor ? getActiveBlock(activeEditor) : 'p'
   const activeFormats = activeEditor ? getActiveFormats(activeEditor) : new Set<string>()

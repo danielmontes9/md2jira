@@ -7,7 +7,7 @@ import { IconCodeBrackets, IconUndo, IconRedo } from '../icons.js'
 
 interface EditorToolbarProps {
   exec: (cmd: string, arg?: string) => void
-  insertHtml?: (html: string) => void
+  insertHtml: (html: string) => void
   activeBlock: string
   activeFormats: Set<string>
   activeColor: string | undefined
@@ -75,7 +75,7 @@ export function EditorToolbar({
       </button>
 
       <EmojiMenu {...menuProps} />
-      <InsertMenu {...menuProps} insertHtml={insertHtml!} />
+      <InsertMenu {...menuProps} insertHtml={insertHtml} />
 
       <div className="mx-1 h-4 w-px bg-neutral-200 dark:bg-neutral-700" />
 

@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { adfToHtml, adfInlineToHtml, adfBlockToHtml } from '../src/components/jira-output/adf-renderer.js'
+import {
+  adfToHtml,
+  adfInlineToHtml,
+  adfBlockToHtml,
+} from '../src/components/jira-output/adf-renderer.js'
 import type { AdfDocument, AdfInlineNode } from 'md2jira-core'
 
 describe('adfInlineToHtml', () => {

@@ -24,6 +24,7 @@ describe('EditorToolbar', () => {
         insertHtml={insertHtmlMock}
         activeBlock={activeBlock}
         activeFormats={activeFormats}
+        activeColor={undefined}
       />
     )
   }
@@ -258,5 +259,26 @@ describe('EditorToolbar', () => {
     fireEvent.mouseDown(listsBtn)
     const bulletItem = screen.getByText('Bullet list').closest('button')!
     expect(bulletItem).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('ColorMenu "Remove color" has aria-selected="true" when no color is active', () => {
+    renderToolbar()
+    const colorBtn = screen.getByTitle('Text color').closest('button')!
+    fireEvent.mouseDown(colorBtn)
+    const removeBtn = screen.getByText('Remove color')
+    expect(removeBtn).toHaveAttribute('aria-selected', 'true')
+  })
+
+  it('dropdown closes when focus leaves it (blur with external relatedTarget)', () => {
+    renderToolbar()
+    const ttBtn = screen.getByText('Tt').closest('button')!
+    fireEvent.mouseDown(ttBtn)
+    // Dropdown is open — Heading 1 should be in the document
+    expect(screen.getByText('Heading 1')).toBeInTheDocument()
+    // Simulate focus leaving the dropdown container to an external element
+    const dropdownWrapper = ttBtn.closest('[data-toolbar]')!
+    fireEvent.blur(dropdownWrapper, { relatedTarget: document.body })
+    // Dropdown should be closed
+    expect(screen.queryByText('Heading 1')).not.toBeInTheDocument()
   })
 })

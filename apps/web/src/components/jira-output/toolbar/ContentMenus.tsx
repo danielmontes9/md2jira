@@ -138,6 +138,7 @@ export function ColorMenu({ exec, close, openKey, onOpen, activeColor }: ColorMe
               exec('foreColor')
               close()
             }}
+            aria-selected={!activeColor}
             className="w-full rounded py-1 text-xs text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
           >
             Remove color
@@ -187,8 +188,10 @@ export function EmojiMenu({ exec, close, openKey, onOpen }: EmojiMenuProps) {
         />
         {emojiSearch ? (
           <div className="flex flex-wrap gap-0.5">
-            {ALL_EMOJIS.filter((em) => em.includes(deferredSearch))
-              .map((em, i) => (
+            {ALL_EMOJIS.filter((em) => em.includes(deferredSearch)).length === 0 ? (
+              <p className="w-full py-2 text-center text-xs text-neutral-400">No emojis found</p>
+            ) : (
+              ALL_EMOJIS.filter((em) => em.includes(deferredSearch)).map((em, i) => (
                 <button
                   key={i}
                   onMouseDown={(e) => {
@@ -201,7 +204,8 @@ export function EmojiMenu({ exec, close, openKey, onOpen }: EmojiMenuProps) {
                 >
                   {em}
                 </button>
-              ))}
+              ))
+            )}
           </div>
         ) : (
           Object.entries(EMOJI_CATEGORIES).map(([cat, emojis]) => (

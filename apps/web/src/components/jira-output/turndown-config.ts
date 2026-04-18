@@ -22,7 +22,11 @@ export function createTurndownService(): TurndownService {
     strongDelimiter: '**',
   })
 
-  td.keep(['sub', 'sup'])
+  // Keep sub/sup elements and <span style="color:..."> written by TipTap's Color
+  // extension. Standard Markdown has no color syntax; keeping the span lets TipTap
+  // re-apply the color when the user re-opens edit mode. The core ADF converter
+  // ignores raw HTML spans in Markdown (out-of-scope HTML passthrough).
+  td.keep(['sub', 'sup', 'span'])
 
   // Task list items: <li data-type="taskItem" data-checked="true|false">
   // Must be registered before the generic bullet-list rules so the more specific
