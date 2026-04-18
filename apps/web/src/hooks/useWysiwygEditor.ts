@@ -1,12 +1,10 @@
-import { useState, useCallback, useRef, useEffect, useMemo, type RefObject } from 'react'
+import { useState, useCallback, useRef, useEffect, type RefObject } from 'react'
 import type TurndownService from 'turndown'
 import DOMPurify from 'dompurify'
-import { convertToAdf } from 'md2jira-core'
-import { adfToHtml } from '../components/jira-output/adf-renderer.js'
 import { execCommand } from '../utils/exec-command.js'
 
 interface UseWysiwygEditorOptions {
-  markdown: string
+  previewHtml: string
   onMarkdownChange: ((md: string) => void) | undefined
 }
 
@@ -14,14 +12,13 @@ export interface WysiwygEditorState {
   editorRef: RefObject<HTMLDivElement>
   activeBlock: string
   activeFormats: Set<string>
-  previewHtml: string
   exec: (cmd: string, arg?: string) => void
   insertHtml: (html: string) => void
   saveRange: () => void
 }
 
 export function useWysiwygEditor({
-  markdown,
+  previewHtml,
   onMarkdownChange,
 }: UseWysiwygEditorOptions): WysiwygEditorState {
   const editorRef = useRef<HTMLDivElement | null>(null)
@@ -38,14 +35,6 @@ export function useWysiwygEditor({
 
   const [activeBlock, setActiveBlock] = useState<string>('p')
   const [activeFormats, setActiveFormats] = useState<Set<string>>(new Set())
-
-  const previewHtml = useMemo(() => {
-    try {
-      return adfToHtml(convertToAdf(markdown))
-    } catch {
-      return '<p style="color:#ef4444;">Error rendering preview</p>'
-    }
-  }, [markdown])
 
   // Capture the initial HTML so the editor is populated on mount.
   // Using a ref avoids adding previewHtml to the dep array (which would
@@ -158,5 +147,5 @@ export function useWysiwygEditor({
     [restoreRange, scheduleMarkdownUpdate]
   )
 
-  return { editorRef, activeBlock, activeFormats, previewHtml, exec, insertHtml, saveRange }
+  return { editorRef, activeBlock, activeFormats, exec, insertHtml, saveRange }
 }

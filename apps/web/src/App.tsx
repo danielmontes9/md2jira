@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useMemo, useDeferredValue } from 'react'
 import { convert, convertToAdf } from 'md2jira-core'
+import { adfToHtml } from './components/jira-output/adf-renderer.js'
 import { Header } from './components/Header.js'
 import { MarkdownInput } from './components/MarkdownInput.js'
 import { JiraOutput } from './components/JiraOutput.js'
@@ -104,15 +105,24 @@ export function App() {
     setTheme((t) => (t === 'dark' ? 'light' : 'dark'))
   }, [])
 
-  const { jiraOutput, hasConversionError } = useMemo(() => {
+  const isPending = markdown !== deferredMarkdown
+  const { jiraOutput, hasConversionError, previewHtml } = useMemo(() => {
     try {
-      const output =
-        format === 'adf'
-          ? JSON.stringify(convertToAdf(deferredMarkdown), null, 2)
-          : convert(deferredMarkdown)
-      return { jiraOutput: output, hasConversionError: false }
+      if (format === 'adf') {
+        const adf = convertToAdf(deferredMarkdown)
+        return {
+          jiraOutput: JSON.stringify(adf, null, 2),
+          hasConversionError: false,
+          previewHtml: adfToHtml(adf),
+        }
+      }
+      return {
+        jiraOutput: convert(deferredMarkdown),
+        hasConversionError: false,
+        previewHtml: '',
+      }
     } catch {
-      return { jiraOutput: '', hasConversionError: true }
+      return { jiraOutput: '', hasConversionError: true, previewHtml: '' }
     }
   }, [deferredMarkdown, format])
 
@@ -147,7 +157,8 @@ export function App() {
               value={jiraOutput}
               format={format}
               onFormatChange={setFormat}
-              markdown={markdown}
+              previewHtml={previewHtml}
+              isPending={isPending}
               onMarkdownChange={setMarkdown}
             />
           </ErrorBoundary>

@@ -7,7 +7,8 @@ interface JiraOutputProps {
   value: string
   format: OutputFormat
   onFormatChange: (format: OutputFormat) => void
-  markdown: string
+  previewHtml: string
+  isPending?: boolean
   onMarkdownChange?: (md: string) => void
 }
 
@@ -63,7 +64,8 @@ export const JiraOutput = memo(function JiraOutput({
   value,
   format,
   onFormatChange,
-  markdown,
+  previewHtml,
+  isPending,
   onMarkdownChange,
 }: JiraOutputProps) {
   const [copied, setCopied] = useState(false)
@@ -72,7 +74,7 @@ export const JiraOutput = memo(function JiraOutput({
   const [editMode, setEditMode] = useState(false)
 
   const { editorRef, activeBlock, activeFormats, exec, insertHtml, saveRange } = useWysiwygEditor({
-    markdown,
+    previewHtml,
     onMarkdownChange,
   })
 
@@ -117,7 +119,15 @@ export const JiraOutput = memo(function JiraOutput({
       */}
       <div className="grid grid-cols-[1fr_auto] items-center gap-2 border-b border-neutral-200 px-3 py-2 @[460px]:flex @[460px]:flex-row @[460px]:justify-between @[460px]:px-4 dark:border-neutral-800">
         <div className="flex flex-col gap-2 @[460px]:flex-row @[460px]:items-center @[460px]:gap-2">
-          <span className="text-sm font-medium text-neutral-500 dark:text-neutral-400">Output</span>
+          <span className="flex items-center gap-1.5 text-sm font-medium text-neutral-500 dark:text-neutral-400">
+            Output
+            {isPending && (
+              <span
+                className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-600 dark:border-neutral-600 dark:border-t-neutral-300"
+                aria-label="Converting..."
+              />
+            )}
+          </span>
           <div className="flex items-center gap-2">
             <div
               role="group"
