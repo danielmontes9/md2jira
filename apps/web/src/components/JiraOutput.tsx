@@ -1,7 +1,10 @@
-import { useState, memo } from 'react'
+import { useState, memo, lazy, Suspense } from 'react'
 import { useWysiwygEditor } from '../hooks/useWysiwygEditor.js'
 import { useJiraCopy } from '../hooks/useJiraCopy.js'
-import { EditorToolbar } from './jira-output/EditorToolbar.js'
+import { CopyEditGroup } from './jira-output/CopyEditGroup.js'
+const EditorToolbar = lazy(() =>
+  import('./jira-output/EditorToolbar.js').then((m) => ({ default: m.EditorToolbar }))
+)
 import './jira-output/jira-preview.css'
 import type { OutputFormat, ViewMode } from '../types.js'
 
@@ -12,54 +15,6 @@ interface JiraOutputProps {
   previewHtml: string
   isPending?: boolean
   onMarkdownChange?: (md: string) => void
-}
-
-/** Shared Copy + Edit toggle button group — rendered twice (mobile + desktop breakpoint). */
-function CopyEditGroup({
-  copied,
-  copyError,
-  editMode,
-  canEdit,
-  onCopy,
-  onToggleEdit,
-  className,
-}: {
-  copied: boolean
-  copyError: boolean
-  editMode: boolean
-  canEdit: boolean
-  onCopy: () => void
-  onToggleEdit: () => void
-  className?: string
-}) {
-  return (
-    <div
-      role="group"
-      aria-label="Copy and edit"
-      className={`flex rounded-md border border-neutral-300 text-xs dark:border-neutral-600 ${className ?? ''}`}
-    >
-      <button
-        onClick={onCopy}
-        className="whitespace-nowrap rounded-l-md px-3 py-1 font-medium text-neutral-600 transition-colors hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
-      >
-        {copyError ? 'Copy failed!' : copied ? 'Copied!' : 'Copy for Jira'}
-      </button>
-      {canEdit && (
-        <button
-          onClick={onToggleEdit}
-          title={editMode ? 'Switch to view mode' : 'Switch to edit mode'}
-          aria-pressed={editMode}
-          className={`whitespace-nowrap rounded-r-md border-l px-3 py-1 font-medium transition-colors ${
-            editMode
-              ? 'border-l-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 dark:border-l-blue-700 dark:bg-blue-950 dark:text-blue-300 dark:hover:bg-blue-900'
-              : 'border-l-neutral-300 text-neutral-600 hover:bg-neutral-100 dark:border-l-neutral-600 dark:text-neutral-300 dark:hover:bg-neutral-800'
-          }`}
-        >
-          {editMode ? 'View' : 'Edit'}
-        </button>
-      )}
-    </div>
-  )
 }
 
 export const JiraOutput = memo(function JiraOutput({
@@ -78,7 +33,7 @@ export const JiraOutput = memo(function JiraOutput({
     onMarkdownChange,
   })
 
-  const { copied, copyError, handleCopy } = useJiraCopy(value, format, editorRef)
+  const { copied, handleCopy } = useJiraCopy(value, format, editorRef)
 
   const canEdit =
     import.meta.env.VITE_ENABLE_WYSIWYG !== 'false' &&
@@ -150,7 +105,6 @@ export const JiraOutput = memo(function JiraOutput({
         {/* Single CopyEditGroup — grid col 2 on mobile, flex end on desktop */}
         <CopyEditGroup
           copied={copied}
-          copyError={copyError}
           editMode={editMode}
           canEdit={canEdit}
           onCopy={handleCopy}
@@ -175,13 +129,15 @@ export const JiraOutput = memo(function JiraOutput({
             overflow: showToolbar ? 'visible' : 'hidden',
           }}
         >
-          <EditorToolbar
-            exec={exec}
-            insertHtml={insertHtml}
-            saveRange={saveRange}
-            activeBlock={activeBlock}
-            activeFormats={activeFormats}
-          />
+          <Suspense fallback={null}>
+            <EditorToolbar
+              exec={exec}
+              insertHtml={insertHtml}
+              saveRange={saveRange}
+              activeBlock={activeBlock}
+              activeFormats={activeFormats}
+            />
+          </Suspense>
         </div>
       )}
 
@@ -204,7 +160,7 @@ export const JiraOutput = memo(function JiraOutput({
           }}
           onMouseUp={saveRange}
           onKeyUp={saveRange}
-          className={`jira-preview flex-1 overflow-auto p-6 text-sm text-neutral-900 outline-none transition-shadow duration-200 dark:text-neutral-100 ${canEdit && editMode ? 'ring-1 ring-inset ring-blue-300 dark:ring-blue-700' : 'ring-0'}`}
+          className={`jira-preview flex-1 overflow-auto p-6 text-sm text-neutral-900 outline-none transition-opacity duration-200 dark:text-neutral-100 ${isPending && !(canEdit && editMode) ? 'opacity-50' : ''} ${canEdit && editMode ? 'ring-1 ring-inset ring-blue-300 dark:ring-blue-700' : 'ring-0'}`}
         />
       )}
     </div>
