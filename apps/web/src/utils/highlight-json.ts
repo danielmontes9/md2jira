@@ -1,15 +1,5 @@
-/**
- * Escapes HTML special characters so a string is safe to embed in HTML.
- * Handles the five characters required by the HTML spec: & < > " '
- */
-export function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
-}
+export { escapeHtml } from './escape-html.js'
+import { escapeHtml } from './escape-html.js'
 
 /**
  * Produces an HTML string with syntax-highlighted JSON tokens wrapped in `<span>` elements.
@@ -19,13 +9,7 @@ export function escapeHtml(str: string): string {
  */
 export function highlightJson(json: string): string {
   // Escape HTML entities before injecting any markup.
-  // Note: highlightJson only needs & < > " (not ') because JSON doesn't contain
-  // unquoted single quotes, so we keep the original four-replace chain for perf.
-  const escaped = json
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
+  const escaped = escapeHtml(json)
 
   return escaped.replace(
     // Matches: quoted strings (keys end with :), booleans, null, numbers

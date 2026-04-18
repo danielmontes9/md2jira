@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef, type RefObject } from 'react'
 import { execInsertText } from '../utils/exec-command.js'
-import { escapeHtml } from '../utils/highlight-json.js'
+import { escapeHtml } from '../utils/escape-html.js'
 import type { ToastType } from '../components/Toast.js'
 
 /**

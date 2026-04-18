@@ -252,4 +252,20 @@ describe('adfToHtml', () => {
     }
     expect(adfToHtml(doc)).toBe('<ol><li><p>first</p></li></ol>')
   })
+
+  it('escapes HTML inside codeBlock content — XSS prevention', () => {
+    const doc: AdfDocument = {
+      version: 1,
+      type: 'doc',
+      content: [
+        {
+          type: 'codeBlock',
+          content: [{ type: 'text', text: '<script>alert("xss")</script>' }],
+        },
+      ],
+    }
+    const html = adfToHtml(doc)
+    expect(html).not.toContain('<script>')
+    expect(html).toContain('&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;')
+  })
 })

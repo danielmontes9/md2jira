@@ -21,6 +21,7 @@
     "turndown": "^7.2.4"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.0",
     "@playwright/test": "^1.59.1",
     "@tailwindcss/vite": "^4.0.0",
     "@testing-library/jest-dom": "^6.0.0",

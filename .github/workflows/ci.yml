@@ -41,6 +41,25 @@ jobs:
       - name: Test
         run: pnpm test:all
 
+      - name: Build web (for bundle-size check)
+        run: pnpm --filter web build
+
+      - name: Bundle size gate
+        # Fail if any single JS chunk exceeds 500 kB (gzip ~150 kB).
+        # Adjust the threshold here as the app grows deliberately.
+        run: |
+          THRESHOLD_KB=500
+          FAILED=0
+          for f in apps/web/dist/assets/*.js; do
+            SIZE_KB=$(( $(wc -c < "$f") / 1024 ))
+            echo "  $f — ${SIZE_KB} kB"
+            if [ "$SIZE_KB" -gt "$THRESHOLD_KB" ]; then
+              echo "::error file=$f::Bundle chunk exceeds ${THRESHOLD_KB} kB threshold (${SIZE_KB} kB)"
+              FAILED=1
+            fi
+          done
+          exit $FAILED
+
       - name: Upload core coverage
         uses: codecov/codecov-action@v4
         if: always()
@@ -82,7 +101,7 @@ jobs:
         run: pnpm --filter md2jira-core build
 
       - name: Install Playwright browsers
-        run: pnpm --filter web exec playwright install --with-deps chromium
+        run: pnpm --filter web exec playwright install --with-deps chromium firefox webkit
 
       - name: Run E2E tests
         run: pnpm --filter web test:e2e
@@ -94,3 +113,38 @@ jobs:
           name: playwright-report
           path: apps/web/playwright-report/
           retention-days: 14
+
+  lighthouse:
+    name: Lighthouse CI
+    runs-on: ubuntu-latest
+    needs: ci
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build core
+        run: pnpm --filter md2jira-core build
+
+      - name: Build web
+        run: pnpm --filter web build
+
+      - name: Lighthouse audit
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          uploadArtifacts: true
+          configPath: .lighthouserc.json

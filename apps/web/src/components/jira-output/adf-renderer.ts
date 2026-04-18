@@ -9,6 +9,7 @@ import type {
   AdfTableHeaderNode,
   AdfTableCellNode,
 } from 'md2jira-core'
+import { escapeHtml } from '../../utils/escape-html.js'
 
 /**
  * Sanitizes a URL to only allow safe protocols (http, https, mailto).
@@ -28,7 +29,7 @@ function sanitizeUrl(url: string): string {
 
 export function adfInlineToHtml(node: AdfInlineNode): string {
   if (node.type === 'hardBreak') return '<br>'
-  let html = node.text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  let html = escapeHtml(node.text)
   if (node.marks) {
     for (const mark of node.marks) {
       switch (mark.type) {
@@ -80,7 +81,7 @@ const BLOCK_HANDLERS: BlockHandlerMap = {
     // Sanitize the language tag — only allow word characters so it can't inject HTML
     const safeLang = lang ? lang.replace(/[^\w-]/g, '') : ''
     const classAttr = safeLang ? ` class="language-${safeLang}"` : ''
-    const content = node.content.map((t: AdfTextNode) => t.text).join('')
+    const content = escapeHtml(node.content.map((t: AdfTextNode) => t.text).join(''))
     return `<pre><code${classAttr}>${content}</code></pre>`
   },
   blockquote: (node) => `<blockquote>${node.content.map(adfBlockToHtml).join('')}</blockquote>`,

@@ -17,10 +17,7 @@ import type {
   Link,
   Text,
 } from 'mdast'
-import { unified } from 'unified'
-import remarkParse from 'remark-parse'
-import remarkGfm from 'remark-gfm'
-import { preprocessMarkdown } from './preprocess.js'
+import { parseMarkdown } from './parse.js'
 import type {
   AdfBlockNode,
   AdfDocument,
@@ -65,6 +62,10 @@ function convertInlineToAdf(node: PhrasingContent, parentMarks: AdfMark[] = []):
     case 'link': {
       const linkNode = node as Link
       const marks: AdfMark[] = [...parentMarks, { type: 'link', attrs: { href: linkNode.url } }]
+      if (linkNode.children.length === 0) {
+        // Empty link text [](url) — use the URL itself as the display text
+        return [{ type: 'text', text: linkNode.url, marks }]
+      }
       return linkNode.children.flatMap((child) => convertInlineToAdf(child, marks))
     }
     case 'break':
@@ -222,7 +223,7 @@ export function convertToAdf(md: string): AdfDocument {
 
   if (!md.trim()) return emptyDoc
 
-  const tree = unified().use(remarkParse).use(remarkGfm).parse(preprocessMarkdown(md))
+  const tree = parseMarkdown(md)
 
   const content: AdfBlockNode[] = []
   for (const node of tree.children) {

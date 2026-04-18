@@ -1,22 +1,23 @@
 import type { Blockquote, Code, Heading, List, Paragraph, RootContent, Table } from 'mdast'
-import { unified } from 'unified'
-import remarkParse from 'remark-parse'
-import remarkGfm from 'remark-gfm'
 import { convertInlineChildren } from './transforms/formatting.js'
 import { transformHeading } from './transforms/headers.js'
 import { transformList } from './transforms/lists.js'
 import { transformCodeBlock } from './transforms/codeblocks.js'
 import { transformTable } from './transforms/tables.js'
-import { preprocessMarkdown } from './preprocess.js'
+import { parseMarkdown } from './parse.js'
 
 function transformBlockquote(node: Blockquote): string {
-  const lines: string[] = []
+  const parts: string[] = []
   for (const child of node.children) {
     if (child.type === 'paragraph') {
-      lines.push(convertInlineChildren((child as Paragraph).children))
+      const text = convertInlineChildren((child as Paragraph).children)
+      // Hard line breaks within the paragraph produce \n; each sub-line needs its own bq. prefix.
+      for (const sub of text.split('\n')) {
+        parts.push(`bq. ${sub}`)
+      }
     }
   }
-  return lines.map((line) => `bq. ${line}`).join('\n')
+  return parts.join('\n')
 }
 
 function transformNode(node: RootContent): string | null {
@@ -55,7 +56,7 @@ function transformNode(node: RootContent): string | null {
 export function convert(md: string): string {
   if (!md.trim()) return ''
 
-  const tree = unified().use(remarkParse).use(remarkGfm).parse(preprocessMarkdown(md))
+  const tree = parseMarkdown(md)
 
   const parts: string[] = []
 

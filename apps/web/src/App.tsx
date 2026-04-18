@@ -173,7 +173,9 @@ export function App() {
         </noscript>
         <main className="flex flex-1 flex-col gap-4 overflow-auto p-4 sm:flex-row sm:overflow-hidden">
           <section aria-label="Markdown input" className="flex min-h-64 flex-1 flex-col sm:min-h-0">
-            <MarkdownInput value={markdown} onChange={setMarkdown} />
+            <ErrorBoundary>
+              <MarkdownInput value={markdown} onChange={setMarkdown} />
+            </ErrorBoundary>
           </section>
           <section aria-label="Jira output" className="flex min-h-64 flex-1 flex-col sm:min-h-0">
             <ErrorBoundary>

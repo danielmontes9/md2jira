@@ -1,4 +1,4 @@
-import { useState, useCallback, type RefObject } from 'react'
+import { useState, useCallback, useEffect, useRef, type RefObject } from 'react'
 import type { OutputFormat } from '../types.js'
 import { useToast } from '../context/ToastContext.js'
 
@@ -22,7 +22,15 @@ export function useJiraCopy(
   editorRef: RefObject<HTMLDivElement>
 ): JiraCopyState {
   const [copied, setCopied] = useState(false)
+  const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const addToast = useToast()
+
+  // Clean up the "copied" reset timer on unmount.
+  useEffect(() => {
+    return () => {
+      if (copiedTimerRef.current !== null) clearTimeout(copiedTimerRef.current)
+    }
+  }, [])
 
   const handleCopy = useCallback(async () => {
     try {
@@ -46,7 +54,8 @@ export function useJiraCopy(
       }
     }
     setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    if (copiedTimerRef.current !== null) clearTimeout(copiedTimerRef.current)
+    copiedTimerRef.current = setTimeout(() => setCopied(false), 2000)
   }, [value, format, editorRef, addToast])
 
   return { copied, handleCopy }
