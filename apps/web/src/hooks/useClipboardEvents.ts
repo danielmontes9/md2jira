@@ -68,7 +68,7 @@ export function useClipboardEvents(
       textarea.removeEventListener('copy', handleCopy)
       textarea.removeEventListener('paste', handlePaste)
     }
-  }, [textareaRef, onChange])
+  }, [textareaRef])
 
   // Clipboard button: write markdown with a <pre> HTML blob so Jira's
   // ProseMirror editor treats the paste as preformatted text.

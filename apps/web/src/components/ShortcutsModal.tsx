@@ -62,7 +62,7 @@ export function ShortcutsModal({ onClose }: ShortcutsModalProps) {
             className="rounded-md p-1.5 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
             aria-label="Close shortcuts panel"
           >
-            <IconClose className="h-[18px] w-[18px]" />
+            <IconClose className="h-4.5 w-4.5" />
           </button>
         </div>
 

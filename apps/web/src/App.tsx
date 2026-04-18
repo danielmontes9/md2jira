@@ -11,8 +11,12 @@ import { IconAlertOcticon } from './components/icons.js'
 type Theme = 'light' | 'dark'
 
 function getInitialTheme(): Theme {
-  const stored = localStorage.getItem('theme')
-  if (stored === 'light' || stored === 'dark') return stored
+  try {
+    const stored = localStorage.getItem('theme')
+    if (stored === 'light' || stored === 'dark') return stored
+  } catch {
+    // localStorage may throw in sandboxed iframes or when storage is disabled
+  }
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
@@ -28,6 +32,8 @@ function encodeMarkdown(md: string): string {
 }
 
 function decodeMarkdown(encoded: string): string {
+  // Guard against decoding arbitrarily large URL params (DoS / memory pressure)
+  if (encoded.length > URL_MD_MAX_ENCODED * 2) return ''
   try {
     // Restore base64url → standard base64 before decoding
     const b64 = encoded.replace(/-/g, '+').replace(/_/g, '/')
@@ -82,7 +88,11 @@ export function App() {
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark')
-    localStorage.setItem('theme', theme)
+    try {
+      localStorage.setItem('theme', theme)
+    } catch {
+      // localStorage may not be available in sandboxed iframes
+    }
   }, [theme])
 
   // Debounced URL deep-linking: update ?md= param 500ms after the user stops typing
