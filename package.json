@@ -9,6 +9,7 @@
     "test": "pnpm --filter md2jira-core test",
     "test:all": "pnpm -r test",
     "test:cli": "pnpm --filter md2jira-cli test",
+    "test:coverage": "pnpm -r --filter md2jira-core --filter web test -- --coverage",
     "lint": "eslint .",
     "typecheck": "pnpm -r typecheck",
     "format": "prettier --write .",
