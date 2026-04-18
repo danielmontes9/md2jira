@@ -1,7 +1,9 @@
 import { useState, useCallback, useRef, useEffect, useMemo, type RefObject } from 'react'
 import type TurndownService from 'turndown'
+import DOMPurify from 'dompurify'
 import { convertToAdf } from 'md2jira-core'
 import { adfToHtml } from '../components/jira-output/adf-renderer.js'
+import { execCommand } from '../utils/exec-command.js'
 
 interface UseWysiwygEditorOptions {
   markdown: string
@@ -29,6 +31,11 @@ export function useWysiwygEditor({
   const tdRef = useRef<TurndownService | null>(null)
   const [editModeActive, setEditModeActive] = useState(false)
 
+  // Keep a stable ref to the latest onMarkdownChange callback so that
+  // scheduleMarkdownUpdate never needs to be recreated when the prop changes.
+  const onMarkdownChangeRef = useRef(onMarkdownChange)
+  onMarkdownChangeRef.current = onMarkdownChange
+
   const [activeBlock, setActiveBlock] = useState<string>('p')
   const [activeFormats, setActiveFormats] = useState<Set<string>>(new Set())
 
@@ -46,7 +53,7 @@ export function useWysiwygEditor({
   const initialHtmlRef = useRef(previewHtml)
   useEffect(() => {
     if (editorRef.current) {
-      editorRef.current.innerHTML = initialHtmlRef.current
+      editorRef.current.innerHTML = DOMPurify.sanitize(initialHtmlRef.current)
     }
   }, [])
 
@@ -58,7 +65,7 @@ export function useWysiwygEditor({
       return
     }
     if (document.activeElement === editorRef.current) return
-    editorRef.current.innerHTML = previewHtml
+    editorRef.current.innerHTML = DOMPurify.sanitize(previewHtml)
   }, [previewHtml])
 
   // Lazy-load TurndownService on first edit mode activation
@@ -120,23 +127,23 @@ export function useWysiwygEditor({
   }, [])
 
   const scheduleMarkdownUpdate = useCallback(() => {
-    if (!onMarkdownChange || !editorRef.current) return
+    if (!onMarkdownChangeRef.current || !editorRef.current) return
     clearTimeout(updateTimeoutRef.current)
     updateTimeoutRef.current = setTimeout(() => {
       if (!editorRef.current || !tdRef.current) return
       isEditorUpdateRef.current = true
       try {
-        onMarkdownChange(tdRef.current.turndown(editorRef.current.innerHTML))
+        onMarkdownChangeRef.current!(tdRef.current.turndown(editorRef.current.innerHTML))
       } catch {
         isEditorUpdateRef.current = false
       }
     }, 300)
-  }, [onMarkdownChange])
+  }, [])
 
   const exec = useCallback(
     (cmd: string, arg?: string) => {
       restoreRange()
-      document.execCommand(cmd, false, arg ?? '')
+      execCommand(cmd, arg)
       scheduleMarkdownUpdate()
     },
     [restoreRange, scheduleMarkdownUpdate]
@@ -145,7 +152,7 @@ export function useWysiwygEditor({
   const insertHtml = useCallback(
     (html: string) => {
       restoreRange()
-      document.execCommand('insertHTML', false, html)
+      execCommand('insertHTML', html)
       scheduleMarkdownUpdate()
     },
     [restoreRange, scheduleMarkdownUpdate]
