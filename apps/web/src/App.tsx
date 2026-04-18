@@ -84,6 +84,7 @@ export function App() {
             format={format}
             onFormatChange={setFormat}
             markdown={markdown}
+            onMarkdownChange={setMarkdown}
           />
         </section>
       </main>
