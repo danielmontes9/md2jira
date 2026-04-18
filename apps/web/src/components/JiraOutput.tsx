@@ -1,9 +1,7 @@
 import { useState, useCallback, memo } from 'react'
 import { useWysiwygEditor } from '../hooks/useWysiwygEditor.js'
 import { EditorToolbar } from './jira-output/EditorToolbar.js'
-
-type OutputFormat = 'wiki' | 'adf'
-type ViewMode = 'preview' | 'code'
+import type { OutputFormat, ViewMode } from '../types.js'
 
 interface JiraOutputProps {
   value: string
@@ -113,24 +111,13 @@ export const JiraOutput = memo(function JiraOutput({
 
   return (
     <div className="@container flex min-h-0 flex-1 flex-col rounded-lg border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
-      {/* ── Header bar ── */}
-      <div className="flex flex-col gap-2 border-b border-neutral-200 px-3 py-2 @[460px]:flex-row @[460px]:items-center @[460px]:justify-between @[460px]:px-4 dark:border-neutral-800">
+      {/* ── Header bar ──
+           Mobile:  CSS grid 2-cols → [Output + toggles] | [CopyEditGroup]
+           Desktop: flex-row justify-between (same visual result, one DOM instance)
+      */}
+      <div className="grid grid-cols-[1fr_auto] items-center gap-2 border-b border-neutral-200 px-3 py-2 @[460px]:flex @[460px]:flex-row @[460px]:justify-between @[460px]:px-4 dark:border-neutral-800">
         <div className="flex flex-col gap-2 @[460px]:flex-row @[460px]:items-center @[460px]:gap-2">
-          <div className="flex items-center justify-between gap-2 @[460px]:justify-start">
-            <span className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
-              Output
-            </span>
-            {/* Mobile: Copy+Edit group */}
-            <CopyEditGroup
-              copied={copied}
-              copyError={copyError}
-              editMode={editMode}
-              canEdit={canEdit}
-              onCopy={handleCopy}
-              onToggleEdit={() => setEditMode((v) => !v)}
-              className="@[460px]:hidden"
-            />
-          </div>
+          <span className="text-sm font-medium text-neutral-500 dark:text-neutral-400">Output</span>
           <div className="flex items-center gap-2">
             <div
               role="group"
@@ -174,7 +161,7 @@ export const JiraOutput = memo(function JiraOutput({
             </div>
           </div>
         </div>
-        {/* Desktop: Copy+Edit group */}
+        {/* Single CopyEditGroup — grid col 2 on mobile, flex end on desktop */}
         <CopyEditGroup
           copied={copied}
           copyError={copyError}
@@ -182,7 +169,6 @@ export const JiraOutput = memo(function JiraOutput({
           canEdit={canEdit}
           onCopy={handleCopy}
           onToggleEdit={() => setEditMode((v) => !v)}
-          className="hidden @[460px]:flex"
         />
       </div>
 

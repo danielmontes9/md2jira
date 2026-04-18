@@ -4,8 +4,9 @@ import { Header } from './components/Header.js'
 import { MarkdownInput } from './components/MarkdownInput.js'
 import { JiraOutput } from './components/JiraOutput.js'
 import { ErrorBoundary } from './components/ErrorBoundary.js'
+import type { OutputFormat } from './types.js'
+import { IconAlertOcticon } from './components/icons.js'
 
-type OutputFormat = 'wiki' | 'adf'
 type Theme = 'light' | 'dark'
 
 function getInitialTheme(): Theme {
@@ -19,12 +20,17 @@ function getInitialTheme(): Theme {
 const URL_MD_MAX_ENCODED = 1500
 
 function encodeMarkdown(md: string): string {
-  return btoa(encodeURIComponent(md))
+  // Standard btoa uses `+` and `/` which are not URL-safe and get mangled by
+  // messaging apps (Slack, Teams). Replace them with `-` and `_` (base64url)
+  // and strip padding `=` so the URL is clean.
+  return btoa(encodeURIComponent(md)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 }
 
 function decodeMarkdown(encoded: string): string {
   try {
-    return decodeURIComponent(atob(encoded))
+    // Restore base64url → standard base64 before decoding
+    const b64 = encoded.replace(/-/g, '+').replace(/_/g, '/')
+    return decodeURIComponent(atob(b64))
   } catch {
     return ''
   }
@@ -118,16 +124,7 @@ export function App() {
           role="alert"
           className="flex items-center gap-2 border-b border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/50 dark:text-red-400"
         >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="currentColor"
-            aria-hidden="true"
-            className="shrink-0"
-          >
-            <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm.75 4.5a.75.75 0 0 0-1.5 0v3.5a.75.75 0 0 0 1.5 0V5.5zm-.75 6a.875.875 0 1 0 0-1.75.875.875 0 0 0 0 1.75z" />
-          </svg>
+          <IconAlertOcticon className="h-4 w-4 shrink-0" />
           Conversion error — check your Markdown for unsupported syntax.
         </div>
       )}
