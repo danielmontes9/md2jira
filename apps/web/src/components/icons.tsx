@@ -156,3 +156,52 @@ export function IconGitHub({ className }: IconProps) {
     </svg>
   )
 }
+
+// ── Toolbar-specific icons ─────────────────────────────────────────────────────
+
+/** Small downward triangle chevron — used in toolbar dropdown triggers. */
+export function IconChevronDown({ className = 'h-2.5 w-2.5 shrink-0' }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 10 6"
+      className={className}
+      fill="currentColor"
+      aria-hidden="true"
+      style={{ pointerEvents: 'none' }}
+    >
+      <path d="M0 0l5 6 5-6z" />
+    </svg>
+  )
+}
+
+/** Filled checkmark — used to indicate the active item in toolbar dropdowns. */
+export function IconCheckFill({ className = 'h-3.5 w-3.5 shrink-0 text-blue-600' }: IconProps) {
+  return (
+    <svg viewBox="0 0 16 16" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0z" />
+    </svg>
+  )
+}
+
+/** Bullet list — used as the trigger icon for the Lists toolbar dropdown. */
+export function IconListBullet({ className = 'h-4 w-4' }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      aria-hidden="true"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <line x1="8" y1="6" x2="21" y2="6" />
+      <line x1="8" y1="12" x2="21" y2="12" />
+      <line x1="8" y1="18" x2="21" y2="18" />
+      <circle cx="3" cy="6" r="1.5" fill="currentColor" stroke="none" />
+      <circle cx="3" cy="12" r="1.5" fill="currentColor" stroke="none" />
+      <circle cx="3" cy="18" r="1.5" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}

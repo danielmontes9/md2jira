@@ -1,5 +1,9 @@
 import { type ReactNode } from 'react'
 import { MOD_KEY } from '../../../utils/keyboard.js'
+import { IconChevronDown, IconCheckFill } from '../../icons.js'
+
+// Re-export under the legacy names so consuming toolbar files don't need changes.
+export { IconChevronDown as ChevronDown, IconCheckFill as CheckIcon }
 
 // ── Types ──
 
@@ -98,21 +102,3 @@ export function ToolbarDropdown({
     </div>
   )
 }
-
-export const ChevronDown = () => (
-  <svg
-    className="h-2.5 w-2.5 shrink-0"
-    viewBox="0 0 10 6"
-    fill="currentColor"
-    aria-hidden="true"
-    style={{ pointerEvents: 'none' }}
-  >
-    <path d="M0 0l5 6 5-6z" />
-  </svg>
-)
-
-export const CheckIcon = () => (
-  <svg className="h-3.5 w-3.5 shrink-0 text-blue-600" viewBox="0 0 16 16" fill="currentColor">
-    <path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0z" />
-  </svg>
-)
