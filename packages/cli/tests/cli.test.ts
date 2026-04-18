@@ -115,4 +115,34 @@ describe('md2jira CLI', () => {
     expect(stdout).toContain('||H1||H2||')
     expect(stdout).toContain('|A|B|')
   })
+
+  it('outputs ADF JSON with --format adf', async () => {
+    const md = '# Hello\n'
+    const { stdout, exitCode } = await run(['--format', 'adf'], { stdin: md })
+    expect(exitCode).toBe(0)
+    const doc = JSON.parse(stdout)
+    expect(doc).toMatchObject({
+      version: 1,
+      type: 'doc',
+      content: [
+        {
+          type: 'heading',
+          attrs: { level: 1 },
+          content: [{ type: 'text', text: 'Hello' }],
+        },
+      ],
+    })
+  })
+
+  it('defaults to wiki format when --format is omitted', async () => {
+    const { stdout, exitCode } = await run([], { stdin: '# Title\n' })
+    expect(exitCode).toBe(0)
+    expect(stdout).toBe('h1. Title')
+  })
+
+  it('shows --format option in help', async () => {
+    const { stdout } = await run(['--help'])
+    expect(stdout).toContain('--format')
+    expect(stdout).toContain('adf')
+  })
 })

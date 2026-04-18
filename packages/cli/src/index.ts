@@ -4,7 +4,7 @@ import { readFile, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { createInterface } from 'node:readline'
 import { Command } from 'commander'
-import { convert } from 'md2jira-core'
+import { convert, convertToAdf } from 'md2jira-core'
 
 const require = createRequire(import.meta.url)
 const { version } = require('../package.json') as { version: string }
@@ -13,11 +13,12 @@ const program = new Command()
 
 program
   .name('md2jira')
-  .description('Convert Markdown to Jira Wiki Markup')
+  .description('Convert Markdown to Jira Wiki Markup or Atlassian Document Format (ADF)')
   .version(version)
   .argument('[input]', 'Input Markdown file (omit to read from stdin)')
   .option('-o, --output <file>', 'Output file (omit to write to stdout)')
-  .action(async (input: string | undefined, options: { output?: string }) => {
+  .option('-f, --format <format>', 'Output format: "wiki" (default) or "adf"', 'wiki')
+  .action(async (input: string | undefined, options: { output?: string; format?: string }) => {
     let markdown: string
 
     if (input) {
@@ -26,7 +27,13 @@ program
       markdown = await readStdin()
     }
 
-    const result = convert(markdown)
+    const fmt = options.format?.toLowerCase()
+    let result: string
+    if (fmt === 'adf') {
+      result = JSON.stringify(convertToAdf(markdown), null, 2)
+    } else {
+      result = convert(markdown)
+    }
 
     if (options.output) {
       await writeFile(resolve(options.output), result, 'utf-8')
