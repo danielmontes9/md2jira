@@ -1,10 +1,11 @@
-import { useRef, useCallback, useMemo, useState, useEffect, lazy, Suspense, memo } from 'react'
+import { useRef, useCallback, useMemo, useState, lazy, Suspense, memo } from 'react'
 const ShortcutsModal = lazy(() =>
   import('./ShortcutsModal.js').then((m) => ({ default: m.ShortcutsModal }))
 )
 import { ToastContainer, ToastType } from './Toast.js'
 import { useMarkdownShortcuts } from '../hooks/useMarkdownShortcuts.js'
-import { execInsertText } from '../utils/exec-command.js'
+import { useClipboardEvents } from '../hooks/useClipboardEvents.js'
+import { useFileImportExport } from '../hooks/useFileImportExport.js'
 
 interface MarkdownInputProps {
   value: string
@@ -27,56 +28,8 @@ export const MarkdownInput = memo(function MarkdownInput({ value, onChange }: Ma
     setToasts((prev) => prev.filter((t) => t.id !== id))
   }, [])
 
-  // Native copy event listener — more reliable than React's onCopy for clipboard interception.
-  // Ensures the textarea always writes ONLY plain markdown text, clearing any text/html
-  // that a previous "Copy Jira" operation may have left in the system clipboard.
-  useEffect(() => {
-    const textarea = textareaRef.current
-    if (!textarea) return
-    const handleCopy = (e: ClipboardEvent) => {
-      if (!e.clipboardData) return
-      const { selectionStart, selectionEnd } = textarea
-      const selected =
-        selectionStart !== selectionEnd
-          ? textarea.value.substring(selectionStart, selectionEnd)
-          : textarea.value
-      const escaped = selected.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      e.clipboardData.clearData()
-      e.clipboardData.setData('text/plain', selected)
-      e.clipboardData.setData(
-        'text/html',
-        `<pre style="font-family:monospace;white-space:pre-wrap;">${escaped}</pre>`
-      )
-      e.preventDefault()
-    }
-    // Strip rich text (e.g. from VS Code) on paste — keep only plain text.
-    const handlePaste = (e: ClipboardEvent) => {
-      if (!e.clipboardData) return
-      const plain = e.clipboardData.getData('text/plain')
-      e.preventDefault()
-      const { selectionStart, selectionEnd } = textarea
-      const before = textarea.value.substring(0, selectionStart)
-      const after = textarea.value.substring(selectionEnd)
-      const newValue = before + plain + after
-      // Use execCommand so native undo stack is preserved
-      textarea.focus()
-      textarea.setSelectionRange(selectionStart, selectionEnd)
-      execInsertText(plain)
-      // Fallback for browsers that block execCommand
-      if (textarea.value !== newValue) {
-        textarea.value = newValue
-        textarea.setSelectionRange(selectionStart + plain.length, selectionStart + plain.length)
-        textarea.dispatchEvent(new Event('input', { bubbles: true }))
-      }
-    }
-
-    textarea.addEventListener('copy', handleCopy)
-    textarea.addEventListener('paste', handlePaste)
-    return () => {
-      textarea.removeEventListener('copy', handleCopy)
-      textarea.removeEventListener('paste', handlePaste)
-    }
-  }, [])
+  const { copiedMd, handleCopyMd } = useClipboardEvents(value, onChange, textareaRef, addToast)
+  const { handleImport, handleExport } = useFileImportExport(value, onChange, addToast)
 
   const syncScroll = useCallback(() => {
     if (gutterRef.current && textareaRef.current) {
@@ -84,76 +37,7 @@ export const MarkdownInput = memo(function MarkdownInput({ value, onChange }: Ma
     }
   }, [])
 
-  const handleImport = useCallback(() => {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = '.md,.txt,.text,text/markdown,text/plain'
-    input.style.display = 'none'
-    input.onchange = () => {
-      input.remove()
-      const file = input.files?.[0]
-      if (!file) return
-      const allowed = ['.md', '.txt', '.text']
-      const ext = file.name.slice(file.name.lastIndexOf('.')).toLowerCase()
-      if (!allowed.includes(ext)) {
-        addToast(
-          `Unsupported file type "${ext}". Please import a .md, .txt, or .text file.`,
-          'error'
-        )
-        return
-      }
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const text = e.target?.result
-        if (typeof text === 'string') onChange(text)
-      }
-      reader.readAsText(file)
-    }
-    document.body.appendChild(input)
-    input.click()
-  }, [onChange, addToast])
-
   const handleKeyDown = useMarkdownShortcuts()
-
-  const [copied, setCopied] = useState(false)
-
-  const handleCopyMd = useCallback(() => {
-    // Include text/html wrapping the markdown in <pre> so that Jira's ProseMirror
-    // editor treats the paste as preformatted text instead of auto-converting
-    // markdown syntax to rich text. This matches the behaviour of copying from VS Code.
-    const escaped = value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    const htmlBlob = new Blob(
-      [`<pre style="font-family:monospace;white-space:pre-wrap;">${escaped}</pre>`],
-      { type: 'text/html' }
-    )
-    const textBlob = new Blob([value], { type: 'text/plain' })
-    const done = () => {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 1500)
-    }
-    navigator.clipboard
-      .write([new ClipboardItem({ 'text/html': htmlBlob, 'text/plain': textBlob })])
-      .then(done)
-      .catch(() =>
-        navigator.clipboard
-          .writeText(value)
-          .then(done)
-          .catch(() => addToast('Failed to copy to clipboard', 'error'))
-      )
-  }, [value, addToast])
-
-  const handleExport = useCallback(() => {
-    const blob = new Blob([value], { type: 'text/markdown' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'document.md'
-    a.style.display = 'none'
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-  }, [value])
 
   const lineCount = value.split('\n').length
   const lineNumbers = useMemo(
@@ -195,7 +79,7 @@ export const MarkdownInput = memo(function MarkdownInput({ value, onChange }: Ma
               className="rounded-md px-2 py-1 text-xs text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
               aria-label="Copy Markdown to clipboard"
             >
-              {copied ? 'Copied!' : 'Copy MD'}
+              {copiedMd ? 'Copied!' : 'Copy MD'}
             </button>
           </div>
         </div>
