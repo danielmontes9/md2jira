@@ -48,10 +48,7 @@ const GROUPS = [
 export function ShortcutsModal({ onClose }: ShortcutsModalProps) {
   return (
     <Modal onClose={onClose} ariaLabelledBy="shortcuts-modal-title">
-      <div
-        className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-xl border border-neutral-200 bg-white p-6 shadow-2xl dark:border-neutral-800 dark:bg-neutral-900"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-xl border border-neutral-200 bg-white p-6 shadow-2xl dark:border-neutral-800 dark:bg-neutral-900">
         <div className="mb-5 flex items-center justify-between">
           <h2
             id="shortcuts-modal-title"

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo, useRef, useDeferredValue } from 'react'
+import { useState, useCallback, useEffect, useMemo, useDeferredValue } from 'react'
 import { convert, convertToAdf } from 'md2jira-core'
 import { Header } from './components/Header.js'
 import { MarkdownInput } from './components/MarkdownInput.js'
@@ -68,7 +68,6 @@ export function App() {
   const [markdown, setMarkdown] = useState(() => getInitialMarkdown(PLACEHOLDER))
   const [format, setFormat] = useState<OutputFormat>('adf')
   const [theme, setTheme] = useState<Theme>(getInitialTheme)
-  const urlDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // useDeferredValue keeps the textarea fully responsive by deferring
   // the expensive convert() / convertToAdf() calls until the browser is idle.
@@ -81,8 +80,7 @@ export function App() {
 
   // Debounced URL deep-linking: update ?md= param 500ms after the user stops typing
   useEffect(() => {
-    if (urlDebounceRef.current) clearTimeout(urlDebounceRef.current)
-    urlDebounceRef.current = setTimeout(() => {
+    const handle = setTimeout(() => {
       const encoded = encodeMarkdown(markdown)
       const url = new URL(window.location.href)
       if (encoded.length <= URL_MD_MAX_ENCODED) {
@@ -93,9 +91,7 @@ export function App() {
       }
       window.history.replaceState(null, '', url.toString())
     }, 500)
-    return () => {
-      if (urlDebounceRef.current) clearTimeout(urlDebounceRef.current)
-    }
+    return () => clearTimeout(handle)
   }, [markdown])
 
   const toggleTheme = useCallback(() => {
@@ -136,8 +132,8 @@ export function App() {
         </div>
       )}
       <noscript>
-        <div className="p-8 text-center">
-          <h2 className="text-xl font-bold">md2jira-previewer</h2>
+        <div style={{ padding: '2rem', textAlign: 'center' }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>md2jira-previewer</h2>
           <p>
             Convert Markdown to Jira Wiki Markup and Atlassian Document Format (ADF). Please enable
             JavaScript to use this tool.

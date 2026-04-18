@@ -16,6 +16,7 @@ interface JiraOutputProps {
 /** Shared Copy + Edit toggle button group — rendered twice (mobile + desktop breakpoint). */
 function CopyEditGroup({
   copied,
+  copyError,
   editMode,
   canEdit,
   onCopy,
@@ -23,6 +24,7 @@ function CopyEditGroup({
   className,
 }: {
   copied: boolean
+  copyError: boolean
   editMode: boolean
   canEdit: boolean
   onCopy: () => void
@@ -39,7 +41,7 @@ function CopyEditGroup({
         onClick={onCopy}
         className="whitespace-nowrap rounded-l-md px-3 py-1 font-medium text-neutral-600 transition-colors hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
       >
-        {copied ? 'Copied!' : 'Copy for Jira'}
+        {copyError ? 'Copy failed!' : copied ? 'Copied!' : 'Copy for Jira'}
       </button>
       {canEdit && (
         <button
@@ -67,6 +69,7 @@ export const JiraOutput = memo(function JiraOutput({
   onMarkdownChange,
 }: JiraOutputProps) {
   const [copied, setCopied] = useState(false)
+  const [copyError, setCopyError] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>('preview')
   const [editMode, setEditMode] = useState(false)
 
@@ -89,7 +92,13 @@ export const JiraOutput = memo(function JiraOutput({
       }
     } catch {
       // Fallback for browsers that block the Clipboard API (e.g. Firefox, sandboxed iframes)
-      await navigator.clipboard.writeText(value).catch(() => {})
+      try {
+        await navigator.clipboard.writeText(value)
+      } catch {
+        setCopyError(true)
+        setTimeout(() => setCopyError(false), 2000)
+        return
+      }
     }
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
@@ -114,6 +123,7 @@ export const JiraOutput = memo(function JiraOutput({
             {/* Mobile: Copy+Edit group */}
             <CopyEditGroup
               copied={copied}
+              copyError={copyError}
               editMode={editMode}
               canEdit={canEdit}
               onCopy={handleCopy}
@@ -167,6 +177,7 @@ export const JiraOutput = memo(function JiraOutput({
         {/* Desktop: Copy+Edit group */}
         <CopyEditGroup
           copied={copied}
+          copyError={copyError}
           editMode={editMode}
           canEdit={canEdit}
           onCopy={handleCopy}

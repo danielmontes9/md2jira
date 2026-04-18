@@ -17,6 +17,7 @@ export default defineConfig({
       output: {
         manualChunks: {
           'react-vendor': ['react', 'react-dom'],
+          turndown: ['turndown'],
         },
       },
     },

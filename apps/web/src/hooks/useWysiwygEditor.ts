@@ -40,12 +40,15 @@ export function useWysiwygEditor({
     }
   }, [markdown])
 
-  // Initialize editor on mount
+  // Capture the initial HTML so the editor is populated on mount.
+  // Using a ref avoids adding previewHtml to the dep array (which would
+  // overwrite user edits every time the markdown re-renders).
+  const initialHtmlRef = useRef(previewHtml)
   useEffect(() => {
     if (editorRef.current) {
-      editorRef.current.innerHTML = previewHtml
+      editorRef.current.innerHTML = initialHtmlRef.current
     }
-  }, []) // intentional: runs once on mount to set initial HTML
+  }, [])
 
   // Sync editor when markdown changes externally (not while user edits here)
   useEffect(() => {
