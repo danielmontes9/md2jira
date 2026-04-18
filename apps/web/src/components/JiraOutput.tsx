@@ -39,9 +39,13 @@ export const JiraOutput = memo(function JiraOutput({
   const [viewMode, setViewMode] = useState<ViewMode>('preview')
   const [editMode, setEditMode] = useState(false)
 
-  const { editor, activeBlock, activeFormats, exec, insertHtml } = useTiptapEditor({
+  // Only initialize TipTap when ADF format is active — saves resources in wiki mode
+  const shouldCreate = import.meta.env.VITE_ENABLE_WYSIWYG !== 'false' && format === 'adf'
+
+  const { editor, activeBlock, activeFormats, activeColor, exec, insertHtml } = useTiptapEditor({
     previewHtml,
     onMarkdownChange,
+    shouldCreate,
   })
 
   const { copied, handleCopy } = useJiraCopy(value, format, editor)
@@ -152,6 +156,7 @@ export const JiraOutput = memo(function JiraOutput({
               insertHtml={insertHtml}
               activeBlock={activeBlock}
               activeFormats={activeFormats}
+              activeColor={activeColor}
             />
           </Suspense>
         </div>

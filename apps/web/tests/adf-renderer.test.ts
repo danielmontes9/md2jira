@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { adfToHtml, adfInlineToHtml } from '../src/components/jira-output/adf-renderer.js'
+import { adfToHtml, adfInlineToHtml, adfBlockToHtml } from '../src/components/jira-output/adf-renderer.js'
 import type { AdfDocument, AdfInlineNode } from 'md2jira-core'
 
 describe('adfInlineToHtml', () => {
@@ -267,5 +267,13 @@ describe('adfToHtml', () => {
     const html = adfToHtml(doc)
     expect(html).not.toContain('<script>')
     expect(html).toContain('&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;')
+  })
+})
+
+describe('adfBlockToHtml', () => {
+  it('returns empty string for unknown block node type', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = adfBlockToHtml({ type: 'unknownType' } as any)
+    expect(result).toBe('')
   })
 })

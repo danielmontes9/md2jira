@@ -124,7 +124,13 @@ export function ToolbarDropdown({
   }
 
   return (
-    <div className="relative" data-toolbar>
+    <div
+      className="relative"
+      data-toolbar
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) onClose()
+      }}
+    >
       <button
         onMouseDown={(e) => {
           e.preventDefault()

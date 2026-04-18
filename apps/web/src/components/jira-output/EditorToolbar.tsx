@@ -7,9 +7,10 @@ import { IconCodeBrackets, IconUndo, IconRedo } from '../icons.js'
 
 interface EditorToolbarProps {
   exec: (cmd: string, arg?: string) => void
-  insertHtml: (html: string) => void
+  insertHtml?: (html: string) => void
   activeBlock: string
   activeFormats: Set<string>
+  activeColor: string | undefined
 }
 
 /**
@@ -21,6 +22,7 @@ export function EditorToolbar({
   insertHtml,
   activeBlock,
   activeFormats,
+  activeColor,
 }: EditorToolbarProps) {
   const toolbarRef = useRef<HTMLDivElement>(null)
   const [openKey, setOpenKey] = useState<DropKey | null>(null)
@@ -43,7 +45,7 @@ export function EditorToolbar({
     return () => ac.abort()
   }, [close])
 
-  const menuProps = { exec, insertHtml, close, openKey, onOpen: open }
+  const menuProps = { exec, close, openKey, onOpen: open }
 
   return (
     <div
@@ -55,7 +57,7 @@ export function EditorToolbar({
       <TextStyleMenu {...menuProps} activeBlock={activeBlock} />
       <FormatMenu {...menuProps} activeFormats={activeFormats} />
       <ListsMenu {...menuProps} activeFormats={activeFormats} />
-      <ColorMenu {...menuProps} />
+      <ColorMenu {...menuProps} activeColor={activeColor} />
 
       <div className="mx-1 h-4 w-px bg-neutral-200 dark:bg-neutral-700" />
 
@@ -73,7 +75,7 @@ export function EditorToolbar({
       </button>
 
       <EmojiMenu {...menuProps} />
-      <InsertMenu {...menuProps} />
+      <InsertMenu {...menuProps} insertHtml={insertHtml!} />
 
       <div className="mx-1 h-4 w-px bg-neutral-200 dark:bg-neutral-700" />
 

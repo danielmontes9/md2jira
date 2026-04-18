@@ -19,6 +19,8 @@ interface UseTiptapEditorOptions {
   onMarkdownChange: ((md: string) => void) | undefined
   /** Debounce delay in ms for HTML→Markdown sync. @default 300 */
   debounceMs?: number
+  /** When false, the TipTap editor is not created (saves resources). @default true */
+  shouldCreate?: boolean
 }
 
 export interface TiptapEditorState {
@@ -28,6 +30,8 @@ export interface TiptapEditorState {
   activeBlock: string
   /** Set of currently active inline format names. */
   activeFormats: Set<string>
+  /** Currently active text color, or undefined if none. */
+  activeColor: string | undefined
   /** Execute a formatting command by name. */
   exec: (cmd: string, arg?: string) => void
   /** Insert sanitized HTML at the current cursor position. */
@@ -146,6 +150,7 @@ export function useTiptapEditor({
   previewHtml,
   onMarkdownChange,
   debounceMs = 300,
+  shouldCreate = true,
 }: UseTiptapEditorOptions): TiptapEditorState {
   const onMarkdownChangeRef = useRef(onMarkdownChange)
   onMarkdownChangeRef.current = onMarkdownChange
@@ -269,13 +274,22 @@ export function useTiptapEditor({
     [editor]
   )
 
-  const activeBlock = editor ? getActiveBlock(editor) : 'p'
-  const activeFormats = editor ? getActiveFormats(editor) : new Set<string>()
+  // When shouldCreate is false, behave as if the editor is unavailable.
+  // useEditor() is still called unconditionally to satisfy React hooks rules;
+  // TipTap v3 does not expose a shouldCreate option in UseEditorOptions.
+  const activeEditor = shouldCreate ? editor : null
+
+  const activeBlock = activeEditor ? getActiveBlock(activeEditor) : 'p'
+  const activeFormats = activeEditor ? getActiveFormats(activeEditor) : new Set<string>()
+  const activeColor = activeEditor
+    ? (activeEditor.getAttributes('textStyle').color as string | undefined)
+    : undefined
 
   return {
-    editor,
+    editor: activeEditor,
     activeBlock,
     activeFormats,
+    activeColor,
     exec,
     insertHtml,
   }

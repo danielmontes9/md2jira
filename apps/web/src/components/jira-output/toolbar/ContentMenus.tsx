@@ -14,6 +14,9 @@ import {
 } from './shared.js'
 import { IconListBullet } from '../../icons.js'
 
+// Module-level constant — computed once at import time, never rebuilt per render
+const ALL_EMOJIS = [...new Set(Object.values(EMOJI_CATEGORIES).flat())]
+
 // ── Lists Menu ──
 
 interface ListsMenuProps extends ToolbarMenuProps {
@@ -86,9 +89,10 @@ export function ListsMenu({ exec, close, openKey, onOpen, activeFormats }: Lists
 interface ColorMenuProps extends ToolbarMenuProps {
   openKey: DropKey | null
   onOpen: (key: DropKey) => void
+  activeColor: string | undefined
 }
 
-export function ColorMenu({ exec, close, openKey, onOpen }: ColorMenuProps) {
+export function ColorMenu({ exec, close, openKey, onOpen, activeColor }: ColorMenuProps) {
   return (
     <ToolbarDropdown
       dropKey="color"
@@ -114,7 +118,12 @@ export function ColorMenu({ exec, close, openKey, onOpen }: ColorMenuProps) {
                 exec('foreColor', color)
                 close()
               }}
-              className="h-6 w-6 rounded border border-neutral-300 transition-transform hover:scale-110 dark:border-neutral-600"
+              aria-selected={color === activeColor}
+              className={`h-6 w-6 rounded border transition-transform hover:scale-110 ${
+                color === activeColor
+                  ? 'border-blue-500 ring-2 ring-blue-400 ring-offset-1 dark:border-blue-400'
+                  : 'border-neutral-300 dark:border-neutral-600'
+              }`}
               style={{ background: color }}
               title={color}
               aria-label={color}
@@ -178,8 +187,7 @@ export function EmojiMenu({ exec, close, openKey, onOpen }: EmojiMenuProps) {
         />
         {emojiSearch ? (
           <div className="flex flex-wrap gap-0.5">
-            {[...new Set(Object.values(EMOJI_CATEGORIES).flat())]
-              .filter((em) => em.includes(deferredSearch))
+            {ALL_EMOJIS.filter((em) => em.includes(deferredSearch))
               .map((em, i) => (
                 <button
                   key={i}
