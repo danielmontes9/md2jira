@@ -39,7 +39,7 @@ jobs:
         run: pnpm typecheck
 
       - name: Test
-        run: pnpm test
+        run: pnpm test:all
 
       - name: Upload core coverage
         uses: codecov/codecov-action@v4
