@@ -7,6 +7,8 @@ import { useMarkdownSync } from './useMarkdownSync.js'
 interface UseWysiwygEditorOptions {
   previewHtml: string
   onMarkdownChange: ((md: string) => void) | undefined
+  /** Debounce delay in ms for HTML→Markdown conversion. @default 300 */
+  debounceMs?: number
 }
 
 export interface WysiwygEditorState {
@@ -16,11 +18,13 @@ export interface WysiwygEditorState {
   exec: (cmd: string, arg?: string) => void
   insertHtml: (html: string) => void
   saveRange: () => void
+  scheduleMarkdownUpdate: () => void
 }
 
 export function useWysiwygEditor({
   previewHtml,
   onMarkdownChange,
+  debounceMs,
 }: UseWysiwygEditorOptions): WysiwygEditorState {
   const editorRef = useRef<HTMLDivElement | null>(null)
   const [editModeActive, setEditModeActive] = useState(false)
@@ -40,18 +44,9 @@ export function useWysiwygEditor({
   const { scheduleMarkdownUpdate, isEditorUpdateRef } = useMarkdownSync(
     editorRef,
     onMarkdownChangeRef,
-    editModeActive
+    editModeActive,
+    debounceMs
   )
-
-  // Capture the initial HTML so the editor is populated on mount.
-  // Using a ref avoids adding previewHtml to the dep array (which would
-  // overwrite user edits every time the markdown re-renders).
-  const initialHtmlRef = useRef(previewHtml)
-  useEffect(() => {
-    if (editorRef.current) {
-      editorRef.current.innerHTML = DOMPurify.sanitize(initialHtmlRef.current)
-    }
-  }, [])
 
   // Sync editor when markdown changes externally (not while user edits here)
   useEffect(() => {
@@ -84,5 +79,13 @@ export function useWysiwygEditor({
     [restoreRange, scheduleMarkdownUpdate]
   )
 
-  return { editorRef, activeBlock, activeFormats, exec, insertHtml, saveRange }
+  return {
+    editorRef,
+    activeBlock,
+    activeFormats,
+    exec,
+    insertHtml,
+    saveRange,
+    scheduleMarkdownUpdate,
+  }
 }

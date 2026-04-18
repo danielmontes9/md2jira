@@ -17,6 +17,8 @@ export function useEditorSelection(
   restoreRange: () => void
 } {
   const savedRangeRef = useRef<Range | null>(null)
+  // Guard so onFirstInteraction fires exactly once, not on every keyUp/mouseUp.
+  const hasActivatedRef = useRef(false)
   const [activeBlock, setActiveBlock] = useState<string>('p')
   const [activeFormats, setActiveFormats] = useState<Set<string>>(new Set())
 
@@ -24,7 +26,10 @@ export function useEditorSelection(
     if (!editorRef.current) return
     const sel = window.getSelection()
     if (!sel || !editorRef.current.contains(sel.anchorNode)) return
-    onFirstInteraction?.()
+    if (!hasActivatedRef.current) {
+      hasActivatedRef.current = true
+      onFirstInteraction?.()
+    }
     const block = (document.queryCommandValue('formatBlock') || 'p').toLowerCase()
     setActiveBlock(block)
     const fmts = new Set<string>()

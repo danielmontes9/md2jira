@@ -1,5 +1,6 @@
 import { useState, memo, lazy, Suspense } from 'react'
 import { useWysiwygEditor } from '../hooks/useWysiwygEditor.js'
+import { highlightJson } from '../utils/highlight-json.js'
 import { useJiraCopy } from '../hooks/useJiraCopy.js'
 import { CopyEditGroup } from './jira-output/CopyEditGroup.js'
 const EditorToolbar = lazy(() =>
@@ -7,6 +8,15 @@ const EditorToolbar = lazy(() =>
 )
 import './jira-output/jira-preview.css'
 import type { OutputFormat, ViewMode } from '../types.js'
+
+/** Returns the correct className for a toggle-group button. */
+function toggleBtnCls(active: boolean, side: 'left' | 'right'): string {
+  const radius = side === 'left' ? 'rounded-l-md' : 'rounded-r-md'
+  const base = `flex-1 whitespace-nowrap ${radius} px-2 py-1 transition-colors @[460px]:flex-none`
+  return active
+    ? `${base} bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-neutral-100`
+    : `${base} text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200`
+}
 
 interface JiraOutputProps {
   value: string
@@ -28,7 +38,15 @@ export const JiraOutput = memo(function JiraOutput({
   const [viewMode, setViewMode] = useState<ViewMode>('preview')
   const [editMode, setEditMode] = useState(false)
 
-  const { editorRef, activeBlock, activeFormats, exec, insertHtml, saveRange } = useWysiwygEditor({
+  const {
+    editorRef,
+    activeBlock,
+    activeFormats,
+    exec,
+    insertHtml,
+    saveRange,
+    scheduleMarkdownUpdate,
+  } = useWysiwygEditor({
     previewHtml,
     onMarkdownChange,
   })
@@ -68,14 +86,14 @@ export const JiraOutput = memo(function JiraOutput({
               <button
                 onClick={() => onFormatChange('adf')}
                 aria-pressed={format === 'adf'}
-                className={`flex-1 whitespace-nowrap rounded-l-md px-2 py-1 transition-colors @[460px]:flex-none ${format === 'adf' ? 'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-neutral-100' : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200'}`}
+                className={toggleBtnCls(format === 'adf', 'left')}
               >
                 Jira Cloud
               </button>
               <button
                 onClick={() => onFormatChange('wiki')}
                 aria-pressed={format === 'wiki'}
-                className={`flex-1 whitespace-nowrap rounded-r-md px-2 py-1 transition-colors @[460px]:flex-none ${format === 'wiki' ? 'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-neutral-100' : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200'}`}
+                className={toggleBtnCls(format === 'wiki', 'right')}
               >
                 Wiki Markup
               </button>
@@ -88,14 +106,14 @@ export const JiraOutput = memo(function JiraOutput({
               <button
                 onClick={() => setViewMode('preview')}
                 aria-pressed={viewMode === 'preview'}
-                className={`flex-1 whitespace-nowrap rounded-l-md px-2 py-1 transition-colors @[460px]:flex-none ${viewMode === 'preview' ? 'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-neutral-100' : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200'}`}
+                className={toggleBtnCls(viewMode === 'preview', 'left')}
               >
                 Preview
               </button>
               <button
                 onClick={() => setViewMode('code')}
                 aria-pressed={viewMode === 'code'}
-                className={`flex-1 whitespace-nowrap rounded-r-md px-2 py-1 transition-colors @[460px]:flex-none ${viewMode === 'code' ? 'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-neutral-100' : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200'}`}
+                className={toggleBtnCls(viewMode === 'code', 'right')}
               >
                 Code
               </button>
@@ -107,6 +125,7 @@ export const JiraOutput = memo(function JiraOutput({
           copied={copied}
           editMode={editMode}
           canEdit={canEdit}
+          format={format}
           onCopy={handleCopy}
           onToggleEdit={() => setEditMode((v) => !v)}
         />
@@ -143,8 +162,15 @@ export const JiraOutput = memo(function JiraOutput({
 
       {/* ── Content ── */}
       {viewMode === 'code' ? (
-        <pre className="flex-1 overflow-auto whitespace-pre-wrap p-4 font-mono text-sm text-neutral-900 dark:text-neutral-100">
-          {value}
+        <pre
+          role="region"
+          aria-label="Jira markup code"
+          className="flex-1 overflow-auto whitespace-pre-wrap p-4 font-mono text-sm text-neutral-900 dark:text-neutral-100"
+          // highlightJson escapes HTML entities before injecting <span> tags — safe.
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={format === 'adf' ? { __html: highlightJson(value) } : undefined}
+        >
+          {format !== 'adf' ? value : undefined}
         </pre>
       ) : (
         <div
@@ -155,9 +181,7 @@ export const JiraOutput = memo(function JiraOutput({
           aria-readonly={!(canEdit && editMode)}
           contentEditable={canEdit && editMode}
           suppressContentEditableWarning
-          onInput={() => {
-            /* handled by useWysiwygEditor via scheduleMarkdownUpdate */
-          }}
+          onInput={scheduleMarkdownUpdate}
           onMouseUp={saveRange}
           onKeyUp={saveRange}
           className={`jira-preview flex-1 overflow-auto p-6 text-sm text-neutral-900 outline-none transition-opacity duration-200 dark:text-neutral-100 ${isPending && !(canEdit && editMode) ? 'opacity-50' : ''} ${canEdit && editMode ? 'ring-1 ring-inset ring-blue-300 dark:ring-blue-700' : 'ring-0'}`}

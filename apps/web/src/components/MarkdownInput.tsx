@@ -22,11 +22,16 @@ export const MarkdownInput = memo(function MarkdownInput({ value, onChange }: Ma
   const addToast = useToast()
 
   const { copiedMd, handleCopyMd } = useClipboardEvents(value, onChange, textareaRef, addToast)
-  const { fileInputRef, handleImport, handleFileChange, handleExport } = useFileImportExport(
-    value,
-    onChange,
-    addToast
-  )
+  const {
+    fileInputRef,
+    handleImport,
+    handleFileChange,
+    handleExport,
+    handleDragOver,
+    handleDragLeave,
+    handleDrop,
+    isDragging,
+  } = useFileImportExport(value, onChange, addToast)
 
   const syncScroll = useCallback(() => {
     if (gutterRef.current && textareaRef.current) {
@@ -44,7 +49,16 @@ export const MarkdownInput = memo(function MarkdownInput({ value, onChange }: Ma
 
   return (
     <>
-      <div className="@container flex min-h-0 flex-1 flex-col rounded-lg border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
+      <div
+        className={`@container flex min-h-0 flex-1 flex-col rounded-lg border bg-white transition-colors dark:bg-neutral-900 ${
+          isDragging
+            ? 'border-blue-400 bg-blue-50/40 dark:border-blue-500 dark:bg-blue-950/20'
+            : 'border-neutral-200 dark:border-neutral-800'
+        }`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
         <div className="flex flex-col gap-1 border-b border-neutral-200 px-4 py-2 dark:border-neutral-800 @[425px]:flex-row @[425px]:items-center @[425px]:justify-between">
           <span className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
             Markdown
@@ -92,6 +106,7 @@ export const MarkdownInput = memo(function MarkdownInput({ value, onChange }: Ma
           {/* Textarea */}
           <textarea
             id="markdown-input"
+            aria-label="Markdown input"
             name="markdown-input"
             ref={textareaRef}
             className="flex-1 resize-none bg-transparent p-4 font-mono text-sm leading-6 text-neutral-900 outline-none placeholder:text-neutral-400 dark:text-neutral-100 dark:placeholder:text-neutral-600"

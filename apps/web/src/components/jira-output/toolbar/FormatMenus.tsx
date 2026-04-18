@@ -41,6 +41,7 @@ export function TextStyleMenu({ exec, close, openKey, onOpen, activeBlock }: Tex
           return (
             <button
               key={tag}
+              role="menuitem"
               onMouseDown={(e) => {
                 e.preventDefault()
                 exec('formatBlock', tag)
@@ -95,6 +96,7 @@ export function FormatMenu({
           return (
             <button
               key={label}
+              role="menuitem"
               onMouseDown={(e) => {
                 e.preventDefault()
                 exec(cmd)
@@ -114,6 +116,7 @@ export function FormatMenu({
           )
         })}
         <button
+          role="menuitem"
           onMouseDown={(e) => {
             e.preventDefault()
             insertHtml('<code>code</code>')

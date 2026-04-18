@@ -19,6 +19,23 @@
     <link rel="canonical" href="https://danielmontes9.github.io/md2jira" />
     <link rel="preconnect" href="https://cdn.buymeacoffee.com" crossorigin />
 
+    <!-- Content Security Policy
+         - script-src 'self': allows only scripts served from the same origin
+           (including /theme-init.js and Vite's main bundle). 'unsafe-inline' is
+           no longer needed because the theme-detection snippet was moved to
+           public/theme-init.js.
+         - style-src 'unsafe-inline': REQUIRED — Tailwind CSS v4 injects styles at
+           runtime via CSSOM (`CSSStyleSheet.insertRule`). There is no Vite plugin
+           that generates CSP nonces/hashes for Tailwind's runtime injection.
+           When Tailwind ships a static-extraction mode, replace 'unsafe-inline'
+           with a nonce-based approach. Track: https://github.com/tailwindlabs/tailwindcss/discussions
+         - img-src: allow data URIs (favicons) + Buy Me a Coffee CDN.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://cdn.buymeacoffee.com; connect-src 'self'; font-src 'self'; frame-src 'none'; object-src 'none';"
+    />
+
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content="md2jira-previewer — Markdown to Jira Converter" />
@@ -41,12 +58,7 @@
     <meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)" />
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
 
-    <script>
-      const t = localStorage.getItem('theme')
-      if (t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.documentElement.classList.add('dark')
-      }
-    </script>
+    <script src="/theme-init.js"></script>
 
     <!-- Structured Data -->
     <script type="application/ld+json">

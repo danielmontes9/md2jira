@@ -1,6 +1,11 @@
 /**
  * Centralized SVG icon components.
  *
+ * All icons live in a single file because they are lightweight inline SVGs (no
+ * heavy library). Vite's tree-shaking eliminates unused exports, so splitting
+ * into individual files would add import complexity without meaningful bundle
+ * savings.
+ *
  * All icons accept an optional `className` for sizing/color overrides.
  * Icons are decorative by default (`aria-hidden="true"`).
  */

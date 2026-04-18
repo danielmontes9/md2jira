@@ -33,7 +33,12 @@ export function createTurndownService(): TurndownService {
     filter: (node) => node.nodeName === 'PRE' && node.querySelector('code') !== null,
     replacement: (_content: string, node: Node) => {
       const code = (node as HTMLElement).querySelector('code')
-      return `\n\`\`\`\n${code?.textContent ?? ''}\n\`\`\`\n`
+      // Recover the language from the `language-*` class injected by adf-renderer
+      const lang =
+        Array.from(code?.classList ?? [])
+          .find((c) => c.startsWith('language-'))
+          ?.slice('language-'.length) ?? ''
+      return `\n\`\`\`${lang}\n${code?.textContent ?? ''}\n\`\`\`\n`
     },
   })
 

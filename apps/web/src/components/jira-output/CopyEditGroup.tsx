@@ -1,8 +1,11 @@
+import type { OutputFormat } from '../../types.js'
+
 /** Shared Copy + Edit toggle button group — rendered in the JiraOutput header. */
 export function CopyEditGroup({
   copied,
   editMode,
   canEdit,
+  format,
   onCopy,
   onToggleEdit,
   className,
@@ -10,6 +13,7 @@ export function CopyEditGroup({
   copied: boolean
   editMode: boolean
   canEdit: boolean
+  format: OutputFormat
   onCopy: () => void
   onToggleEdit: () => void
   className?: string
@@ -22,6 +26,10 @@ export function CopyEditGroup({
     >
       <button
         onClick={onCopy}
+        aria-live="polite"
+        title={
+          format === 'adf' ? 'Copy as rich text for Jira Cloud' : 'Copy Wiki Markup to clipboard'
+        }
         className="whitespace-nowrap rounded-l-md px-3 py-1 font-medium text-neutral-600 transition-colors hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
       >
         {copied ? 'Copied!' : 'Copy for Jira'}

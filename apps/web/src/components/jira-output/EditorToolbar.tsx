@@ -3,7 +3,7 @@ import { MOD_KEY } from '../../utils/keyboard.js'
 import { type DropKey, BTN_CLS } from './toolbar/shared.js'
 import { TextStyleMenu, FormatMenu } from './toolbar/FormatMenus.js'
 import { ListsMenu, ColorMenu, EmojiMenu, InsertMenu } from './toolbar/ContentMenus.js'
-import { IconImage, IconCodeBrackets, IconUndo, IconRedo } from '../icons.js'
+import { IconCodeBrackets, IconUndo, IconRedo } from '../icons.js'
 
 interface EditorToolbarProps {
   exec: (cmd: string, arg?: string) => void
@@ -42,11 +42,15 @@ export function EditorToolbar({
 
   // Close dropdowns when clicking outside the toolbar
   useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (!(e.target as Element).closest('[data-toolbar]')) close()
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
+    const ac = new AbortController()
+    document.addEventListener(
+      'mousedown',
+      (e: MouseEvent) => {
+        if (!(e.target as Element).closest('[data-toolbar]')) close()
+      },
+      { signal: ac.signal }
+    )
+    return () => ac.abort()
   }, [close])
 
   const menuProps = { exec, insertHtml, close, openKey, onOpen: open }
@@ -63,16 +67,6 @@ export function EditorToolbar({
       <ListsMenu {...menuProps} />
       <ColorMenu {...menuProps} />
 
-      {/* Media — placeholder (not implemented) */}
-      <button
-        title="Add image, video or file (not available in preview)"
-        className={`${BTN_CLS} cursor-not-allowed opacity-40`}
-        onMouseDown={(e) => e.preventDefault()}
-        aria-disabled="true"
-      >
-        <IconImage />
-      </button>
-
       <div className="mx-1 h-4 w-px bg-neutral-200 dark:bg-neutral-700" />
 
       {/* Code snippet */}
@@ -82,12 +76,13 @@ export function EditorToolbar({
           saveRange()
           const sel = window.getSelection()
           const selectedText = sel && sel.rangeCount > 0 ? sel.getRangeAt(0).toString() : ''
-          const escaped = selectedText
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-          const content = escaped.length > 0 ? escaped : '// code here'
-          insertHtml(`<pre><code>${content}</code></pre><p><br></p>`)
+          // Use DOM textContent to encode selected text as literal characters inside <code>,
+          // avoiding manual HTML entity replacement. insertHtml then sanitizes via DOMPurify.
+          const codeEl = document.createElement('code')
+          codeEl.textContent = selectedText || '// code here'
+          const preEl = document.createElement('pre')
+          preEl.appendChild(codeEl)
+          insertHtml(preEl.outerHTML + '<p><br></p>')
         }}
         title="Code snippet"
         className={BTN_CLS}

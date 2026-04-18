@@ -1,4 +1,7 @@
 import { useState } from 'react'
+// TEXT_COLORS and EMOJI_CATEGORIES are static data co-located in the lazy
+// EditorToolbar chunk. They are NOT in the initial bundle because EditorToolbar
+// is lazy-loaded via React.lazy — these constants only load on first render.
 import { TEXT_COLORS, EMOJI_CATEGORIES } from '../constants.js'
 import { MOD_KEY } from '../../../utils/keyboard.js'
 import {
@@ -34,6 +37,7 @@ export function ListsMenu({ exec, insertHtml, close, openKey, onOpen }: ListsMen
     >
       <div className={DROP_CLS} style={{ minWidth: 215 }}>
         <button
+          role="menuitem"
           onMouseDown={(e) => {
             e.preventDefault()
             exec('insertUnorderedList')
@@ -45,6 +49,7 @@ export function ListsMenu({ exec, insertHtml, close, openKey, onOpen }: ListsMen
           <span className="text-xs text-neutral-400">{`${MOD_KEY}+Shift+8`}</span>
         </button>
         <button
+          role="menuitem"
           onMouseDown={(e) => {
             e.preventDefault()
             exec('insertOrderedList')
@@ -56,6 +61,7 @@ export function ListsMenu({ exec, insertHtml, close, openKey, onOpen }: ListsMen
           <span className="text-xs text-neutral-400">{`${MOD_KEY}+Shift+7`}</span>
         </button>
         <button
+          role="menuitem"
           onMouseDown={(e) => {
             e.preventDefault()
             insertHtml(
@@ -87,6 +93,7 @@ export function ColorMenu({ exec, close, openKey, onOpen }: ColorMenuProps) {
       openKey={openKey}
       onOpen={onOpen}
       onClose={close}
+      menuRole="listbox"
       trigger={
         <span className="relative select-none font-bold leading-none" title="Text color">
           A
@@ -99,6 +106,7 @@ export function ColorMenu({ exec, close, openKey, onOpen }: ColorMenuProps) {
           {TEXT_COLORS.map((color) => (
             <button
               key={color}
+              role="option"
               onMouseDown={(e) => {
                 e.preventDefault()
                 exec('foreColor', color)
@@ -112,6 +120,7 @@ export function ColorMenu({ exec, close, openKey, onOpen }: ColorMenuProps) {
         </div>
         <div className="mt-2 border-t border-neutral-100 pt-2 dark:border-neutral-800">
           <button
+            role="option"
             onMouseDown={(e) => {
               e.preventDefault()
               exec('removeFormat')
@@ -143,6 +152,7 @@ export function EmojiMenu({ exec, close, openKey, onOpen }: EmojiMenuProps) {
       openKey={openKey}
       onOpen={onOpen}
       onClose={close}
+      menuRole="dialog"
       trigger={
         <span className="text-base leading-none" title="Emoji">
           ☺
@@ -229,6 +239,7 @@ export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertM
     >
       <div className={DROP_CLS} style={{ minWidth: 265 }}>
         <button
+          role="menuitem"
           onMouseDown={(e) => {
             e.preventDefault()
             insertHtml(
@@ -244,6 +255,7 @@ export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertM
           </div>
         </button>
         <button
+          role="menuitem"
           onMouseDown={(e) => {
             e.preventDefault()
             insertHtml('<p>@mention</p>')
@@ -257,6 +269,7 @@ export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertM
           </div>
         </button>
         <button
+          role="menuitem"
           onMouseDown={(e) => {
             e.preventDefault()
             insertHtml(
@@ -275,6 +288,7 @@ export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertM
           </div>
         </button>
         <button
+          role="menuitem"
           onMouseDown={(e) => {
             e.preventDefault()
             insertHtml(
@@ -290,6 +304,7 @@ export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertM
           </div>
         </button>
         <button
+          role="menuitem"
           onMouseDown={(e) => {
             e.preventDefault()
             insertHtml(
@@ -305,6 +320,7 @@ export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertM
           </div>
         </button>
         <button
+          role="menuitem"
           onMouseDown={(e) => {
             e.preventDefault()
             insertHtml(
@@ -320,6 +336,7 @@ export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertM
           </div>
         </button>
         <button
+          role="menuitem"
           onMouseDown={(e) => {
             e.preventDefault()
             exec('insertHorizontalRule')

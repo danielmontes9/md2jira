@@ -96,23 +96,30 @@ export function App() {
     }
   }, [theme])
 
-  // Debounced URL deep-linking: update ?md= param 500ms after the user stops typing
+  // Debounced URL deep-linking: update ?md= param 500ms after the user stops typing.
+  // Uses requestIdleCallback (with setTimeout fallback) so the URL update never
+  // interferes with rendering or typing responsiveness.
   useEffect(() => {
     const handle = setTimeout(() => {
-      const url = new URL(window.location.href)
-      if (!markdown) {
-        // Clear the param when the editor is empty
-        url.searchParams.delete('md')
-      } else {
-        const encoded = encodeMarkdown(markdown)
-        if (encoded.length <= URL_MD_MAX_ENCODED) {
-          url.searchParams.set('md', encoded)
-        } else {
-          // Document too large — remove the param to avoid truncated/broken URLs
+      const updateUrl = () => {
+        const url = new URL(window.location.href)
+        if (!markdown) {
           url.searchParams.delete('md')
+        } else {
+          const encoded = encodeMarkdown(markdown)
+          if (encoded.length <= URL_MD_MAX_ENCODED) {
+            url.searchParams.set('md', encoded)
+          } else {
+            url.searchParams.delete('md')
+          }
         }
+        window.history.replaceState(null, '', url.toString())
       }
-      window.history.replaceState(null, '', url.toString())
+      if ('requestIdleCallback' in window) {
+        window.requestIdleCallback(updateUrl)
+      } else {
+        updateUrl()
+      }
     }, 500)
     return () => clearTimeout(handle)
   }, [markdown])

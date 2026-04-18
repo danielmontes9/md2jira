@@ -1,4 +1,4 @@
-import { useState, Fragment, lazy, Suspense, memo } from 'react'
+import { useState, Fragment, lazy, Suspense, memo, useCallback } from 'react'
 import { IconInfoCircle, IconSun, IconMoon, IconGitHub } from './icons.js'
 
 const InfoModal = lazy(() => import('./InfoModal.js').then((m) => ({ default: m.InfoModal })))
@@ -10,6 +10,8 @@ interface HeaderProps {
 
 export const Header = memo(function Header({ theme, onToggleTheme }: HeaderProps) {
   const [infoOpen, setInfoOpen] = useState(false)
+  const [bmacError, setBmacError] = useState(false)
+  const handleBmacError = useCallback(() => setBmacError(true), [])
 
   return (
     <Fragment>
@@ -35,14 +37,21 @@ export const Header = memo(function Header({ theme, onToggleTheme }: HeaderProps
             rel="noopener noreferrer"
             className="shrink-0 sm:order-1"
           >
-            <img
-              src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png"
-              alt="Buy Me A Coffee"
-              width="160"
-              height="40"
-              className="h-7 w-auto sm:h-10"
-              loading="lazy"
-            />
+            {bmacError ? (
+              <span className="inline-flex h-7 items-center rounded bg-yellow-400 px-3 text-xs font-medium text-yellow-900 sm:h-10 sm:px-4 sm:text-sm">
+                ☕ Buy me a coffee
+              </span>
+            ) : (
+              <img
+                src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png"
+                alt="Buy Me A Coffee"
+                width="160"
+                height="40"
+                className="h-7 w-auto sm:h-10"
+                loading="lazy"
+                onError={handleBmacError}
+              />
+            )}
           </a>
           <div className="flex items-center gap-1 sm:order-3 sm:shrink-0">
             <a

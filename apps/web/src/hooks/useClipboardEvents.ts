@@ -1,5 +1,6 @@
-import { useState, useCallback, useEffect, type RefObject } from 'react'
+import { useState, useCallback, useEffect, useRef, type RefObject } from 'react'
 import { execInsertText } from '../utils/exec-command.js'
+import { escapeHtml } from '../utils/highlight-json.js'
 import type { ToastType } from '../components/Toast.js'
 
 /**
@@ -17,6 +18,14 @@ export function useClipboardEvents(
   addToast: (msg: string, type: ToastType) => void
 ): { copiedMd: boolean; handleCopyMd: () => void } {
   const [copiedMd, setCopiedMd] = useState(false)
+  const copiedMdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Clean up the "copied" reset timer on unmount.
+  useEffect(() => {
+    return () => {
+      if (copiedMdTimerRef.current !== null) clearTimeout(copiedMdTimerRef.current)
+    }
+  }, [])
 
   // Native event listeners are more reliable than React's synthetic onCopy/onPaste
   // for intercepting clipboard data.
@@ -31,7 +40,7 @@ export function useClipboardEvents(
         selectionStart !== selectionEnd
           ? textarea.value.substring(selectionStart, selectionEnd)
           : textarea.value
-      const escaped = selected.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      const escaped = escapeHtml(selected)
       e.clipboardData.clearData()
       e.clipboardData.setData('text/plain', selected)
       e.clipboardData.setData(
@@ -68,12 +77,17 @@ export function useClipboardEvents(
       textarea.removeEventListener('copy', handleCopy)
       textarea.removeEventListener('paste', handlePaste)
     }
+    // textareaRef is the only dep needed: handlers read textarea.value directly
+    // from the DOM element (always current) so stale-closure for `value` is not
+    // possible. Adding `value` or `onChange` would re-register listeners on every
+    // keystroke, creating a performance anti-pattern.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [textareaRef])
 
   // Clipboard button: write markdown with a <pre> HTML blob so Jira's
   // ProseMirror editor treats the paste as preformatted text.
   const handleCopyMd = useCallback(() => {
-    const escaped = value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    const escaped = escapeHtml(value)
     const htmlBlob = new Blob(
       [`<pre style="font-family:monospace;white-space:pre-wrap;">${escaped}</pre>`],
       { type: 'text/html' }
@@ -81,7 +95,8 @@ export function useClipboardEvents(
     const textBlob = new Blob([value], { type: 'text/plain' })
     const done = () => {
       setCopiedMd(true)
-      setTimeout(() => setCopiedMd(false), 1500)
+      if (copiedMdTimerRef.current !== null) clearTimeout(copiedMdTimerRef.current)
+      copiedMdTimerRef.current = setTimeout(() => setCopiedMd(false), 1500)
     }
     navigator.clipboard
       .write([new ClipboardItem({ 'text/html': htmlBlob, 'text/plain': textBlob })])

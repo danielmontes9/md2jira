@@ -1,4 +1,4 @@
-import { useCallback, useRef, useEffect, type MutableRefObject, type RefObject } from 'react'
+import { useCallback, useRef, useEffect, type MutableRefObject } from 'react'
 import type TurndownService from 'turndown'
 
 /**
@@ -8,9 +8,12 @@ import type TurndownService from 'turndown'
  * (indicated by `editModeActive` becoming true), avoiding the bundle weight until needed.
  */
 export function useMarkdownSync(
-  editorRef: RefObject<HTMLDivElement | null>,
-  onMarkdownChangeRef: RefObject<((md: string) => void) | undefined>,
-  editModeActive: boolean
+  editorRef: MutableRefObject<HTMLDivElement | null>,
+  // MutableRefObject (not ReadonlyRefObject) so React 19 upgrade is non-breaking.
+  onMarkdownChangeRef: MutableRefObject<((md: string) => void) | undefined>,
+  editModeActive: boolean,
+  /** Debounce delay in milliseconds before the HTML→Markdown conversion fires. @default 300 */
+  debounceMs = 300
 ): {
   scheduleMarkdownUpdate: () => void
   isEditorUpdateRef: MutableRefObject<boolean>
@@ -38,15 +41,18 @@ export function useMarkdownSync(
     if (!onMarkdownChangeRef.current || !editorRef.current) return
     clearTimeout(updateTimeoutRef.current)
     updateTimeoutRef.current = setTimeout(() => {
-      if (!editorRef.current || !tdRef.current) return
+      // Capture refs inside the timeout: the component may have unmounted or the
+      // callback ref may have been cleared by the time the timeout fires.
+      const onMarkdownChange = onMarkdownChangeRef.current
+      if (!editorRef.current || !tdRef.current || !onMarkdownChange) return
       isEditorUpdateRef.current = true
       try {
-        onMarkdownChangeRef.current!(tdRef.current.turndown(editorRef.current.innerHTML))
+        onMarkdownChange(tdRef.current.turndown(editorRef.current.innerHTML))
       } catch {
         isEditorUpdateRef.current = false
       }
-    }, 300)
-  }, [editorRef, onMarkdownChangeRef])
+    }, debounceMs)
+  }, [editorRef, onMarkdownChangeRef, debounceMs])
 
   return { scheduleMarkdownUpdate, isEditorUpdateRef }
 }

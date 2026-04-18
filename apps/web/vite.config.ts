@@ -1,7 +1,8 @@
-import { defineConfig } from 'vite'
+import { defineConfig, type PluginOption } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import { visualizer } from 'rollup-plugin-visualizer'
 import { fileURLToPath } from 'node:url'
 
 export default defineConfig({
@@ -61,6 +62,18 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
       },
     }),
+    // Bundle size visualizer — generates stats.html in dist/ when ANALYZE=true.
+    // Run: ANALYZE=true pnpm --filter web build
+    ...(process.env.ANALYZE === 'true'
+      ? [
+          visualizer({
+            filename: 'dist/stats.html',
+            open: false,
+            gzipSize: true,
+            brotliSize: true,
+          }) as unknown as PluginOption,
+        ]
+      : []),
   ],
   base: process.env.VITE_BASE_URL ?? '/',
   resolve: {

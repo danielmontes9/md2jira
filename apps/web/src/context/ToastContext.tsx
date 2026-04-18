@@ -15,7 +15,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   const addToast = useCallback((message: string, type: ToastType = 'info') => {
     const id = ++toastIdRef.current
-    setToasts((prev) => [...prev, { id, message, type }])
+    setToasts((prev) => {
+      const next = [...prev, { id, message, type }]
+      // Cap at 5 to prevent unbounded growth in error-loop scenarios.
+      return next.length > 5 ? next.slice(next.length - 5) : next
+    })
   }, [])
 
   const removeToast = useCallback((id: number) => {

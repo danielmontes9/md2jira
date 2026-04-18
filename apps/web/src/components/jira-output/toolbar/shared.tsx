@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react'
+import { useRef, useEffect, type ReactNode } from 'react'
 import { MOD_KEY } from '../../../utils/keyboard.js'
 import { IconChevronDown, IconCheckFill } from '../../icons.js'
 
@@ -75,6 +75,7 @@ export function ToolbarDropdown({
   onClose,
   trigger,
   children,
+  menuRole = 'menu',
 }: {
   dropKey: DropKey
   openKey: DropKey | null
@@ -82,8 +83,46 @@ export function ToolbarDropdown({
   onClose: () => void
   trigger: ReactNode
   children: ReactNode
+  menuRole?: string
 }) {
   const isOpen = openKey === dropKey
+  const menuRef = useRef<HTMLDivElement | null>(null)
+
+  // When the dropdown opens via keyboard, focus the first interactive item.
+  useEffect(() => {
+    if (!isOpen || !menuRef.current) return
+    const first = menuRef.current.querySelector<HTMLElement>(
+      'button:not([aria-disabled="true"]), input[type="text"]'
+    )
+    const id = requestAnimationFrame(() => first?.focus())
+    return () => cancelAnimationFrame(id)
+  }, [isOpen])
+
+  const handleDropdownKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!menuRef.current) return
+    if (e.key === 'Escape') {
+      e.preventDefault()
+      e.stopPropagation()
+      onClose()
+      return
+    }
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault()
+      const items = Array.from(
+        menuRef.current.querySelectorAll<HTMLElement>(
+          'button:not([aria-disabled="true"]):not([aria-hidden="true"])'
+        )
+      )
+      if (items.length === 0) return
+      const idx = items.findIndex((el) => el === document.activeElement)
+      const next =
+        e.key === 'ArrowDown'
+          ? items[(idx + 1) % items.length]
+          : items[(idx - 1 + items.length) % items.length]
+      next?.focus()
+    }
+  }
+
   return (
     <div className="relative" data-toolbar>
       <button
@@ -92,13 +131,27 @@ export function ToolbarDropdown({
           if (isOpen) onClose()
           else onOpen(dropKey)
         }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            if (isOpen) onClose()
+            else onOpen(dropKey)
+          } else if (e.key === 'Escape') {
+            e.preventDefault()
+            onClose()
+          }
+        }}
         aria-expanded={isOpen}
-        aria-haspopup="menu"
-        className="relative flex h-7 items-center gap-0.5 rounded px-1.5 text-xs text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800 select-none"
+        aria-haspopup={menuRole as React.AriaAttributes['aria-haspopup']}
+        className={BTN_CLS}
       >
         {trigger}
       </button>
-      {isOpen && children}
+      {isOpen && (
+        <div ref={menuRef} role={menuRole} onKeyDown={handleDropdownKeyDown}>
+          {children}
+        </div>
+      )}
     </div>
   )
 }

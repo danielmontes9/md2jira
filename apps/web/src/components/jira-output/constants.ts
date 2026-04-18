@@ -1,3 +1,4 @@
+/** Atlassian-style palette colors for the WYSIWYG text color picker. */
 export const TEXT_COLORS: string[] = [
   '#091E42',
   '#172B4D',

@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactElement } from 'react'
+import { useEffect, useRef, useState, type ReactElement } from 'react'
 import { IconAlertCircle, IconCheck, IconClose } from './icons.js'
 
 export type ToastType = 'error' | 'success' | 'info'
@@ -26,15 +26,19 @@ const icons: Record<ToastType, ReactElement> = {
 
 export function Toast({ message, type = 'info', onClose, duration = 7000 }: ToastProps) {
   const [visible, setVisible] = useState(false)
+  const innerTimerRef = useRef<ReturnType<typeof setTimeout>>()
 
   useEffect(() => {
     // Trigger enter animation
     requestAnimationFrame(() => setVisible(true))
-    const timer = setTimeout(() => {
+    const outerTimer = setTimeout(() => {
       setVisible(false)
-      setTimeout(onClose, 200)
+      innerTimerRef.current = setTimeout(onClose, 200)
     }, duration)
-    return () => clearTimeout(timer)
+    return () => {
+      clearTimeout(outerTimer)
+      clearTimeout(innerTimerRef.current)
+    }
   }, [duration, onClose])
 
   return (
@@ -50,7 +54,7 @@ export function Toast({ message, type = 'info', onClose, duration = 7000 }: Toas
       <button
         onClick={() => {
           setVisible(false)
-          setTimeout(onClose, 200)
+          innerTimerRef.current = setTimeout(onClose, 200)
         }}
         className="ml-1 shrink-0 opacity-60 transition-opacity hover:opacity-100"
         aria-label="Dismiss"

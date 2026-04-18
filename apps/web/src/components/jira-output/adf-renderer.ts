@@ -61,38 +61,79 @@ export function adfInlineToHtml(node: AdfInlineNode): string {
   return html
 }
 
-export function adfBlockToHtml(node: AdfBlockNode): string {
-  switch (node.type) {
-    case 'heading':
-      return `<h${node.attrs.level}>${node.content.map(adfInlineToHtml).join('')}</h${node.attrs.level}>`
-    case 'paragraph':
-      return `<p>${node.content.map(adfInlineToHtml).join('')}</p>`
-    case 'bulletList':
-      return `<ul>${node.content.map((item: AdfListItemNode) => `<li>${item.content.map(adfBlockToHtml).join('')}</li>`).join('')}</ul>`
-    case 'orderedList':
-      return `<ol>${node.content.map((item: AdfListItemNode) => `<li>${item.content.map(adfBlockToHtml).join('')}</li>`).join('')}</ol>`
-    case 'codeBlock':
-      return `<pre><code>${node.content.map((t: AdfTextNode) => t.text).join('')}</code></pre>`
-    case 'blockquote':
-      return `<blockquote>${node.content.map(adfBlockToHtml).join('')}</blockquote>`
-    case 'rule':
-      return '<hr>'
-    case 'table': {
-      const rows = node.content.map((row: AdfTableRowNode) => {
-        const cells = row.content.map((cell: AdfTableHeaderNode | AdfTableCellNode) => {
-          const tag = cell.type === 'tableHeader' ? 'th' : 'td'
-          const inner = cell.content.map(adfBlockToHtml).join('')
-          return `<${tag}>${inner}</${tag}>`
-        })
-        return `<tr>${cells.join('')}</tr>`
-      })
-      return `<table>${rows.join('')}</table>`
-    }
-    default:
-      return ''
-  }
+// Mapped type: each key K maps to a handler that only accepts the AdfBlockNode subtype
+// whose `type` discriminant equals K. This gives full type-narrowing inside each handler.
+type BlockHandlerMap = {
+  [K in AdfBlockNode['type']]+?: (node: Extract<AdfBlockNode, { type: K }>) => string
 }
 
+const BLOCK_HANDLERS: BlockHandlerMap = {
+  heading: (node) =>
+    `<h${node.attrs.level}>${node.content.map(adfInlineToHtml).join('')}</h${node.attrs.level}>`,
+  paragraph: (node) => `<p>${node.content.map(adfInlineToHtml).join('')}</p>`,
+  bulletList: (node) =>
+    `<ul>${node.content.map((item: AdfListItemNode) => `<li>${item.content.map(adfBlockToHtml).join('')}</li>`).join('')}</ul>`,
+  orderedList: (node) =>
+    `<ol>${node.content.map((item: AdfListItemNode) => `<li>${item.content.map(adfBlockToHtml).join('')}</li>`).join('')}</ol>`,
+  codeBlock: (node) => {
+    const lang = (node.attrs as { language?: string } | undefined)?.language
+    // Sanitize the language tag — only allow word characters so it can't inject HTML
+    const safeLang = lang ? lang.replace(/[^\w-]/g, '') : ''
+    const classAttr = safeLang ? ` class="language-${safeLang}"` : ''
+    const content = node.content.map((t: AdfTextNode) => t.text).join('')
+    return `<pre><code${classAttr}>${content}</code></pre>`
+  },
+  blockquote: (node) => `<blockquote>${node.content.map(adfBlockToHtml).join('')}</blockquote>`,
+  rule: () => '<hr>',
+  table: (node) => {
+    const rows = node.content.map((row: AdfTableRowNode) => {
+      const cells = row.content.map((cell: AdfTableHeaderNode | AdfTableCellNode) => {
+        const tag = cell.type === 'tableHeader' ? 'th' : 'td'
+        const inner = cell.content.map(adfBlockToHtml).join('')
+        return `<${tag}>${inner}</${tag}>`
+      })
+      return `<tr>${cells.join('')}</tr>`
+    })
+    return `<table>${rows.join('')}</table>`
+  },
+}
+
+export function adfBlockToHtml(node: AdfBlockNode): string {
+  // Safe: BLOCK_HANDLERS[K] only accepts Extract<AdfBlockNode, {type: K}>, which
+  // `node` satisfies at runtime. The cast is contained to this single call site.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handler = BLOCK_HANDLERS[node.type] as ((node: any) => string) | undefined
+  return handler ? handler(node) : ''
+}
+
+/**
+ * Converts a full ADF document to an HTML string.
+ *
+ * Performance: currently synchronous on the main thread, but wrapped with
+ * `useDeferredValue` in App.tsx so it yields to user input. The actual
+ * conversion is O(n) over ADF nodes and fast for typical Jira documents.
+ *
+ * Web Worker migration (for documents > ~500 nodes):
+ *
+ * 1. Create `apps/web/src/workers/adf-worker.ts`:
+ *    ```ts
+ *    import { adfToHtml } from '../components/jira-output/adf-renderer.js'
+ *    self.onmessage = (e: MessageEvent<AdfDocument>) => {
+ *      self.postMessage(adfToHtml(e.data))
+ *    }
+ *    ```
+ *
+ * 2. In App.tsx, instantiate with:
+ *    ```ts
+ *    const worker = new Worker(
+ *      new URL('../workers/adf-worker.ts', import.meta.url),
+ *      { type: 'module' }
+ *    )
+ *    ```
+ *
+ * 3. Post ADF doc to worker, receive HTML string via `onmessage`.
+ *    The function is pure (no DOM access), making it safe to run off-thread.
+ */
 export function adfToHtml(doc: AdfDocument): string {
   return doc.content.map(adfBlockToHtml).join('')
 }
