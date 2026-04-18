@@ -1,4 +1,5 @@
 import { Modal } from './Modal'
+import { IconInfoCircle, IconCloseOcticon, IconExternalLink } from './icons.js'
 
 interface InfoModalProps {
   onClose: () => void
@@ -14,30 +15,13 @@ export function InfoModal({ onClose }: InfoModalProps) {
           className="absolute right-4 top-4 rounded-md p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
           aria-label="Close"
         >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-            <path d="M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.75.75 0 1 1 1.06 1.06L9.06 8l3.22 3.22a.75.75 0 1 1-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 0 1-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06z" />
-          </svg>
+          <IconCloseOcticon className="h-4 w-4" />
         </button>
 
         {/* Header */}
         <div className="mb-4 flex items-center gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-900">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-blue-600 dark:text-blue-400"
-              aria-hidden="true"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="8" x2="12" y2="8.01" />
-              <line x1="12" y1="12" x2="12" y2="16" />
-            </svg>
+            <IconInfoCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
           </div>
           <div>
             <h2
@@ -100,16 +84,7 @@ export function InfoModal({ onClose }: InfoModalProps) {
                 <p className="text-sm font-medium text-neutral-800 dark:text-neutral-200">{name}</p>
                 <p className="text-xs text-neutral-500 dark:text-neutral-400">{description}</p>
               </div>
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 16 16"
-                fill="currentColor"
-                className="mt-0.5 shrink-0 text-neutral-300 dark:text-neutral-600"
-                aria-hidden="true"
-              >
-                <path d="M3.75 2h3.5a.75.75 0 0 1 0 1.5h-3.5a.25.25 0 0 0-.25.25v8.5c0 .138.112.25.25.25h8.5a.25.25 0 0 0 .25-.25v-3.5a.75.75 0 0 1 1.5 0v3.5A1.75 1.75 0 0 1 12.25 14h-8.5A1.75 1.75 0 0 1 2 12.25v-8.5C2 2.784 2.784 2 3.75 2zm6.854-1h4.146a.25.25 0 0 1 .25.25v4.146a.75.75 0 0 1-1.5 0V2.56l-3.97 3.97a.75.75 0 0 1-1.06-1.06l3.97-3.97h-1.836a.75.75 0 0 1 0-1.5z" />
-              </svg>
+              <IconExternalLink className="mt-0.5 h-3.5 w-3.5 shrink-0 text-neutral-300 dark:text-neutral-600" />
             </a>
           ))}
         </div>

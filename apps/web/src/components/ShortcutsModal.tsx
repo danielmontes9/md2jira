@@ -1,5 +1,6 @@
 import { MOD_KEY } from '../utils/keyboard.js'
 import { Modal } from './Modal'
+import { IconClose } from './icons.js'
 
 interface ShortcutsModalProps {
   onClose: () => void
@@ -61,20 +62,7 @@ export function ShortcutsModal({ onClose }: ShortcutsModalProps) {
             className="rounded-md p-1.5 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
             aria-label="Close shortcuts panel"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
+            <IconClose className="h-[18px] w-[18px]" />
           </button>
         </div>
 

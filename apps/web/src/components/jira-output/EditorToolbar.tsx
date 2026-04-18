@@ -3,6 +3,7 @@ import { MOD_KEY } from '../../utils/keyboard.js'
 import { type DropKey, BTN_CLS } from './toolbar/shared.js'
 import { TextStyleMenu, FormatMenu } from './toolbar/FormatMenus.js'
 import { ListsMenu, ColorMenu, EmojiMenu, InsertMenu } from './toolbar/ContentMenus.js'
+import { IconImage, IconCodeBrackets, IconUndo, IconRedo } from '../icons.js'
 
 interface EditorToolbarProps {
   exec: (cmd: string, arg?: string) => void
@@ -69,17 +70,7 @@ export function EditorToolbar({
         onMouseDown={(e) => e.preventDefault()}
         aria-disabled="true"
       >
-        <svg
-          className="h-4 w-4"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <rect x="3" y="3" width="18" height="18" rx="2" />
-          <circle cx="8.5" cy="8.5" r="1.5" />
-          <polyline points="21 15 16 10 5 21" />
-        </svg>
+        <IconImage />
       </button>
 
       <div className="mx-1 h-4 w-px bg-neutral-200 dark:bg-neutral-700" />
@@ -101,18 +92,7 @@ export function EditorToolbar({
         title="Code snippet"
         className={BTN_CLS}
       >
-        <svg
-          className="h-4 w-4"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          aria-hidden="true"
-          style={{ pointerEvents: 'none' }}
-        >
-          <polyline points="16 18 22 12 16 6" />
-          <polyline points="8 6 2 12 8 18" />
-        </svg>
+        <IconCodeBrackets />
       </button>
 
       <EmojiMenu {...menuProps} />
@@ -129,16 +109,7 @@ export function EditorToolbar({
         title={`Undo (${MOD_KEY}+Z)`}
         className={BTN_CLS}
       >
-        <svg
-          className="h-4 w-4"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <polyline points="1 4 1 10 7 10" />
-          <path d="M3.51 15a9 9 0 1 0 .49-9.7L1 10" />
-        </svg>
+        <IconUndo />
       </button>
 
       {/* Redo */}
@@ -150,16 +121,7 @@ export function EditorToolbar({
         title={`Redo (${MOD_KEY}+Y)`}
         className={BTN_CLS}
       >
-        <svg
-          className="h-4 w-4"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <polyline points="23 4 23 10 17 10" />
-          <path d="M20.49 15a9 9 0 1 1-.49-9.7L23 10" />
-        </svg>
+        <IconRedo />
       </button>
     </div>
   )
