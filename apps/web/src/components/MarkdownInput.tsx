@@ -4,6 +4,7 @@ const ShortcutsModal = lazy(() =>
 )
 import { ToastContainer, ToastType } from './Toast.js'
 import { useMarkdownShortcuts } from '../hooks/useMarkdownShortcuts.js'
+import { execInsertText } from '../utils/exec-command.js'
 
 interface MarkdownInputProps {
   value: string
@@ -60,9 +61,7 @@ export const MarkdownInput = memo(function MarkdownInput({ value, onChange }: Ma
       // Use execCommand so native undo stack is preserved
       textarea.focus()
       textarea.setSelectionRange(selectionStart, selectionEnd)
-      ;(
-        document as unknown as { execCommand(cmd: string, showUI: boolean, value: string): boolean }
-      ).execCommand('insertText', false, plain)
+      execInsertText(plain)
       // Fallback for browsers that block execCommand
       if (textarea.value !== newValue) {
         textarea.value = newValue
@@ -135,8 +134,13 @@ export const MarkdownInput = memo(function MarkdownInput({ value, onChange }: Ma
     navigator.clipboard
       .write([new ClipboardItem({ 'text/html': htmlBlob, 'text/plain': textBlob })])
       .then(done)
-      .catch(() => navigator.clipboard.writeText(value).then(done))
-  }, [value])
+      .catch(() =>
+        navigator.clipboard
+          .writeText(value)
+          .then(done)
+          .catch(() => addToast('Failed to copy to clipboard', 'error'))
+      )
+  }, [value, addToast])
 
   const handleExport = useCallback(() => {
     const blob = new Blob([value], { type: 'text/markdown' })

@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
 import type { KeyboardEvent } from 'react'
+import { execInsertText } from '../utils/exec-command.js'
 
 /**
  * Returns a keydown handler for the Markdown textarea that implements
@@ -15,13 +16,7 @@ export function useMarkdownShortcuts(): (e: KeyboardEvent<HTMLTextAreaElement>) 
     const textarea = e.currentTarget
     const { selectionStart, selectionEnd, value: val } = textarea
 
-    // Casting drops the @deprecated tag without using `any`.
-    const execInsert = (text: string) => {
-      const exec = (
-        document as unknown as { execCommand(cmd: string, showUI: boolean, value: string): boolean }
-      ).execCommand
-      exec.call(document, 'insertText', false, text)
-    }
+    const execInsert = (text: string) => execInsertText(text)
 
     const getLine = (pos: number) => {
       const lineStart = val.lastIndexOf('\n', pos - 1) + 1
