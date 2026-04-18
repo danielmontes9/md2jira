@@ -41,7 +41,7 @@ function ToolbarDropdown({
           else onOpen(dropKey)
         }}
         aria-expanded={isOpen}
-        aria-haspopup="true"
+        aria-haspopup="menu"
         className="relative flex h-7 items-center gap-0.5 rounded px-1.5 text-xs text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800 select-none"
       >
         {trigger}
@@ -80,6 +80,12 @@ const TEXT_STYLES: { label: string; tag: string; cls: string }[] = [
 ]
 
 type FormatItem = { label: string; shortcut: string; iconCls: string; icon: string; cmd: string }
+
+const BTN_CLS =
+  'relative flex h-7 items-center gap-0.5 rounded px-1.5 text-xs text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800 select-none'
+
+const DROP_ITEM_CLS =
+  'flex w-full items-center px-4 py-1.5 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800'
 
 const FORMAT_ITEMS: FormatItem[] = [
   { label: 'Bold', shortcut: `${MOD_KEY}+B`, iconCls: 'font-bold', icon: 'B', cmd: 'bold' },
@@ -145,11 +151,6 @@ export function EditorToolbar({
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [close])
-
-  const btnCls =
-    'relative flex h-7 items-center gap-0.5 rounded px-1.5 text-xs text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800 select-none'
-  const dropItemCls =
-    'flex w-full items-center px-4 py-1.5 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800'
 
   return (
     <div
@@ -220,7 +221,7 @@ export function EditorToolbar({
                   exec(cmd)
                   close()
                 }}
-                className={`${dropItemCls} justify-between ${isActive ? 'bg-neutral-100 dark:bg-neutral-800' : ''}`}
+                className={`${DROP_ITEM_CLS} justify-between ${isActive ? 'bg-neutral-100 dark:bg-neutral-800' : ''}`}
               >
                 <span className="flex items-center gap-2">
                   <span className={`w-5 text-center ${iconCls}`}>{icon}</span>
@@ -239,7 +240,7 @@ export function EditorToolbar({
               insertHtml('<code>code</code>')
               close()
             }}
-            className={`${dropItemCls} justify-between`}
+            className={`${DROP_ITEM_CLS} justify-between`}
           >
             <span className="flex items-center gap-2">
               <span className="w-5 text-center font-mono text-xs">{'{}'}</span>
@@ -284,7 +285,7 @@ export function EditorToolbar({
               exec('insertUnorderedList')
               close()
             }}
-            className={`${dropItemCls} justify-between`}
+            className={`${DROP_ITEM_CLS} justify-between`}
           >
             <span>Bullet list</span>
             <span className="text-xs text-neutral-400">{`${MOD_KEY}+Shift+8`}</span>
@@ -295,7 +296,7 @@ export function EditorToolbar({
               exec('insertOrderedList')
               close()
             }}
-            className={`${dropItemCls} justify-between`}
+            className={`${DROP_ITEM_CLS} justify-between`}
           >
             <span>Numbered list</span>
             <span className="text-xs text-neutral-400">{`${MOD_KEY}+Shift+7`}</span>
@@ -308,7 +309,7 @@ export function EditorToolbar({
               )
               close()
             }}
-            className={`${dropItemCls} justify-between`}
+            className={`${DROP_ITEM_CLS} justify-between`}
           >
             <span>Task list</span>
             <span className="text-xs text-neutral-400">{`${MOD_KEY}+Shift+6`}</span>
@@ -363,7 +364,7 @@ export function EditorToolbar({
       {/* Media — placeholder (not implemented) */}
       <button
         title="Add image, video or file (not available in preview)"
-        className={`${btnCls} cursor-not-allowed opacity-40`}
+        className={`${BTN_CLS} cursor-not-allowed opacity-40`}
         onMouseDown={(e) => e.preventDefault()}
         aria-disabled="true"
       >
@@ -397,7 +398,7 @@ export function EditorToolbar({
           insertHtml(`<pre><code>${content}</code></pre><p><br></p>`)
         }}
         title="Code snippet"
-        className={btnCls}
+        className={BTN_CLS}
       >
         <svg
           className="h-4 w-4"
@@ -502,7 +503,7 @@ export function EditorToolbar({
               )
               close()
             }}
-            className={dropItemCls}
+            className={DROP_ITEM_CLS}
           >
             <div className="text-left">
               <div>Action item</div>
@@ -515,7 +516,7 @@ export function EditorToolbar({
               insertHtml('<p>@mention</p>')
               close()
             }}
-            className={dropItemCls}
+            className={DROP_ITEM_CLS}
           >
             <div className="text-left">
               <div>Mention</div>
@@ -533,7 +534,7 @@ export function EditorToolbar({
               )
               close()
             }}
-            className={dropItemCls}
+            className={DROP_ITEM_CLS}
           >
             <div className="text-left">
               <div>Table</div>
@@ -548,7 +549,7 @@ export function EditorToolbar({
               )
               close()
             }}
-            className={dropItemCls}
+            className={DROP_ITEM_CLS}
           >
             <div className="text-left">
               <div>Info panel</div>
@@ -563,7 +564,7 @@ export function EditorToolbar({
               )
               close()
             }}
-            className={dropItemCls}
+            className={DROP_ITEM_CLS}
           >
             <div className="text-left">
               <div>Quote</div>
@@ -578,7 +579,7 @@ export function EditorToolbar({
               )
               close()
             }}
-            className={dropItemCls}
+            className={DROP_ITEM_CLS}
           >
             <div className="text-left">
               <div>Decision</div>
@@ -591,7 +592,7 @@ export function EditorToolbar({
               exec('insertHorizontalRule')
               close()
             }}
-            className={dropItemCls}
+            className={DROP_ITEM_CLS}
           >
             <div className="text-left">
               <div>Divider</div>
@@ -610,7 +611,7 @@ export function EditorToolbar({
           exec('undo')
         }}
         title={`Undo (${MOD_KEY}+Z)`}
-        className={btnCls}
+        className={BTN_CLS}
       >
         <svg
           className="h-4 w-4"
@@ -631,7 +632,7 @@ export function EditorToolbar({
           exec('redo')
         }}
         title={`Redo (${MOD_KEY}+Y)`}
-        className={btnCls}
+        className={BTN_CLS}
       >
         <svg
           className="h-4 w-4"

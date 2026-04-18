@@ -89,7 +89,9 @@ export const MarkdownInput = memo(function MarkdownInput({ value, onChange }: Ma
     const input = document.createElement('input')
     input.type = 'file'
     input.accept = '.md,.txt,.text,text/markdown,text/plain'
+    input.style.display = 'none'
     input.onchange = () => {
+      input.remove()
       const file = input.files?.[0]
       if (!file) return
       const allowed = ['.md', '.txt', '.text']
@@ -108,6 +110,7 @@ export const MarkdownInput = memo(function MarkdownInput({ value, onChange }: Ma
       }
       reader.readAsText(file)
     }
+    document.body.appendChild(input)
     input.click()
   }, [onChange, addToast])
 
@@ -141,7 +144,10 @@ export const MarkdownInput = memo(function MarkdownInput({ value, onChange }: Ma
     const a = document.createElement('a')
     a.href = url
     a.download = 'document.md'
+    a.style.display = 'none'
+    document.body.appendChild(a)
     a.click()
+    document.body.removeChild(a)
     URL.revokeObjectURL(url)
   }, [value])
 
