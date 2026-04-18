@@ -1,4 +1,5 @@
-import { useState, useCallback, useEffect, useRef, type RefObject } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
+import type { Editor } from '@tiptap/react'
 import type { OutputFormat } from '../types.js'
 import { useToast } from '../context/ToastContext.js'
 
@@ -19,7 +20,7 @@ export interface JiraCopyState {
 export function useJiraCopy(
   value: string,
   format: OutputFormat,
-  editorRef: RefObject<HTMLDivElement>
+  editor: Editor | null
 ): JiraCopyState {
   const [copied, setCopied] = useState(false)
   const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -35,7 +36,7 @@ export function useJiraCopy(
   const handleCopy = useCallback(async () => {
     try {
       if (format === 'adf') {
-        const currentHtml = editorRef.current?.innerHTML ?? ''
+        const currentHtml = editor?.getHTML() ?? ''
         const blob = new Blob([currentHtml], { type: 'text/html' })
         const textBlob = new Blob([value], { type: 'text/plain' })
         await navigator.clipboard.write([
@@ -56,7 +57,7 @@ export function useJiraCopy(
     setCopied(true)
     if (copiedTimerRef.current !== null) clearTimeout(copiedTimerRef.current)
     copiedTimerRef.current = setTimeout(() => setCopied(false), 2000)
-  }, [value, format, editorRef, addToast])
+  }, [value, format, editor, addToast])
 
   return { copied, handleCopy }
 }

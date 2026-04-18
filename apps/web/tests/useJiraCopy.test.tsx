@@ -4,18 +4,21 @@ import type { ReactNode } from 'react'
 import { createElement } from 'react'
 import { useJiraCopy } from '../src/hooks/useJiraCopy.js'
 import { ToastProvider } from '../src/context/ToastContext.js'
+import type { Editor } from '@tiptap/react'
 
 function wrapper({ children }: { children: ReactNode }) {
   return createElement(ToastProvider, null, children)
 }
 
-describe('useJiraCopy', () => {
-  const mockEditorRef = { current: null as HTMLDivElement | null }
+/** Minimal mock of TipTap Editor with getHTML() */
+function mockEditor(html = ''): Editor {
+  return { getHTML: () => html } as unknown as Editor
+}
 
+describe('useJiraCopy', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.restoreAllMocks()
-    // jsdom does not implement ClipboardItem — stub it
     Object.defineProperty(global, 'ClipboardItem', {
       writable: true,
       value: vi.fn().mockImplementation((data: Record<string, Blob>) => ({ data })),
@@ -28,10 +31,7 @@ describe('useJiraCopy', () => {
       value: { writeText, write: vi.fn() },
       configurable: true,
     })
-    const { result } = renderHook(
-      () => useJiraCopy('output', 'wiki', mockEditorRef as React.RefObject<HTMLDivElement>),
-      { wrapper }
-    )
+    const { result } = renderHook(() => useJiraCopy('output', 'wiki', null), { wrapper })
     await act(async () => {
       await result.current.handleCopy()
     })
@@ -45,19 +45,13 @@ describe('useJiraCopy', () => {
       value: { write, writeText: vi.fn() },
       configurable: true,
     })
-    const div = document.createElement('div')
-    div.innerHTML = '<p>hello</p>'
-    mockEditorRef.current = div
-    const { result } = renderHook(
-      () => useJiraCopy('{"type":"doc"}', 'adf', mockEditorRef as React.RefObject<HTMLDivElement>),
-      { wrapper }
-    )
+    const editor = mockEditor('<p>hello</p>')
+    const { result } = renderHook(() => useJiraCopy('{"type":"doc"}', 'adf', editor), { wrapper })
     await act(async () => {
       await result.current.handleCopy()
     })
     expect(write).toHaveBeenCalledOnce()
     expect(result.current.copied).toBe(true)
-    mockEditorRef.current = null
   })
 
   it('falls back to writeText when write() fails', async () => {
@@ -67,10 +61,7 @@ describe('useJiraCopy', () => {
       value: { write, writeText },
       configurable: true,
     })
-    const { result } = renderHook(
-      () => useJiraCopy('output', 'adf', mockEditorRef as React.RefObject<HTMLDivElement>),
-      { wrapper }
-    )
+    const { result } = renderHook(() => useJiraCopy('output', 'adf', null), { wrapper })
     await act(async () => {
       await result.current.handleCopy()
     })
@@ -85,10 +76,7 @@ describe('useJiraCopy', () => {
       value: { write, writeText },
       configurable: true,
     })
-    const { result } = renderHook(
-      () => useJiraCopy('output', 'wiki', mockEditorRef as React.RefObject<HTMLDivElement>),
-      { wrapper }
-    )
+    const { result } = renderHook(() => useJiraCopy('output', 'wiki', null), { wrapper })
     await act(async () => {
       await result.current.handleCopy()
     })
@@ -102,10 +90,7 @@ describe('useJiraCopy', () => {
       value: { writeText, write: vi.fn() },
       configurable: true,
     })
-    const { result } = renderHook(
-      () => useJiraCopy('x', 'wiki', mockEditorRef as React.RefObject<HTMLDivElement>),
-      { wrapper }
-    )
+    const { result } = renderHook(() => useJiraCopy('x', 'wiki', null), { wrapper })
     await act(async () => {
       await result.current.handleCopy()
     })

@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect, useRef, type RefObject } from 'react'
-import { execInsertText } from '../utils/exec-command.js'
 import { escapeHtml } from '../utils/escape-html.js'
 import type { ToastType } from '../components/Toast.js'
 
@@ -56,19 +55,9 @@ export function useClipboardEvents(
       const plain = e.clipboardData.getData('text/plain')
       e.preventDefault()
       const { selectionStart, selectionEnd } = textarea
-      const before = textarea.value.substring(0, selectionStart)
-      const after = textarea.value.substring(selectionEnd)
-      const newValue = before + plain + after
-      // Use execCommand so native undo stack is preserved.
       textarea.focus()
-      textarea.setSelectionRange(selectionStart, selectionEnd)
-      execInsertText(plain)
-      // Fallback for browsers that block execCommand.
-      if (textarea.value !== newValue) {
-        textarea.value = newValue
-        textarea.setSelectionRange(selectionStart + plain.length, selectionStart + plain.length)
-        textarea.dispatchEvent(new Event('input', { bubbles: true }))
-      }
+      textarea.setRangeText(plain, selectionStart, selectionEnd, 'end')
+      textarea.dispatchEvent(new Event('input', { bubbles: true }))
     }
 
     textarea.addEventListener('copy', handleCopy)

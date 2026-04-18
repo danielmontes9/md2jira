@@ -1,5 +1,6 @@
-import { useState, memo, lazy, Suspense } from 'react'
-import { useWysiwygEditor } from '../hooks/useWysiwygEditor.js'
+import { useState, memo, lazy, Suspense, useEffect } from 'react'
+import { EditorContent } from '@tiptap/react'
+import { useTiptapEditor } from '../hooks/useTiptapEditor.js'
 import { highlightJson } from '../utils/highlight-json.js'
 import { useJiraCopy } from '../hooks/useJiraCopy.js'
 import { CopyEditGroup } from './jira-output/CopyEditGroup.js'
@@ -38,20 +39,12 @@ export const JiraOutput = memo(function JiraOutput({
   const [viewMode, setViewMode] = useState<ViewMode>('preview')
   const [editMode, setEditMode] = useState(false)
 
-  const {
-    editorRef,
-    activeBlock,
-    activeFormats,
-    exec,
-    insertHtml,
-    saveRange,
-    scheduleMarkdownUpdate,
-  } = useWysiwygEditor({
+  const { editor, activeBlock, activeFormats, exec, insertHtml } = useTiptapEditor({
     previewHtml,
     onMarkdownChange,
   })
 
-  const { copied, handleCopy } = useJiraCopy(value, format, editorRef)
+  const { copied, handleCopy } = useJiraCopy(value, format, editor)
 
   const canEdit =
     import.meta.env.VITE_ENABLE_WYSIWYG !== 'false' &&
@@ -59,6 +52,11 @@ export const JiraOutput = memo(function JiraOutput({
     viewMode === 'preview' &&
     !!onMarkdownChange
   const showToolbar = canEdit && editMode
+
+  // Toggle TipTap editable state based on edit mode
+  useEffect(() => {
+    if (editor) editor.setEditable(canEdit && editMode)
+  }, [editor, canEdit, editMode])
 
   return (
     <div className="@container flex min-h-0 flex-1 flex-col rounded-lg border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
@@ -152,7 +150,6 @@ export const JiraOutput = memo(function JiraOutput({
             <EditorToolbar
               exec={exec}
               insertHtml={insertHtml}
-              saveRange={saveRange}
               activeBlock={activeBlock}
               activeFormats={activeFormats}
             />
@@ -173,17 +170,12 @@ export const JiraOutput = memo(function JiraOutput({
           {format !== 'adf' ? value : undefined}
         </pre>
       ) : (
-        <div
-          ref={editorRef}
+        <EditorContent
+          editor={editor}
           role="textbox"
           aria-label="Jira content editor"
           aria-multiline={true}
           aria-readonly={!(canEdit && editMode)}
-          contentEditable={canEdit && editMode}
-          suppressContentEditableWarning
-          onInput={scheduleMarkdownUpdate}
-          onMouseUp={saveRange}
-          onKeyUp={saveRange}
           className={`jira-preview flex-1 overflow-auto p-6 text-sm text-neutral-900 outline-none transition-opacity duration-200 dark:text-neutral-100 ${isPending && !(canEdit && editMode) ? 'opacity-50' : ''} ${canEdit && editMode ? 'ring-1 ring-inset ring-blue-300 dark:ring-blue-700' : 'ring-0'}`}
         />
       )}

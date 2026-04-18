@@ -1,20 +1,23 @@
 import { useCallback } from 'react'
 import type { KeyboardEvent } from 'react'
-import { execInsertText } from '../utils/exec-command.js'
 
 /**
  * Returns a keydown handler for the Markdown textarea that implements
  * formatting shortcuts, auto-list continuation, and line manipulation.
  *
- * Shortcuts are defined as a lookup table for easy extensibility.
- *
- * NOTE: uses document.execCommand('insertText') to preserve the native
- * undo/redo stack. execCommand is deprecated — track InputEvent-based
- * alternatives (TipTap, Lexical, ProseMirror) for a future migration.
- * See https://w3c.github.io/input-events/
+ * Uses textarea.setRangeText() for text insertion to avoid the deprecated
+ * document.execCommand() API.
  */
 
 // ── Helpers ──
+
+/** Insert text at the current selection, replacing any selected text. */
+function insertText(textarea: HTMLTextAreaElement, text: string): void {
+  const { selectionStart, selectionEnd } = textarea
+  textarea.focus()
+  textarea.setRangeText(text, selectionStart, selectionEnd, 'end')
+  textarea.dispatchEvent(new Event('input', { bubbles: true }))
+}
 
 interface LineInfo {
   lineStart: number
@@ -35,9 +38,8 @@ function replaceLine(
   lineEnd: number,
   newText: string
 ) {
-  textarea.selectionStart = lineStart
-  textarea.selectionEnd = lineEnd
-  execInsertText(newText)
+  textarea.setRangeText(newText, lineStart, lineEnd, 'end')
+  textarea.dispatchEvent(new Event('input', { bubbles: true }))
 }
 
 function wrapSelection(
@@ -49,7 +51,7 @@ function wrapSelection(
 ) {
   e.preventDefault()
   const selected = val.substring(selectionStart, selectionEnd)
-  execInsertText(`${wrapper}${selected}${wrapper}`)
+  insertText(e.currentTarget, `${wrapper}${selected}${wrapper}`)
 }
 
 const ctrlOrMeta = (e: KeyboardEvent<HTMLTextAreaElement>) => e.ctrlKey || e.metaKey
@@ -65,9 +67,9 @@ const SHORTCUT_TABLE: ShortcutEntry[] = [
   // Tab → 2 spaces
   {
     match: (e) => e.key === 'Tab' && !ctrlOrMeta(e) && !e.altKey,
-    handle: (e) => {
+    handle: (e, ta) => {
       e.preventDefault()
-      execInsertText('  ')
+      insertText(ta, '  ')
     },
   },
   // Ctrl+B → bold
@@ -157,7 +159,7 @@ const SHORTCUT_TABLE: ShortcutEntry[] = [
     match: (e) => e.key === 'c' && ctrlOrMeta(e) && e.shiftKey && !e.altKey,
     handle: (e, ta) => {
       e.preventDefault()
-      execInsertText('```\n\n```')
+      insertText(ta, '```\n\n```')
       requestAnimationFrame(() => {
         const cur = ta.selectionStart
         ta.selectionStart = ta.selectionEnd = cur - 3
@@ -171,7 +173,7 @@ const SHORTCUT_TABLE: ShortcutEntry[] = [
       e.preventDefault()
       const { lineEnd } = getLine(ta.value, ta.selectionStart)
       ta.selectionStart = ta.selectionEnd = lineEnd
-      execInsertText('\n')
+      insertText(ta, '\n')
     },
   },
   // Alt+↑ → move line up
@@ -183,9 +185,8 @@ const SHORTCUT_TABLE: ShortcutEntry[] = [
       if (lineStart === 0) return
       const { lineStart: prevStart, text: prevLine } = getLine(ta.value, lineStart - 1)
       const cursorOffset = ta.selectionStart - lineStart
-      ta.selectionStart = prevStart
-      ta.selectionEnd = lineEnd
-      execInsertText(`${currentLine}\n${prevLine}`)
+      ta.setRangeText(`${currentLine}\n${prevLine}`, prevStart, lineEnd, 'end')
+      ta.dispatchEvent(new Event('input', { bubbles: true }))
       requestAnimationFrame(() => {
         const newPos = prevStart + cursorOffset
         ta.selectionStart = ta.selectionEnd = newPos
@@ -205,9 +206,8 @@ const SHORTCUT_TABLE: ShortcutEntry[] = [
       const nextEnd = nextEndRaw === -1 ? val.length : nextEndRaw
       const nextLine = val.substring(nextStart, nextEnd)
       const cursorOffset = ta.selectionStart - lineStart
-      ta.selectionStart = lineStart
-      ta.selectionEnd = nextEnd
-      execInsertText(`${nextLine}\n${currentLine}`)
+      ta.setRangeText(`${nextLine}\n${currentLine}`, lineStart, nextEnd, 'end')
+      ta.dispatchEvent(new Event('input', { bubbles: true }))
       requestAnimationFrame(() => {
         const newPos = lineStart + nextLine.length + 1 + cursorOffset
         ta.selectionStart = ta.selectionEnd = newPos
@@ -221,7 +221,7 @@ const SHORTCUT_TABLE: ShortcutEntry[] = [
       e.preventDefault()
       const { lineEnd, text } = getLine(ta.value, ta.selectionStart)
       ta.selectionStart = ta.selectionEnd = lineEnd
-      execInsertText(`\n${text}`)
+      insertText(ta, `\n${text}`)
     },
   },
 ]
@@ -255,18 +255,18 @@ function handleEnterAutoContinue(
   }
   if (taskMatch) {
     e.preventDefault()
-    execInsertText(`\n${taskMatch[1]}${taskMatch[2]} [ ] `)
+    insertText(ta, `\n${taskMatch[1]}${taskMatch[2]} [ ] `)
     return true
   }
   if (bulletMatch) {
     e.preventDefault()
-    execInsertText(`\n${bulletMatch[1]}${bulletMatch[2]} `)
+    insertText(ta, `\n${bulletMatch[1]}${bulletMatch[2]} `)
     return true
   }
   if (numberedMatch) {
     e.preventDefault()
     const nextNum = parseInt(numberedMatch[2] ?? '1') + 1
-    execInsertText(`\n${numberedMatch[1] ?? ''}${nextNum}. `)
+    insertText(ta, `\n${numberedMatch[1] ?? ''}${nextNum}. `)
     return true
   }
   return false

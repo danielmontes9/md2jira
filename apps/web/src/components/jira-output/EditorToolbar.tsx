@@ -8,36 +8,25 @@ import { IconCodeBrackets, IconUndo, IconRedo } from '../icons.js'
 interface EditorToolbarProps {
   exec: (cmd: string, arg?: string) => void
   insertHtml: (html: string) => void
-  saveRange: () => void
   activeBlock: string
   activeFormats: Set<string>
 }
 
 /**
- * WYSIWYG editor toolbar using document.execCommand() for text formatting.
- *
- * NOTE: document.execCommand() is deprecated per the HTML spec
- * (https://developer.mozilla.org/docs/Web/API/Document/execCommand).
- * It remains the only cross-browser approach for formatting a contentEditable
- * element without a full rich-text library such as TipTap (ProseMirror-based),
- * which is the recommended future migration target.
+ * WYSIWYG editor toolbar. Commands are delegated to the parent's exec/insertHtml
+ * callbacks which route to TipTap chain commands.
  */
 export function EditorToolbar({
   exec,
   insertHtml,
-  saveRange,
   activeBlock,
   activeFormats,
 }: EditorToolbarProps) {
   const [openKey, setOpenKey] = useState<DropKey | null>(null)
 
-  const open = useCallback(
-    (key: DropKey) => {
-      saveRange()
-      setOpenKey(key)
-    },
-    [saveRange]
-  )
+  const open = useCallback((key: DropKey) => {
+    setOpenKey(key)
+  }, [])
   const close = useCallback(() => setOpenKey(null), [])
 
   // Close dropdowns when clicking outside the toolbar
@@ -73,16 +62,7 @@ export function EditorToolbar({
       <button
         onMouseDown={(e) => {
           e.preventDefault()
-          saveRange()
-          const sel = window.getSelection()
-          const selectedText = sel && sel.rangeCount > 0 ? sel.getRangeAt(0).toString() : ''
-          // Use DOM textContent to encode selected text as literal characters inside <code>,
-          // avoiding manual HTML entity replacement. insertHtml then sanitizes via DOMPurify.
-          const codeEl = document.createElement('code')
-          codeEl.textContent = selectedText || '// code here'
-          const preEl = document.createElement('pre')
-          preEl.appendChild(codeEl)
-          insertHtml(preEl.outerHTML + '<p><br></p>')
+          insertHtml('<pre><code>// code here</code></pre><p><br></p>')
         }}
         title="Code snippet"
         className={BTN_CLS}

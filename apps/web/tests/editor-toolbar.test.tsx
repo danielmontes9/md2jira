@@ -11,15 +11,10 @@ Object.defineProperty(window, 'matchMedia', {
 describe('EditorToolbar', () => {
   let execMock: ReturnType<typeof vi.fn>
   let insertHtmlMock: ReturnType<typeof vi.fn>
-  let saveRangeMock: ReturnType<typeof vi.fn>
 
   beforeEach(() => {
     execMock = vi.fn()
     insertHtmlMock = vi.fn()
-    saveRangeMock = vi.fn()
-    // document.execCommand is not implemented in jsdom; mock it so toolbar
-    // internals (saveRange, restoreRange) don't throw.
-    document.execCommand = vi.fn().mockReturnValue(false)
   })
 
   function renderToolbar(activeFormats: Set<string> = new Set(), activeBlock = 'p') {
@@ -27,7 +22,6 @@ describe('EditorToolbar', () => {
       <EditorToolbar
         exec={execMock}
         insertHtml={insertHtmlMock}
-        saveRange={saveRangeMock}
         activeBlock={activeBlock}
         activeFormats={activeFormats}
       />
