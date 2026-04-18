@@ -1,8 +1,9 @@
-import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
+import { useState, useCallback, useEffect, useMemo, useRef, useDeferredValue } from 'react'
 import { convert, convertToAdf } from 'md2jira-core'
 import { Header } from './components/Header.js'
 import { MarkdownInput } from './components/MarkdownInput.js'
 import { JiraOutput } from './components/JiraOutput.js'
+import { ErrorBoundary } from './components/ErrorBoundary.js'
 
 type OutputFormat = 'wiki' | 'adf'
 type Theme = 'light' | 'dark'
@@ -12,6 +13,10 @@ function getInitialTheme(): Theme {
   if (stored === 'light' || stored === 'dark') return stored
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
+
+// Max URL-safe encoded length (~1500 chars encoded ≈ ~1000 chars raw markdown).
+// Beyond this limit we skip updating the ?md= param to avoid exceeding browser URL limits.
+const URL_MD_MAX_ENCODED = 1500
 
 function encodeMarkdown(md: string): string {
   return btoa(encodeURIComponent(md))
@@ -65,6 +70,10 @@ export function App() {
   const [theme, setTheme] = useState<Theme>(getInitialTheme)
   const urlDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // useDeferredValue keeps the textarea fully responsive by deferring
+  // the expensive convert() / convertToAdf() calls until the browser is idle.
+  const deferredMarkdown = useDeferredValue(markdown)
+
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark')
     localStorage.setItem('theme', theme)
@@ -74,8 +83,14 @@ export function App() {
   useEffect(() => {
     if (urlDebounceRef.current) clearTimeout(urlDebounceRef.current)
     urlDebounceRef.current = setTimeout(() => {
+      const encoded = encodeMarkdown(markdown)
       const url = new URL(window.location.href)
-      url.searchParams.set('md', encodeMarkdown(markdown))
+      if (encoded.length <= URL_MD_MAX_ENCODED) {
+        url.searchParams.set('md', encoded)
+      } else {
+        // Document too large — remove the param to avoid truncated/broken URLs
+        url.searchParams.delete('md')
+      }
       window.history.replaceState(null, '', url.toString())
     }, 500)
     return () => {
@@ -91,13 +106,13 @@ export function App() {
     try {
       const output =
         format === 'adf'
-          ? JSON.stringify(convertToAdf(markdown), null, 2)
-          : convert(markdown)
+          ? JSON.stringify(convertToAdf(deferredMarkdown), null, 2)
+          : convert(deferredMarkdown)
       return { jiraOutput: output, hasConversionError: false }
     } catch {
       return { jiraOutput: '', hasConversionError: true }
     }
-  }, [markdown, format])
+  }, [deferredMarkdown, format])
 
   return (
     <div className="flex h-screen flex-col bg-white dark:bg-neutral-950">
@@ -134,13 +149,15 @@ export function App() {
           <MarkdownInput value={markdown} onChange={setMarkdown} />
         </section>
         <section aria-label="Jira output" className="flex min-h-64 flex-1 flex-col sm:min-h-0">
-          <JiraOutput
-            value={jiraOutput}
-            format={format}
-            onFormatChange={setFormat}
-            markdown={markdown}
-            onMarkdownChange={setMarkdown}
-          />
+          <ErrorBoundary>
+            <JiraOutput
+              value={jiraOutput}
+              format={format}
+              onFormatChange={setFormat}
+              markdown={markdown}
+              onMarkdownChange={setMarkdown}
+            />
+          </ErrorBoundary>
         </section>
       </main>
     </div>

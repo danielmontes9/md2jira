@@ -46,7 +46,8 @@ export function adfInlineToHtml(node: AdfInlineNode): string {
           break
         case 'link': {
           const href = sanitizeUrl((mark as AdfMark & { attrs: { href: string } }).attrs.href)
-          html = `<a href="${href}">${html}</a>`
+          const safeHref = href.replace(/"/g, '%22')
+          html = `<a href="${safeHref}">${html}</a>`
           break
         }
       }

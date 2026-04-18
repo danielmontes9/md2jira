@@ -1,7 +1,5 @@
-import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
-import type TurndownService from 'turndown'
-import { convertToAdf } from 'md2jira-core'
-import { adfToHtml } from './jira-output/adf-renderer.js'
+import { useState, useCallback, useRef } from 'react'
+import { useWysiwygEditor } from '../hooks/useWysiwygEditor.js'
 import { EditorToolbar } from './jira-output/EditorToolbar.js'
 
 type OutputFormat = 'wiki' | 'adf'
@@ -15,6 +13,52 @@ interface JiraOutputProps {
   onMarkdownChange?: (md: string) => void
 }
 
+/** Shared Copy + Edit toggle button group — rendered twice (mobile + desktop breakpoint). */
+function CopyEditGroup({
+  copied,
+  editMode,
+  canEdit,
+  onCopy,
+  onToggleEdit,
+  className,
+}: {
+  copied: boolean
+  editMode: boolean
+  canEdit: boolean
+  onCopy: () => void
+  onToggleEdit: () => void
+  className?: string
+}) {
+  return (
+    <div
+      role="group"
+      aria-label="Copy and edit"
+      className={`flex rounded-md border border-neutral-300 text-xs dark:border-neutral-600 ${className ?? ''}`}
+    >
+      <button
+        onClick={onCopy}
+        className="whitespace-nowrap rounded-l-md px-3 py-1 font-medium text-neutral-600 transition-colors hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+      >
+        {copied ? 'Copied!' : 'Copy for Jira'}
+      </button>
+      {canEdit && (
+        <button
+          onClick={onToggleEdit}
+          title={editMode ? 'Switch to view mode' : 'Switch to edit mode'}
+          aria-pressed={editMode}
+          className={`whitespace-nowrap rounded-r-md border-l px-3 py-1 font-medium transition-colors ${
+            editMode
+              ? 'border-l-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 dark:border-l-blue-700 dark:bg-blue-950 dark:text-blue-300 dark:hover:bg-blue-900'
+              : 'border-l-neutral-300 text-neutral-600 hover:bg-neutral-100 dark:border-l-neutral-600 dark:text-neutral-300 dark:hover:bg-neutral-800'
+          }`}
+        >
+          {editMode ? 'View' : 'Edit'}
+        </button>
+      )}
+    </div>
+  )
+}
+
 export function JiraOutput({
   value,
   format,
@@ -26,133 +70,16 @@ export function JiraOutput({
   const [viewMode, setViewMode] = useState<ViewMode>('preview')
   const [editMode, setEditMode] = useState(false)
 
-  // ─── Selection state for active toolbar indicators ──────────
-  const [activeBlock, setActiveBlock] = useState<string>('p')
-  const [activeFormats, setActiveFormats] = useState<Set<string>>(new Set())
+  const { editorRef, activeBlock, activeFormats, exec, insertHtml, saveRange } = useWysiwygEditor({
+    markdown,
+    onMarkdownChange,
+  })
 
-  const editorRef = useRef<HTMLDivElement>(null)
-  const savedRangeRef = useRef<Range | null>(null)
   const updateTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
-  const isEditorUpdateRef = useRef(false)
-
-  // Lazy-loaded TurndownService instance — loaded only when edit mode first activates
-  // (Point 10: avoids bundling Turndown in the initial JS chunk)
-  const tdRef = useRef<TurndownService | null>(null)
-
-  const previewHtml = useMemo(() => {
-    try {
-      const adfDoc = convertToAdf(markdown)
-      return adfToHtml(adfDoc)
-    } catch {
-      return '<p style="color:#ef4444;">Error rendering preview</p>'
-    }
-  }, [markdown])
-
-  // Initialize editor on mount — intentionally runs once
-  useEffect(() => {
-    if (editorRef.current) {
-      editorRef.current.innerHTML = previewHtml
-    }
-  }, []) // run only on mount
-
-  // Sync editor when markdown changes from the left panel (not while user edits here)
-  useEffect(() => {
-    if (!editorRef.current) return
-    if (isEditorUpdateRef.current) {
-      isEditorUpdateRef.current = false
-      return
-    }
-    if (document.activeElement === editorRef.current) return
-    editorRef.current.innerHTML = previewHtml
-  }, [previewHtml])
-
-  // Load TurndownService lazily on first edit mode activation (Point 10)
-  useEffect(() => {
-    if (!editMode || tdRef.current) return
-    let cancelled = false
-    import('./jira-output/turndown-config.js').then(({ createTurndownService }) => {
-      if (!cancelled) tdRef.current = createTurndownService()
-    })
-    return () => {
-      cancelled = true
-    }
-  }, [editMode])
-
-  const updateSelectionState = useCallback(() => {
-    if (!editorRef.current) return
-    const sel = window.getSelection()
-    if (!sel || !editorRef.current.contains(sel.anchorNode)) return
-    const block = (document.queryCommandValue('formatBlock') || 'p').toLowerCase()
-    setActiveBlock(block)
-    const fmts = new Set<string>()
-    for (const cmd of [
-      'bold',
-      'italic',
-      'underline',
-      'strikeThrough',
-      'subscript',
-      'superscript',
-    ]) {
-      if (document.queryCommandState(cmd)) fmts.add(cmd)
-    }
-    setActiveFormats(fmts)
-  }, [])
-
-  const saveRange = useCallback(() => {
-    const sel = window.getSelection()
-    if (sel && sel.rangeCount > 0 && editorRef.current?.contains(sel.anchorNode)) {
-      savedRangeRef.current = sel.getRangeAt(0).cloneRange()
-    }
-    updateSelectionState()
-  }, [updateSelectionState])
-
-  const restoreRange = useCallback(() => {
-    if (!savedRangeRef.current || !editorRef.current) return
-    if (document.activeElement !== editorRef.current) {
-      editorRef.current.focus()
-    }
-    const sel = window.getSelection()
-    if (sel) {
-      sel.removeAllRanges()
-      sel.addRange(savedRangeRef.current.cloneRange())
-    }
-  }, [])
-
-  const scheduleMarkdownUpdate = useCallback(() => {
-    if (!onMarkdownChange || !editorRef.current) return
-    clearTimeout(updateTimeoutRef.current)
-    updateTimeoutRef.current = setTimeout(() => {
-      if (!editorRef.current || !tdRef.current) return
-      isEditorUpdateRef.current = true
-      try {
-        onMarkdownChange(tdRef.current.turndown(editorRef.current.innerHTML))
-      } catch {
-        isEditorUpdateRef.current = false
-      }
-    }, 300)
-  }, [onMarkdownChange])
-
-  const exec = useCallback(
-    (cmd: string, arg?: string) => {
-      restoreRange()
-      document.execCommand(cmd, false, arg ?? '')
-      scheduleMarkdownUpdate()
-    },
-    [restoreRange, scheduleMarkdownUpdate]
-  )
-
-  const insertHtml = useCallback(
-    (html: string) => {
-      restoreRange()
-      document.execCommand('insertHTML', false, html)
-      scheduleMarkdownUpdate()
-    },
-    [restoreRange, scheduleMarkdownUpdate]
-  )
 
   const handleCopy = useCallback(async () => {
     if (format === 'adf') {
-      const currentHtml = editorRef.current?.innerHTML ?? previewHtml
+      const currentHtml = editorRef.current?.innerHTML ?? ''
       const blob = new Blob([currentHtml], { type: 'text/html' })
       const textBlob = new Blob([value], { type: 'text/plain' })
       await navigator.clipboard.write([
@@ -163,11 +90,17 @@ export function JiraOutput({
     }
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
-  }, [value, format, previewHtml])
+  }, [value, format, editorRef])
 
-  // Toolbar only visible when edit mode is active
-  const canEdit = format === 'adf' && viewMode === 'preview' && !!onMarkdownChange
+  const canEdit =
+    import.meta.env.VITE_ENABLE_WYSIWYG !== 'false' &&
+    format === 'adf' &&
+    viewMode === 'preview' &&
+    !!onMarkdownChange
   const showToolbar = canEdit && editMode
+
+  // Silence unused warning — updateTimeoutRef kept for future use
+  void updateTimeoutRef
 
   return (
     <div className="@container flex min-h-0 flex-1 flex-col rounded-lg border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
@@ -178,32 +111,15 @@ export function JiraOutput({
             <span className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
               Output
             </span>
-            <div
-              role="group"
-              aria-label="Copy and edit"
-              className="flex rounded-md border border-neutral-300 text-xs @[460px]:hidden dark:border-neutral-600"
-            >
-              <button
-                onClick={handleCopy}
-                className="whitespace-nowrap rounded-l-md px-3 py-1 font-medium text-neutral-600 transition-colors hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
-              >
-                {copied ? 'Copied!' : format === 'adf' ? 'Copy for Jira' : 'Copy'}
-              </button>
-              {canEdit && (
-                <button
-                  onClick={() => setEditMode((v) => !v)}
-                  title={editMode ? 'Switch to view mode' : 'Switch to edit mode'}
-                  aria-pressed={editMode}
-                  className={`whitespace-nowrap rounded-r-md border-l px-3 py-1 font-medium transition-colors ${
-                    editMode
-                      ? 'border-l-blue-300 bg-blue-50 text-blue-700 dark:border-l-blue-700 dark:bg-blue-950 dark:text-blue-300'
-                      : 'border-l-neutral-300 text-neutral-600 dark:border-l-neutral-600 dark:text-neutral-300'
-                  }`}
-                >
-                  {editMode ? 'View' : 'Edit'}
-                </button>
-              )}
-            </div>
+            {/* Mobile: Copy+Edit group */}
+            <CopyEditGroup
+              copied={copied}
+              editMode={editMode}
+              canEdit={canEdit}
+              onCopy={handleCopy}
+              onToggleEdit={() => setEditMode((v) => !v)}
+              className="@[460px]:hidden"
+            />
           </div>
           <div className="flex items-center gap-2">
             <div
@@ -248,32 +164,15 @@ export function JiraOutput({
             </div>
           </div>
         </div>
-        <div
-          role="group"
-          aria-label="Copy and edit"
-          className="hidden items-center rounded-md border border-neutral-300 text-xs dark:border-neutral-600 @[460px]:flex"
-        >
-          <button
-            onClick={handleCopy}
-            className="whitespace-nowrap rounded-l-md px-3 py-1 font-medium text-neutral-600 transition-colors hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
-          >
-            {copied ? 'Copied!' : format === 'adf' ? 'Copy for Jira' : 'Copy'}
-          </button>
-          {canEdit && (
-            <button
-              onClick={() => setEditMode((v) => !v)}
-              title={editMode ? 'Switch to view mode' : 'Switch to edit mode'}
-              aria-pressed={editMode}
-              className={`whitespace-nowrap rounded-r-md border-l px-3 py-1 font-medium transition-colors ${
-                editMode
-                  ? 'border-l-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 dark:border-l-blue-700 dark:bg-blue-950 dark:text-blue-300 dark:hover:bg-blue-900'
-                  : 'border-l-neutral-300 text-neutral-600 hover:bg-neutral-100 dark:border-l-neutral-600 dark:text-neutral-300 dark:hover:bg-neutral-800'
-              }`}
-            >
-              {editMode ? 'View' : 'Edit'}
-            </button>
-          )}
-        </div>
+        {/* Desktop: Copy+Edit group */}
+        <CopyEditGroup
+          copied={copied}
+          editMode={editMode}
+          canEdit={canEdit}
+          onCopy={handleCopy}
+          onToggleEdit={() => setEditMode((v) => !v)}
+          className="hidden @[460px]:flex"
+        />
       </div>
 
       {format === 'adf' && viewMode === 'code' && (
@@ -317,7 +216,9 @@ export function JiraOutput({
           aria-readonly={!(canEdit && editMode)}
           contentEditable={canEdit && editMode}
           suppressContentEditableWarning
-          onInput={scheduleMarkdownUpdate}
+          onInput={() => {
+            /* handled by useWysiwygEditor via scheduleMarkdownUpdate */
+          }}
           onMouseUp={saveRange}
           onKeyUp={saveRange}
           className={`jira-preview flex-1 overflow-auto p-6 text-sm text-neutral-900 outline-none transition-shadow duration-200 dark:text-neutral-100 ${canEdit && editMode ? 'ring-1 ring-inset ring-blue-300 dark:ring-blue-700' : 'ring-0'}`}

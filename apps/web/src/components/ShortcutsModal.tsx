@@ -1,8 +1,11 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 interface ShortcutsModalProps {
   onClose: () => void
 }
+
+const FOCUSABLE =
+  'a[href],button:not([disabled]),input,textarea,select,[tabindex]:not([tabindex="-1"])'
 
 const isMac = typeof navigator !== 'undefined' && /Mac/.test(navigator.userAgent)
 const mod = isMac ? '⌘' : 'Ctrl'
@@ -46,11 +49,37 @@ const GROUPS = [
 ]
 
 export function ShortcutsModal({ onClose }: ShortcutsModalProps) {
+  const dialogRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') {
+        onClose()
+        return
+      }
+      // Focus trap
+      if (e.key === 'Tab' && dialogRef.current) {
+        const focusable = Array.from(dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE))
+        if (focusable.length === 0) return
+        const first = focusable[0]!
+        const last = focusable[focusable.length - 1]!
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault()
+            last.focus()
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault()
+            first.focus()
+          }
+        }
+      }
     }
     document.addEventListener('keydown', handleKey)
+    // Auto-focus close button
+    const first = dialogRef.current?.querySelector<HTMLElement>(FOCUSABLE)
+    first?.focus()
     return () => document.removeEventListener('keydown', handleKey)
   }, [onClose])
 
@@ -63,6 +92,7 @@ export function ShortcutsModal({ onClose }: ShortcutsModalProps) {
       aria-labelledby="shortcuts-modal-title"
     >
       <div
+        ref={dialogRef}
         className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-xl border border-neutral-200 bg-white p-6 shadow-2xl dark:border-neutral-800 dark:bg-neutral-900"
         onClick={(e) => e.stopPropagation()}
       >
