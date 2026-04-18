@@ -1,5 +1,5 @@
 import { MOD_KEY } from '../utils/keyboard.js'
-import { Modal } from './Modal'
+import { Modal } from './Modal.js'
 import { IconClose } from './icons.js'
 
 interface ShortcutsModalProps {

@@ -1,4 +1,4 @@
-import { Modal } from './Modal'
+import { Modal } from './Modal.js'
 import { IconInfoCircle, IconCloseOcticon, IconExternalLink } from './icons.js'
 
 interface InfoModalProps {
