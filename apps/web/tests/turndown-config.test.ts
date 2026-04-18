@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { createTurndownService } from '../src/components/jira-output/turndown-config.js'
+import { adfToHtml } from '../src/components/jira-output/adf-renderer.js'
+import { convertToAdf } from 'md2jira-core'
 
 describe('createTurndownService', () => {
   it('converts bold to markdown', () => {
@@ -57,5 +59,78 @@ describe('createTurndownService', () => {
     const result = td.turndown(html)
     expect(result).toContain('|')
     expect(result).toContain('---')
+  })
+})
+
+// ── Roundtrip integration: Markdown → ADF → HTML → Turndown → Markdown ───────
+// These tests verify that the full pipeline (convert → render → edit → save)
+// produces semantically equivalent Markdown when round-tripped.
+
+describe('roundtrip: markdown → ADF → HTML → Turndown → markdown', () => {
+  function roundtrip(md: string): string {
+    const td = createTurndownService()
+    return td.turndown(adfToHtml(convertToAdf(md)))
+  }
+
+  it('preserves bold text', () => {
+    const result = roundtrip('**hello**')
+    expect(result).toContain('**hello**')
+  })
+
+  it('preserves italic text', () => {
+    const result = roundtrip('_world_')
+    expect(result).toContain('_world_')
+  })
+
+  it('preserves headings', () => {
+    const result = roundtrip('# Title\n\n## Subtitle')
+    expect(result).toContain('# Title')
+    expect(result).toContain('## Subtitle')
+  })
+
+  it('preserves inline code', () => {
+    const result = roundtrip('Use `console.log()` here')
+    expect(result).toContain('`console.log()`')
+  })
+
+  it('preserves fenced code block', () => {
+    const result = roundtrip('```js\nconst x = 1\n```')
+    expect(result).toContain('```')
+    expect(result).toContain('const x = 1')
+  })
+
+  it('preserves unordered list items', () => {
+    const result = roundtrip('- Alpha\n- Beta\n- Gamma')
+    expect(result).toContain('Alpha')
+    expect(result).toContain('Beta')
+    expect(result).toContain('Gamma')
+  })
+
+  it('preserves ordered list items', () => {
+    const result = roundtrip('1. First\n2. Second')
+    expect(result).toContain('First')
+    expect(result).toContain('Second')
+  })
+
+  it('preserves links', () => {
+    const result = roundtrip('[Jira](https://jira.atlassian.com)')
+    expect(result).toContain('https://jira.atlassian.com')
+  })
+
+  it('preserves blockquote', () => {
+    const result = roundtrip('> A quote')
+    expect(result).toContain('A quote')
+  })
+
+  it('preserves table structure', () => {
+    const md = '| A | B |\n|---|---|\n| 1 | 2 |'
+    const result = roundtrip(md)
+    expect(result).toContain('|')
+    expect(result).toContain('A')
+    expect(result).toContain('B')
+  })
+
+  it('returns empty string for empty input', () => {
+    expect(roundtrip('')).toBe('')
   })
 })

@@ -117,7 +117,7 @@ describe('adfToHtml', () => {
     const doc: AdfDocument = {
       version: 1,
       type: 'doc',
-      content: [{ type: 'rule', content: [] }],
+      content: [{ type: 'rule' }],
     }
     expect(adfToHtml(doc)).toBe('<hr>')
   })
