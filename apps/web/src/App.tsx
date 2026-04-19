@@ -156,6 +156,17 @@ export function App() {
   // arrives before the previous one completes.
   // Falls back to a synchronous dynamic import when module Workers are not
   // available (e.g. unit-test environments with jsdom).
+  //
+  // Dep note: `adfDoc` is produced by useMemo above, so its object reference
+  // is stable across re-renders as long as deferredMarkdown and format are
+  // unchanged. The useEffect therefore only re-fires when the document actually
+  // changes, never spuriously.
+  //
+  // Known limitation: convertToAdf() and JSON.stringify() run synchronously on
+  // the main thread inside the useMemo above. For typical Jira documents
+  // (~10-100 nodes) this is imperceptible. If jank is observed on very large
+  // documents (>500 nodes), consider moving the conversion step into the worker
+  // alongside adfToHtml().
   useEffect(() => {
     if (!adfDoc) {
       setPreviewHtml('')
@@ -164,11 +175,19 @@ export function App() {
     const id = ++workerReqRef.current
 
     try {
-      const worker =
-        workerRef.current ??
-        (workerRef.current = new Worker(new URL('./workers/adf-worker.ts', import.meta.url), {
+      if (!workerRef.current) {
+        const w = new Worker(new URL('./workers/adf-worker.ts', import.meta.url), {
           type: 'module',
-        }))
+        })
+        // Clear the preview and drop the stale worker if it throws an
+        // unhandled error (e.g. malformed ADF payload from an external source).
+        w.addEventListener('error', () => {
+          setPreviewHtml('')
+          workerRef.current = null
+        })
+        workerRef.current = w
+      }
+      const worker = workerRef.current
 
       const onMessage = (e: MessageEvent<{ id: number; html: string }>) => {
         if (e.data.id === id) setPreviewHtml(e.data.html)
@@ -184,7 +203,7 @@ export function App() {
           if (workerReqRef.current === id) setPreviewHtml(adfToHtml(adfDoc))
         })
         .catch(() => setPreviewHtml(''))
-      return  // no cleanup needed for the synchronous fallback path
+      return // no cleanup needed for the synchronous fallback path
     }
   }, [adfDoc])
 

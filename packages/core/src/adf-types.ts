@@ -1,7 +1,15 @@
-export interface AdfMark {
-  type: 'strong' | 'em' | 'strike' | 'code' | 'link' | 'subsup'
-  attrs?: Record<string, string>
-}
+/**
+ * ADF mark types as a discriminated union.
+ * Each variant has a precise `attrs` type so consumers can access mark
+ * attributes without unsafe casts (e.g. `mark.attrs.href` on a link mark).
+ */
+export type AdfMark =
+  | { type: 'strong' }
+  | { type: 'em' }
+  | { type: 'strike' }
+  | { type: 'code' }
+  | { type: 'link'; attrs: { href: string } }
+  | { type: 'subsup'; attrs: { type: 'sub' | 'sup' } }
 
 export interface AdfTextNode {
   type: 'text'

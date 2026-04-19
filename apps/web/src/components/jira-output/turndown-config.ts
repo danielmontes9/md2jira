@@ -33,18 +33,16 @@ export function createTurndownService(): TurndownService {
   // not survive the Markdown → Jira conversion pipeline.
   td.keep(['sub', 'sup', 'span'])
 
-  // Task list items: <li data-type="taskItem" data-checked="true|false">
-  // Must be registered before the generic bullet-list rules so the more specific
-  // filter wins (Turndown checks rules in registration order).
   // Info panel: inserted by InsertMenu as <div data-type="info-panel">.
   // Preserved as a blockquote in Markdown — the closest plain-text equivalent.
   // Jira Wiki converts it to `bq.`; ADF converts it to a blockquote node.
+  // Uses the pre-processed `content` argument (already converted by Turndown's
+  // recursive pass) so bold, links, code etc. inside the panel are preserved.
   td.addRule('infoPanel', {
     filter: (node) =>
       node.nodeName === 'DIV' && (node as HTMLElement).getAttribute('data-type') === 'info-panel',
-    replacement: (_content: string, node: Node) => {
-      const inner = (node as HTMLElement).textContent?.trim() ?? ''
-      return `\n\n> ${inner}\n\n`
+    replacement: (content: string) => {
+      return `\n\n> ${content.trim()}\n\n`
     },
   })
 

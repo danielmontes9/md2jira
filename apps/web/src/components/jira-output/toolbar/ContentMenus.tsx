@@ -282,7 +282,7 @@ export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertM
         >
           <div className="text-left">
             <div>Mention</div>
-            <div className="text-xs text-neutral-400">Mention someone to notify them</div>
+            <div className="text-xs text-neutral-400">Insert plain-text @mention (not a structured Jira mention)</div>
           </div>
         </button>
         <button

@@ -2,7 +2,6 @@ import type {
   AdfDocument,
   AdfBlockNode,
   AdfInlineNode,
-  AdfMark,
   AdfListItemNode,
   AdfTaskItemNode,
   AdfTextNode,
@@ -47,13 +46,13 @@ export function adfInlineToHtml(node: AdfInlineNode): string {
           html = `<code>${html}</code>`
           break
         case 'link': {
-          const href = sanitizeUrl((mark as AdfMark & { attrs: { href: string } }).attrs.href)
+          const href = sanitizeUrl(mark.attrs.href)
           const safeHref = href.replace(/"/g, '%22')
           html = `<a href="${safeHref}">${html}</a>`
           break
         }
         case 'subsup': {
-          const subsupType = (mark as AdfMark & { attrs: { type: 'sub' | 'sup' } }).attrs?.type
+          const subsupType = mark.attrs.type
           html = subsupType === 'sub' ? `<sub>${html}</sub>` : `<sup>${html}</sup>`
           break
         }
@@ -125,30 +124,10 @@ export function adfBlockToHtml(node: AdfBlockNode): string {
 /**
  * Converts a full ADF document to an HTML string.
  *
- * Performance: currently synchronous on the main thread, but wrapped with
- * `useDeferredValue` in App.tsx so it yields to user input. The actual
- * conversion is O(n) over ADF nodes and fast for typical Jira documents.
- *
- * Web Worker migration (for documents > ~500 nodes):
- *
- * 1. Create `apps/web/src/workers/adf-worker.ts`:
- *    ```ts
- *    import { adfToHtml } from '../components/jira-output/adf-renderer.js'
- *    self.onmessage = (e: MessageEvent<AdfDocument>) => {
- *      self.postMessage(adfToHtml(e.data))
- *    }
- *    ```
- *
- * 2. In App.tsx, instantiate with:
- *    ```ts
- *    const worker = new Worker(
- *      new URL('../workers/adf-worker.ts', import.meta.url),
- *      { type: 'module' }
- *    )
- *    ```
- *
- * 3. Post ADF doc to worker, receive HTML string via `onmessage`.
- *    The function is pure (no DOM access), making it safe to run off-thread.
+ * This function is pure (no DOM access) and is invoked off-thread by
+ * `apps/web/src/workers/adf-worker.ts`. App.tsx sends the ADF doc to the
+ * worker and falls back to a synchronous dynamic import in jsdom / older
+ * browsers that do not support module Workers.
  */
 export function adfToHtml(doc: AdfDocument): string {
   return doc.content.map(adfBlockToHtml).join('')
