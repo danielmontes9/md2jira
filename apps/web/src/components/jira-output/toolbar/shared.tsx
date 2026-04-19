@@ -11,7 +11,6 @@ export type DropKey = 'textStyle' | 'format' | 'lists' | 'color' | 'emoji' | 'in
 
 export interface ToolbarMenuProps {
   exec: (cmd: string, arg?: string) => void
-  insertHtml?: (html: string) => void
   close: () => void
 }
 

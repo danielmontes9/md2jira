@@ -10,6 +10,8 @@ export type {
   AdfInlineNode,
   AdfMark,
   AdfListItemNode,
+  AdfTaskItemNode,
+  AdfTaskListNode,
   AdfTextNode,
   AdfTableRowNode,
   AdfTableHeaderNode,

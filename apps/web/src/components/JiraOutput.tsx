@@ -174,7 +174,7 @@ export const JiraOutput = memo(function JiraOutput({
         >
           {format !== 'adf' ? value : undefined}
         </pre>
-      ) : (
+      ) : format === 'adf' ? (
         <EditorContent
           editor={editor}
           role="textbox"
@@ -183,6 +183,14 @@ export const JiraOutput = memo(function JiraOutput({
           aria-readonly={!(canEdit && editMode)}
           className={`jira-preview flex-1 overflow-auto p-6 text-sm text-neutral-900 outline-none transition-opacity duration-200 dark:text-neutral-100 ${isPending && !(canEdit && editMode) ? 'opacity-50' : ''} ${canEdit && editMode ? 'ring-1 ring-inset ring-blue-300 dark:ring-blue-700' : 'ring-0'}`}
         />
+      ) : (
+        <pre
+          role="region"
+          aria-label="Wiki markup preview"
+          className={`jira-preview flex-1 overflow-auto whitespace-pre-wrap p-6 font-mono text-sm text-neutral-900 dark:text-neutral-100 ${isPending ? 'opacity-50' : ''}`}
+        >
+          {value}
+        </pre>
       )}
     </div>
   )

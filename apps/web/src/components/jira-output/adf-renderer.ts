@@ -4,6 +4,7 @@ import type {
   AdfInlineNode,
   AdfMark,
   AdfListItemNode,
+  AdfTaskItemNode,
   AdfTextNode,
   AdfTableRowNode,
   AdfTableHeaderNode,
@@ -86,6 +87,13 @@ const BLOCK_HANDLERS: BlockHandlerMap = {
   },
   blockquote: (node) => `<blockquote>${node.content.map(adfBlockToHtml).join('')}</blockquote>`,
   rule: () => '<hr>',
+  taskList: (node) =>
+    `<ul data-type="taskList">${node.content
+      .map(
+        (item: AdfTaskItemNode) =>
+          `<li data-type="taskItem"><label><input type="checkbox"${item.attrs.state === 'DONE' ? ' checked' : ''} disabled/> ${item.content.map(adfBlockToHtml).join('')}</label></li>`
+      )
+      .join('')}</ul>`,
   table: (node) => {
     const rows = node.content.map((row: AdfTableRowNode) => {
       const cells = row.content.map((cell: AdfTableHeaderNode | AdfTableCellNode) => {

@@ -27,6 +27,8 @@ import type {
   AdfTableCellNode,
   AdfTableHeaderNode,
   AdfTableRowNode,
+  AdfTaskItemNode,
+  AdfTaskListNode,
 } from './adf-types.js'
 
 function convertInlineToAdf(node: PhrasingContent, parentMarks: AdfMark[] = []): AdfInlineNode[] {
@@ -97,7 +99,30 @@ function transformParagraphToAdf(node: Paragraph): AdfBlockNode {
 }
 
 function transformListToAdf(node: List): AdfBlockNode {
-  const items: AdfListItemNode[] = (node.children as ListItem[]).map((item) => {
+  const listItems = node.children as ListItem[]
+
+  // Detect GFM task list: at least one item has a checked state (boolean, not null)
+  const isTaskList = !node.ordered && listItems.some((item) => item.checked !== null)
+
+  if (isTaskList) {
+    const taskItems: AdfTaskItemNode[] = listItems.map((item, idx) => {
+      const paragraphs = item.children.filter((c) => c.type === 'paragraph') as Paragraph[]
+      const content: AdfBlockNode[] = paragraphs.map(transformParagraphToAdf)
+      return {
+        type: 'taskItem',
+        attrs: { localId: `task-${idx}`, state: item.checked ? 'DONE' : 'TODO' },
+        content,
+      }
+    })
+    const taskList: AdfTaskListNode = {
+      type: 'taskList',
+      attrs: { localId: `taskList-0` },
+      content: taskItems,
+    }
+    return taskList
+  }
+
+  const items: AdfListItemNode[] = listItems.map((item) => {
     const content: AdfBlockNode[] = []
     for (const child of item.children) {
       if (child.type === 'paragraph') {

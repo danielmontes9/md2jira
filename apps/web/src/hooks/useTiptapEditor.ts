@@ -195,48 +195,48 @@ export function useTiptapEditor({
     content: DOMPurify.sanitize(previewHtml),
     editable: false,
     onUpdate: ({ editor: ed }) => {
-        if (isExternalUpdateRef.current) return
-        const cb = onMarkdownChangeRef.current
-        if (!cb) return
+      if (isExternalUpdateRef.current) return
+      const cb = onMarkdownChangeRef.current
+      if (!cb) return
 
-        clearTimeout(updateTimeoutRef.current)
-        updateTimeoutRef.current = setTimeout(() => {
-          if (!onMarkdownChangeRef.current) return
-          // Lazy-load Turndown
-          if (!tdRef.current) {
-            if (tdLoadingRef.current) return
-            tdLoadingRef.current = true
-            import('../components/jira-output/turndown-config.js')
-              .then(({ createTurndownService }) => {
-                tdRef.current = createTurndownService()
-                tdLoadingRef.current = false
-                // Re-trigger the update now that Turndown is ready
-                const html = ed.getHTML()
-                const md = tdRef.current!.turndown(html)
-                isExternalUpdateRef.current = true
-                onMarkdownChangeRef.current?.(md)
-                queueMicrotask(() => {
-                  isExternalUpdateRef.current = false
-                })
+      clearTimeout(updateTimeoutRef.current)
+      updateTimeoutRef.current = setTimeout(() => {
+        if (!onMarkdownChangeRef.current) return
+        // Lazy-load Turndown
+        if (!tdRef.current) {
+          if (tdLoadingRef.current) return
+          tdLoadingRef.current = true
+          import('../components/jira-output/turndown-config.js')
+            .then(({ createTurndownService }) => {
+              tdRef.current = createTurndownService()
+              tdLoadingRef.current = false
+              // Re-trigger the update now that Turndown is ready
+              const html = ed.getHTML()
+              const md = tdRef.current!.turndown(html)
+              isExternalUpdateRef.current = true
+              onMarkdownChangeRef.current?.(md)
+              queueMicrotask(() => {
+                isExternalUpdateRef.current = false
               })
-              .catch(() => {
-                tdLoadingRef.current = false
-              })
-            return
-          }
-          try {
-            const html = ed.getHTML()
-            const md = tdRef.current.turndown(html)
-            isExternalUpdateRef.current = true
-            onMarkdownChangeRef.current?.(md)
-            queueMicrotask(() => {
-              isExternalUpdateRef.current = false
             })
-          } catch {
-            // Turndown conversion failed — don't crash the editor
-          }
-        }, debounceMs)
-      },
+            .catch(() => {
+              tdLoadingRef.current = false
+            })
+          return
+        }
+        try {
+          const html = ed.getHTML()
+          const md = tdRef.current.turndown(html)
+          isExternalUpdateRef.current = true
+          onMarkdownChangeRef.current?.(md)
+          queueMicrotask(() => {
+            isExternalUpdateRef.current = false
+          })
+        } catch {
+          // Turndown conversion failed — don't crash the editor
+        }
+      }, debounceMs)
+    },
   })
   // useEditor() is still called unconditionally to satisfy React hooks rules;
   // TipTap v3 does not expose a shouldCreate option in UseEditorOptions.
@@ -263,6 +263,10 @@ export function useTiptapEditor({
       isExternalUpdateRef.current = false
     })
   }, [previewHtml, activeEditor])
+
+  // Cancel any pending debounced HTML→Markdown conversion when the active editor
+  // changes (e.g. format switches from ADF to wiki) or when the hook unmounts.
+  useEffect(() => () => clearTimeout(updateTimeoutRef.current), [activeEditor])
 
   const exec = useCallback(
     (cmd: string, arg?: string) => {

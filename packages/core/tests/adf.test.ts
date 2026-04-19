@@ -284,3 +284,52 @@ describe('convertToAdf — edge cases', () => {
     expect(hasBreak).toBe(true)
   })
 })
+
+// ── Task list (GFM) ──
+
+describe('convertToAdf — task lists', () => {
+  it('converts a todo item to taskList/taskItem with state TODO', () => {
+    const result = convertToAdf('- [ ] Write tests')
+    expect(result.content[0]).toMatchObject({
+      type: 'taskList',
+      content: [
+        {
+          type: 'taskItem',
+          attrs: { state: 'TODO' },
+          content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Write tests' }] }],
+        },
+      ],
+    })
+  })
+
+  it('converts a checked item to taskItem with state DONE', () => {
+    const result = convertToAdf('- [x] Done task')
+    expect(result.content[0]).toMatchObject({
+      type: 'taskList',
+      content: [
+        {
+          type: 'taskItem',
+          attrs: { state: 'DONE' },
+        },
+      ],
+    })
+  })
+
+  it('converts mixed task list items', () => {
+    const result = convertToAdf('- [x] Done\n- [ ] Todo')
+    const taskList = result.content[0] as { type: string; content: { attrs: { state: string } }[] }
+    expect(taskList.type).toBe('taskList')
+    expect(taskList.content[0].attrs.state).toBe('DONE')
+    expect(taskList.content[1].attrs.state).toBe('TODO')
+  })
+
+  it('does not treat a regular bullet list as a taskList', () => {
+    const result = convertToAdf('- regular item')
+    expect(result.content[0]).toMatchObject({ type: 'bulletList' })
+  })
+
+  it('does not treat an ordered list as a taskList', () => {
+    const result = convertToAdf('1. [ ] still ordered')
+    expect(result.content[0]).toMatchObject({ type: 'orderedList' })
+  })
+})

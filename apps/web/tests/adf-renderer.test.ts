@@ -280,4 +280,38 @@ describe('adfBlockToHtml', () => {
     const result = adfBlockToHtml({ type: 'unknownType' } as any)
     expect(result).toBe('')
   })
+
+  it('renders taskList with TODO item as unchecked checkbox', () => {
+    const result = adfBlockToHtml({
+      type: 'taskList',
+      attrs: { localId: 'tl-0' },
+      content: [
+        {
+          type: 'taskItem',
+          attrs: { localId: 'task-0', state: 'TODO' },
+          content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Write tests' }] }],
+        },
+      ],
+    })
+    expect(result).toContain('data-type="taskList"')
+    expect(result).toContain('data-type="taskItem"')
+    expect(result).not.toContain('checked')
+    expect(result).toContain('Write tests')
+  })
+
+  it('renders taskList with DONE item as checked checkbox', () => {
+    const result = adfBlockToHtml({
+      type: 'taskList',
+      attrs: { localId: 'tl-0' },
+      content: [
+        {
+          type: 'taskItem',
+          attrs: { localId: 'task-0', state: 'DONE' },
+          content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Done task' }] }],
+        },
+      ],
+    })
+    expect(result).toContain('checked')
+    expect(result).toContain('Done task')
+  })
 })

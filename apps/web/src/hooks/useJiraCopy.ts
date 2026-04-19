@@ -26,6 +26,10 @@ export function useJiraCopy(
   const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const addToast = useToast()
 
+  // Keep a ref so handleCopy always reads the latest value without being in its deps.
+  const valueRef = useRef(value)
+  valueRef.current = value
+
   // Clean up the "copied" reset timer on unmount.
   useEffect(() => {
     return () => {
@@ -38,17 +42,17 @@ export function useJiraCopy(
       if (format === 'adf') {
         const currentHtml = editor?.getHTML() ?? ''
         const blob = new Blob([currentHtml], { type: 'text/html' })
-        const textBlob = new Blob([value], { type: 'text/plain' })
+        const textBlob = new Blob([valueRef.current], { type: 'text/plain' })
         await navigator.clipboard.write([
           new ClipboardItem({ 'text/html': blob, 'text/plain': textBlob }),
         ])
       } else {
-        await navigator.clipboard.writeText(value)
+        await navigator.clipboard.writeText(valueRef.current)
       }
     } catch {
       // Fallback for browsers that block the Clipboard API (e.g. Firefox, sandboxed iframes)
       try {
-        await navigator.clipboard.writeText(value)
+        await navigator.clipboard.writeText(valueRef.current)
       } catch {
         addToast('Failed to copy to clipboard', 'error')
         return
@@ -57,7 +61,7 @@ export function useJiraCopy(
     setCopied(true)
     if (copiedTimerRef.current !== null) clearTimeout(copiedTimerRef.current)
     copiedTimerRef.current = setTimeout(() => setCopied(false), 2000)
-  }, [value, format, editor, addToast])
+  }, [format, editor, addToast])
 
   return { copied, handleCopy }
 }

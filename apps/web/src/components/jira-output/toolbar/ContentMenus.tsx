@@ -159,6 +159,7 @@ interface EmojiMenuProps extends ToolbarMenuProps {
 export function EmojiMenu({ exec, close, openKey, onOpen }: EmojiMenuProps) {
   const [emojiSearch, setEmojiSearch] = useState('')
   const deferredSearch = useDeferredValue(emojiSearch)
+  const filteredEmojis = emojiSearch ? ALL_EMOJIS.filter((em) => em.includes(deferredSearch)) : []
 
   return (
     <ToolbarDropdown
@@ -188,10 +189,10 @@ export function EmojiMenu({ exec, close, openKey, onOpen }: EmojiMenuProps) {
         />
         {emojiSearch ? (
           <div className="flex flex-wrap gap-0.5">
-            {ALL_EMOJIS.filter((em) => em.includes(deferredSearch)).length === 0 ? (
+            {filteredEmojis.length === 0 ? (
               <p className="w-full py-2 text-center text-xs text-neutral-400">No emojis found</p>
             ) : (
-              ALL_EMOJIS.filter((em) => em.includes(deferredSearch)).map((em, i) => (
+              filteredEmojis.map((em, i) => (
                 <button
                   key={i}
                   onMouseDown={(e) => {

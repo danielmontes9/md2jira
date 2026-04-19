@@ -79,11 +79,24 @@ export interface AdfTableCellNode {
   content: AdfBlockNode[]
 }
 
+export interface AdfTaskItemNode {
+  type: 'taskItem'
+  attrs: { localId: string; state: 'TODO' | 'DONE' }
+  content: AdfBlockNode[]
+}
+
+export interface AdfTaskListNode {
+  type: 'taskList'
+  attrs: { localId: string }
+  content: AdfTaskItemNode[]
+}
+
 export type AdfBlockNode =
   | AdfHeadingNode
   | AdfParagraphNode
   | AdfBulletListNode
   | AdfOrderedListNode
+  | AdfTaskListNode
   | AdfCodeBlockNode
   | AdfBlockquoteNode
   | AdfRuleNode
