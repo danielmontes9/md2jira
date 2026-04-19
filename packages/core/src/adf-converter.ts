@@ -98,6 +98,10 @@ function transformParagraphToAdf(node: Paragraph): AdfBlockNode {
   }
 }
 
+// Counter is reset at the start of each convertToAdf() call so IDs are
+// unique within a document but deterministic across calls (useful for tests).
+let _taskListCounter = 0
+
 function transformListToAdf(node: List): AdfBlockNode {
   const listItems = node.children as ListItem[]
 
@@ -105,18 +109,19 @@ function transformListToAdf(node: List): AdfBlockNode {
   const isTaskList = !node.ordered && listItems.some((item) => item.checked !== null)
 
   if (isTaskList) {
+    const listIdx = _taskListCounter++
     const taskItems: AdfTaskItemNode[] = listItems.map((item, idx) => {
       const paragraphs = item.children.filter((c) => c.type === 'paragraph') as Paragraph[]
       const content: AdfBlockNode[] = paragraphs.map(transformParagraphToAdf)
       return {
         type: 'taskItem',
-        attrs: { localId: `task-${idx}`, state: item.checked ? 'DONE' : 'TODO' },
+        attrs: { localId: `task-${listIdx}-${idx}`, state: item.checked ? 'DONE' : 'TODO' },
         content,
       }
     })
     const taskList: AdfTaskListNode = {
       type: 'taskList',
-      attrs: { localId: `taskList-0` },
+      attrs: { localId: `taskList-${listIdx}` },
       content: taskItems,
     }
     return taskList
@@ -153,6 +158,9 @@ function transformBlockquoteToAdf(node: Blockquote): AdfBlockNode {
   for (const child of node.children) {
     if (child.type === 'paragraph') {
       content.push(transformParagraphToAdf(child as Paragraph))
+    } else if (child.type === 'blockquote') {
+      // Nested blockquote: ADF blockquote can contain another blockquote
+      content.push(transformBlockquoteToAdf(child as Blockquote))
     }
   }
   return { type: 'blockquote', content }
@@ -248,6 +256,7 @@ export function convertToAdf(md: string): AdfDocument {
 
   if (!md.trim()) return emptyDoc
 
+  _taskListCounter = 0
   const tree = parseMarkdown(md)
 
   const content: AdfBlockNode[] = []

@@ -4,21 +4,8 @@ import { transformHeading } from './transforms/headers.js'
 import { transformList } from './transforms/lists.js'
 import { transformCodeBlock } from './transforms/codeblocks.js'
 import { transformTable } from './transforms/tables.js'
+import { transformBlockquote } from './transforms/blockquotes.js'
 import { parseMarkdown } from './parse.js'
-
-function transformBlockquote(node: Blockquote): string {
-  const parts: string[] = []
-  for (const child of node.children) {
-    if (child.type === 'paragraph') {
-      const text = convertInlineChildren((child as Paragraph).children)
-      // Hard line breaks within the paragraph produce \n; each sub-line needs its own bq. prefix.
-      for (const sub of text.split('\n')) {
-        parts.push(`bq. ${sub}`)
-      }
-    }
-  }
-  return parts.join('\n')
-}
 
 function transformNode(node: RootContent): string | null {
   switch (node.type) {

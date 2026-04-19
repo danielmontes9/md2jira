@@ -89,10 +89,15 @@ const BLOCK_HANDLERS: BlockHandlerMap = {
   rule: () => '<hr>',
   taskList: (node) =>
     `<ul data-type="taskList">${node.content
-      .map(
-        (item: AdfTaskItemNode) =>
-          `<li data-type="taskItem"><label><input type="checkbox"${item.attrs.state === 'DONE' ? ' checked' : ''} disabled/> ${item.content.map(adfBlockToHtml).join('')}</label></li>`
-      )
+      .map((item: AdfTaskItemNode) => {
+        // Flatten inline content from paragraph children — avoids invalid <p> inside <label>
+        const inlineHtml = item.content
+          .flatMap((block) =>
+            block.type === 'paragraph' ? block.content.map(adfInlineToHtml) : []
+          )
+          .join('')
+        return `<li data-type="taskItem"><label><input type="checkbox"${item.attrs.state === 'DONE' ? ' checked' : ''} disabled> ${inlineHtml}</label></li>`
+      })
       .join('')}</ul>`,
   table: (node) => {
     const rows = node.content.map((row: AdfTableRowNode) => {

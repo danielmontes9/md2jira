@@ -357,3 +357,42 @@ describe('html and frontmatter — out of scope', () => {
     expect(result).toContain('h1. Hello')
   })
 })
+
+describe('task lists — wiki markup', () => {
+  it('renders done item with (/) emoticon', () => {
+    expect(convert('- [x] Done task')).toBe('(/) Done task')
+  })
+
+  it('renders todo item with (x) emoticon', () => {
+    expect(convert('- [ ] Todo task')).toBe('(x) Todo task')
+  })
+
+  it('renders mixed task list', () => {
+    const md = '- [x] First done\n- [ ] Second todo\n- [x] Third done'
+    expect(convert(md)).toBe('(/) First done\n(x) Second todo\n(/) Third done')
+  })
+
+  it('renders task list with inline formatting', () => {
+    expect(convert('- [x] **Bold** task')).toBe('(/) *Bold* task')
+  })
+
+  it('regular unordered list is not affected', () => {
+    expect(convert('- Item A\n- Item B')).toBe('* Item A\n* Item B')
+  })
+})
+
+describe('blockquotes — nested', () => {
+  it('flattens nested blockquote to bq. lines', () => {
+    // Markdown: "> outer\n> > inner"
+    const md = '> outer\n> > inner'
+    const result = convert(md)
+    expect(result).toContain('bq. outer')
+    expect(result).toContain('bq. inner')
+  })
+
+  it('handles deeply nested blockquote', () => {
+    const md = '> > > deep'
+    const result = convert(md)
+    expect(result).toContain('bq. deep')
+  })
+})

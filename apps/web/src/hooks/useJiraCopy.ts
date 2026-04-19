@@ -30,6 +30,10 @@ export function useJiraCopy(
   const valueRef = useRef(value)
   valueRef.current = value
 
+  // Keep a ref to the editor so handleCopy doesn't need editor in its deps.
+  const editorRef = useRef(editor)
+  editorRef.current = editor
+
   // Clean up the "copied" reset timer on unmount.
   useEffect(() => {
     return () => {
@@ -40,7 +44,7 @@ export function useJiraCopy(
   const handleCopy = useCallback(async () => {
     try {
       if (format === 'adf') {
-        const currentHtml = editor?.getHTML() ?? ''
+        const currentHtml = editorRef.current?.getHTML() ?? ''
         const blob = new Blob([currentHtml], { type: 'text/html' })
         const textBlob = new Blob([valueRef.current], { type: 'text/plain' })
         await navigator.clipboard.write([
@@ -61,7 +65,7 @@ export function useJiraCopy(
     setCopied(true)
     if (copiedTimerRef.current !== null) clearTimeout(copiedTimerRef.current)
     copiedTimerRef.current = setTimeout(() => setCopied(false), 2000)
-  }, [format, editor, addToast])
+  }, [format, addToast])
 
   return { copied, handleCopy }
 }

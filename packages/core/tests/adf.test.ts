@@ -333,3 +333,54 @@ describe('convertToAdf — task lists', () => {
     expect(result.content[0]).toMatchObject({ type: 'orderedList' })
   })
 })
+
+describe('convertToAdf — unique localId', () => {
+  it('generates unique localIds for multiple task lists in one document', () => {
+    // A paragraph between the two task lists forces remark to produce two separate list nodes
+    const md = '- [x] First list\n\nSeparator\n\n- [ ] Second list'
+    const result = convertToAdf(md)
+    const taskLists = result.content.filter((n) => n.type === 'taskList') as {
+      type: string
+      attrs: { localId: string }
+    }[]
+    expect(taskLists).toHaveLength(2)
+    expect(taskLists[0]!.attrs.localId).not.toBe(taskLists[1]!.attrs.localId)
+  })
+
+  it('taskItem localIds are scoped to their parent taskList', () => {
+    const md = '- [x] Item A\n- [ ] Item B'
+    const result = convertToAdf(md)
+    const taskList = result.content[0] as {
+      attrs: { localId: string }
+      content: { attrs: { localId: string } }[]
+    }
+    const [a, b] = taskList.content
+    expect(a!.attrs.localId).not.toBe(b!.attrs.localId)
+  })
+
+  it('localIds are deterministic across repeated calls', () => {
+    const md = '- [x] Task'
+    const first = convertToAdf(md)
+    const second = convertToAdf(md)
+    const firstId = (first.content[0] as { attrs: { localId: string } }).attrs.localId
+    const secondId = (second.content[0] as { attrs: { localId: string } }).attrs.localId
+    expect(firstId).toBe(secondId)
+  })
+})
+
+describe('convertToAdf — nested blockquotes', () => {
+  it('converts nested blockquote to nested ADF blockquote', () => {
+    const md = '> outer\n> > inner'
+    const result = convertToAdf(md)
+    expect(result.content[0]).toMatchObject({
+      type: 'blockquote',
+      content: expect.arrayContaining([
+        { type: 'paragraph', content: [{ type: 'text', text: 'outer' }] },
+        {
+          type: 'blockquote',
+          content: [{ type: 'paragraph', content: [{ type: 'text', text: 'inner' }] }],
+        },
+      ]),
+    })
+  })
+})
