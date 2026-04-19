@@ -396,3 +396,20 @@ describe('blockquotes — nested', () => {
     expect(result).toContain('bq. deep')
   })
 })
+
+describe('blockquotes — complex children', () => {
+  it('renders list inside blockquote without bq. prefix', () => {
+    const md = '> Note:\n> - item one\n> - item two'
+    const result = convert(md)
+    expect(result).toContain('bq. Note:')
+    expect(result).toContain('* item one')
+    expect(result).toContain('* item two')
+  })
+
+  it('renders code block inside blockquote without bq. prefix', () => {
+    const md = '> Example:\n>\n> ```js\nconsole.log("hi")\n```'
+    const result = convert(md)
+    expect(result).toContain('bq. Example:')
+    expect(result).toContain('{code:language=js}')
+  })
+})

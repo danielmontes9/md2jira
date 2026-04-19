@@ -64,9 +64,10 @@ export function adfInlineToHtml(node: AdfInlineNode): string {
 }
 
 // Mapped type: each key K maps to a handler that only accepts the AdfBlockNode subtype
-// whose `type` discriminant equals K. This gives full type-narrowing inside each handler.
+// whose `type` discriminant equals K. The map is TOTAL (no `+?`) so TypeScript will
+// report a compile error if a new AdfBlockNode variant is added without a handler.
 type BlockHandlerMap = {
-  [K in AdfBlockNode['type']]+?: (node: Extract<AdfBlockNode, { type: K }>) => string
+  [K in AdfBlockNode['type']]: (node: Extract<AdfBlockNode, { type: K }>) => string
 }
 
 const BLOCK_HANDLERS: BlockHandlerMap = {
@@ -113,8 +114,9 @@ const BLOCK_HANDLERS: BlockHandlerMap = {
 }
 
 export function adfBlockToHtml(node: AdfBlockNode): string {
-  // Safe: BLOCK_HANDLERS[K] only accepts Extract<AdfBlockNode, {type: K}>, which
-  // `node` satisfies at runtime. The cast is contained to this single call site.
+  // BLOCK_HANDLERS is total for all known AdfBlockNode types (compile-time guarantee).
+  // The `| undefined` cast handles external ADF payloads that may contain node
+  // types not present in the compile-time union — those fall back to empty string.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handler = BLOCK_HANDLERS[node.type] as ((node: any) => string) | undefined
   return handler ? handler(node) : ''

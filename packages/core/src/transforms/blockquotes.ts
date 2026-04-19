@@ -1,11 +1,15 @@
-import type { Blockquote, Paragraph } from 'mdast'
+import type { Blockquote, Code, List, Paragraph } from 'mdast'
 import { convertInlineChildren } from './formatting.js'
+import { transformList } from './lists.js'
+import { transformCodeBlock } from './codeblocks.js'
 
 /**
  * Converts a Markdown blockquote (and any nested blockquotes) to Jira Wiki Markup.
  *
  * Jira Wiki has no nested blockquote syntax — `bq.` is always a single-line prefix.
  * Nested blockquotes are flattened: each leaf paragraph is emitted as its own `bq.` line.
+ * Lists and code blocks inside a blockquote are rendered inline (without `bq.` prefix)
+ * because Jira Wiki Markup has no syntax to nest them inside a blockquote.
  */
 export function transformBlockquote(node: Blockquote): string {
   const parts: string[] = []
@@ -19,6 +23,12 @@ export function transformBlockquote(node: Blockquote): string {
     } else if (child.type === 'blockquote') {
       // Nested blockquote: recurse and flatten (Jira Wiki has no nested bq. syntax)
       parts.push(transformBlockquote(child as Blockquote))
+    } else if (child.type === 'list') {
+      // Lists cannot be nested inside bq. — render them at the top level
+      parts.push(transformList(child as List))
+    } else if (child.type === 'code') {
+      // Code blocks cannot be nested inside bq. — render them at the top level
+      parts.push(transformCodeBlock(child as Code))
     }
   }
   return parts.join('\n')

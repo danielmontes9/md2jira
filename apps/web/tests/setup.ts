@@ -12,3 +12,19 @@ if (!HTMLDialogElement.prototype.close) {
     this.removeAttribute('open')
   }
 }
+
+// jsdom does not implement Web Workers. Provide a minimal stub so App.tsx
+// and any component that uses `new Worker(...)` doesn't throw in unit tests.
+// The stub is synchronous: onmessage is never called, so tests that render
+// <App> will see previewHtml stay as '' (the initial state), which is fine for
+// snapshot / integration unit tests.
+if (typeof Worker === 'undefined') {
+  // @ts-expect-error — intentional minimal stub for jsdom
+  global.Worker = class MockWorker {
+    onmessage: ((e: MessageEvent) => void) | null = null
+    addEventListener() {}
+    removeEventListener() {}
+    postMessage() {}
+    terminate() {}
+  }
+}

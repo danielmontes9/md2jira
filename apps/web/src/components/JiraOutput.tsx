@@ -39,6 +39,11 @@ export const JiraOutput = memo(function JiraOutput({
   const [viewMode, setViewMode] = useState<ViewMode>('preview')
   const [editMode, setEditMode] = useState(false)
 
+  // Reset view mode to 'preview' when switching away from ADF (wiki has no distinct code view)
+  useEffect(() => {
+    if (format !== 'adf') setViewMode('preview')
+  }, [format])
+
   // Only initialize TipTap when ADF format is active — saves resources in wiki mode
   const shouldCreate = import.meta.env.VITE_ENABLE_WYSIWYG !== 'false' && format === 'adf'
 
@@ -100,26 +105,28 @@ export const JiraOutput = memo(function JiraOutput({
                 Wiki Markup
               </button>
             </div>
-            <div
-              role="group"
-              aria-label="View mode"
-              className="flex flex-1 rounded-md border border-neutral-300 text-xs @[460px]:flex-none dark:border-neutral-700"
-            >
-              <button
-                onClick={() => setViewMode('preview')}
-                aria-pressed={viewMode === 'preview'}
-                className={toggleBtnCls(viewMode === 'preview', 'left')}
+            {format === 'adf' && (
+              <div
+                role="group"
+                aria-label="View mode"
+                className="flex flex-1 rounded-md border border-neutral-300 text-xs @[460px]:flex-none dark:border-neutral-700"
               >
-                Preview
-              </button>
-              <button
-                onClick={() => setViewMode('code')}
-                aria-pressed={viewMode === 'code'}
-                className={toggleBtnCls(viewMode === 'code', 'right')}
-              >
-                Code
-              </button>
-            </div>
+                <button
+                  onClick={() => setViewMode('preview')}
+                  aria-pressed={viewMode === 'preview'}
+                  className={toggleBtnCls(viewMode === 'preview', 'left')}
+                >
+                  Preview
+                </button>
+                <button
+                  onClick={() => setViewMode('code')}
+                  aria-pressed={viewMode === 'code'}
+                  className={toggleBtnCls(viewMode === 'code', 'right')}
+                >
+                  Code
+                </button>
+              </div>
+            )}
           </div>
         </div>
         {/* Single CopyEditGroup — grid col 2 on mobile, flex end on desktop */}

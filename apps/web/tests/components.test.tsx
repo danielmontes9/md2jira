@@ -141,12 +141,10 @@ describe('Markdown → output conversion', () => {
     const wikiBtn = screen.getAllByRole('button', { name: /wiki markup/i })
     fireEvent.click(wikiBtn[0]!)
 
-    // Switch to Code view to inspect raw output
-    const codeBtns = screen.getAllByRole('button', { name: /^code$/i })
-    fireEvent.click(codeBtns[0]!)
-
-    const pre = document.querySelector('pre')
-    expect(pre?.textContent).toContain('h1. Hello World')
+    // Wiki mode has no Code/Preview toggle — the raw markup is shown directly in the
+    // "Wiki markup preview" region (the Code/Preview toggle is ADF-only).
+    const pre = screen.getByRole('region', { name: /wiki markup preview/i })
+    expect(pre.textContent).toContain('h1. Hello World')
   })
 
   it('produces JSON ADF output for Jira Cloud format', () => {

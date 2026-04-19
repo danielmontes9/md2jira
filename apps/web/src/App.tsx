@@ -1,6 +1,6 @@
-import { useState, useCallback, useEffect, useMemo, useDeferredValue } from 'react'
+import { useState, useCallback, useEffect, useRef, useMemo, useDeferredValue } from 'react'
 import { convert, convertToAdf } from 'md2jira-core'
-import { adfToHtml } from './components/jira-output/adf-renderer.js'
+import type { AdfDocument } from 'md2jira-core'
 import { Header } from './components/Header.js'
 import { MarkdownInput } from './components/MarkdownInput.js'
 import { JiraOutput } from './components/JiraOutput.js'
@@ -82,6 +82,11 @@ export function App() {
   const [markdown, setMarkdown] = useState(() => getInitialMarkdown(PLACEHOLDER))
   const [format, setFormat] = useState<OutputFormat>('adf')
   const [theme, setTheme] = useState<Theme>(getInitialTheme)
+  // previewHtml is computed off-thread by the ADF Web Worker
+  const [previewHtml, setPreviewHtml] = useState('')
+  const workerRef = useRef<Worker | null>(null)
+  // Monotonically increasing request id — lets us discard stale worker responses
+  const workerReqRef = useRef(0)
 
   // useDeferredValue keeps the textarea fully responsive by deferring
   // the expensive convert() / convertToAdf() calls until the browser is idle.
@@ -129,25 +134,62 @@ export function App() {
   }, [])
 
   const isPending = markdown !== deferredMarkdown
-  const { jiraOutput, hasConversionError, previewHtml } = useMemo(() => {
+  const { jiraOutput, adfDoc, hasConversionError } = useMemo(() => {
     try {
       if (format === 'adf') {
         const adf = convertToAdf(deferredMarkdown)
         return {
           jiraOutput: JSON.stringify(adf, null, 2),
+          adfDoc: adf as AdfDocument,
           hasConversionError: false,
-          previewHtml: adfToHtml(adf),
         }
       }
-      return {
-        jiraOutput: convert(deferredMarkdown),
-        hasConversionError: false,
-        previewHtml: '',
-      }
+      return { jiraOutput: convert(deferredMarkdown), adfDoc: null, hasConversionError: false }
     } catch {
-      return { jiraOutput: '', hasConversionError: true, previewHtml: '' }
+      return { jiraOutput: '', adfDoc: null, hasConversionError: true }
     }
   }, [deferredMarkdown, format])
+
+  // Send ADF document to the off-thread worker for HTML rendering.
+  // The worker is created lazily on first use and reused across renders.
+  // A per-request id lets us discard stale responses if a new conversion
+  // arrives before the previous one completes.
+  // Falls back to a synchronous dynamic import when module Workers are not
+  // available (e.g. unit-test environments with jsdom).
+  useEffect(() => {
+    if (!adfDoc) {
+      setPreviewHtml('')
+      return
+    }
+    const id = ++workerReqRef.current
+
+    try {
+      const worker =
+        workerRef.current ??
+        (workerRef.current = new Worker(new URL('./workers/adf-worker.ts', import.meta.url), {
+          type: 'module',
+        }))
+
+      const onMessage = (e: MessageEvent<{ id: number; html: string }>) => {
+        if (e.data.id === id) setPreviewHtml(e.data.html)
+      }
+      worker.addEventListener('message', onMessage)
+      worker.postMessage({ id, doc: adfDoc })
+      return () => worker.removeEventListener('message', onMessage)
+    } catch {
+      // Worker URL construction or instantiation failed (e.g. jsdom unit tests,
+      // or browsers without module-worker support) — render synchronously instead.
+      import('./components/jira-output/adf-renderer.js')
+        .then(({ adfToHtml }) => {
+          if (workerReqRef.current === id) setPreviewHtml(adfToHtml(adfDoc))
+        })
+        .catch(() => setPreviewHtml(''))
+      return  // no cleanup needed for the synchronous fallback path
+    }
+  }, [adfDoc])
+
+  // Terminate the worker when the component unmounts to free resources.
+  useEffect(() => () => workerRef.current?.terminate(), [])
 
   return (
     <ToastProvider>

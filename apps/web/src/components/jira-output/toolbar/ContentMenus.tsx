@@ -304,7 +304,7 @@ export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertM
           onMouseDown={(e) => {
             e.preventDefault()
             insertHtml(
-              '<div style="background:#deebff;border-left:4px solid #0052cc;border-radius:4px;padding:8px 12px;margin:4px 0"><p>ℹ️ Info panel</p></div><p><br></p>'
+              '<div data-type="info-panel" style="background:#deebff;border-left:4px solid #0052cc;border-radius:4px;padding:8px 12px;margin:4px 0"><p>ℹ️ Info panel</p></div><p><br></p>'
             )
             close()
           }}

@@ -23,10 +23,30 @@ export function createTurndownService(): TurndownService {
   })
 
   // Keep sub/sup elements and <span style="color:..."> written by TipTap's Color
-  // extension. Standard Markdown has no color syntax; keeping the span lets TipTap
-  // re-apply the color when the user re-opens edit mode. The core ADF converter
-  // ignores raw HTML spans in Markdown (out-of-scope HTML passthrough).
+  // extension. Standard Markdown has no color syntax; keeping the span preserves
+  // it in the Markdown state so the editor can re-apply the color within a session.
+  //
+  // LIMITATION: These spans are treated as raw HTML nodes by convert() /
+  // convertToAdf() (HTML passthrough is explicitly out of scope). If the user
+  // switches out of edit mode while colored text is active, the ADF pipeline
+  // re-syncs the editor content without color — color is WYSIWYG-only and does
+  // not survive the Markdown → Jira conversion pipeline.
   td.keep(['sub', 'sup', 'span'])
+
+  // Task list items: <li data-type="taskItem" data-checked="true|false">
+  // Must be registered before the generic bullet-list rules so the more specific
+  // filter wins (Turndown checks rules in registration order).
+  // Info panel: inserted by InsertMenu as <div data-type="info-panel">.
+  // Preserved as a blockquote in Markdown — the closest plain-text equivalent.
+  // Jira Wiki converts it to `bq.`; ADF converts it to a blockquote node.
+  td.addRule('infoPanel', {
+    filter: (node) =>
+      node.nodeName === 'DIV' && (node as HTMLElement).getAttribute('data-type') === 'info-panel',
+    replacement: (_content: string, node: Node) => {
+      const inner = (node as HTMLElement).textContent?.trim() ?? ''
+      return `\n\n> ${inner}\n\n`
+    },
+  })
 
   // Task list items: <li data-type="taskItem" data-checked="true|false">
   // Must be registered before the generic bullet-list rules so the more specific

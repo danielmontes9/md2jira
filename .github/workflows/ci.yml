@@ -32,6 +32,9 @@ jobs:
       - name: Build core
         run: pnpm --filter md2jira-core build
 
+      - name: Build CLI
+        run: pnpm --filter md2jira-cli build
+
       - name: Lint
         run: pnpm lint
 

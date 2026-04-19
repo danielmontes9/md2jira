@@ -29,8 +29,16 @@ function transformNode(node: RootContent): string | null {
     case 'yaml':
       // Frontmatter - skip silently
       return null
-    default:
+    default: {
+      // Unknown node type (e.g. from remark plugins) — emit raw text value if available.
+      // Matches the fallback behaviour in adf-converter.ts so unknown nodes are never
+      // silently discarded when they carry readable content.
+      const unknown = node as { value?: unknown }
+      if (typeof unknown.value === 'string' && unknown.value) {
+        return unknown.value
+      }
       return null
+    }
   }
 }
 

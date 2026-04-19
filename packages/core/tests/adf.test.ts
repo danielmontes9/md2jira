@@ -384,3 +384,23 @@ describe('convertToAdf — nested blockquotes', () => {
     })
   })
 })
+
+describe('convertToAdf — blockquote complex children', () => {
+  it('includes list inside blockquote as bulletList ADF node', () => {
+    const md = '> Note:\n> - item one\n> - item two'
+    const result = convertToAdf(md)
+    const bq = result.content[0] as { type: string; content: { type: string }[] }
+    expect(bq.type).toBe('blockquote')
+    const hasList = bq.content.some((n) => n.type === 'bulletList')
+    expect(hasList).toBe(true)
+  })
+
+  it('includes code block inside blockquote as codeBlock ADF node', () => {
+    const md = '> Example:\n>\n> ```js\nconsole.log("hi")\n```'
+    const result = convertToAdf(md)
+    const bq = result.content[0] as { type: string; content: { type: string }[] }
+    expect(bq.type).toBe('blockquote')
+    const hasCode = bq.content.some((n) => n.type === 'codeBlock')
+    expect(hasCode).toBe(true)
+  })
+})

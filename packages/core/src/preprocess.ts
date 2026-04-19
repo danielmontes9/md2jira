@@ -16,8 +16,12 @@ const TABLE_SEP_RE = /^\s*\|[\s\-:|]+\|/
  * when the user deletes a line, which would confuse remark-gfm.
  */
 export function preprocessMarkdown(md: string): string {
-  // Normalise all line endings to \n first
-  const normalised = md.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+  // Strip UTF-8 BOM (\uFEFF) that Windows editors sometimes prepend, then
+  // normalise all line endings to \n.
+  const normalised = md
+    .replace(/^\uFEFF/, '')
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
   const lines = normalised.split('\n')
   const result: string[] = []
   let inTable = false
