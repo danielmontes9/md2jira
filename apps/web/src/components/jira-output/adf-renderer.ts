@@ -115,12 +115,19 @@ const BLOCK_HANDLERS: BlockHandlerMap = {
 export function adfBlockToHtml(node: AdfBlockNode): string {
   // BLOCK_HANDLERS is total for all known AdfBlockNode types (compile-time guarantee).
   // The `| undefined` handles external ADF payloads that may contain node types
-  // not present in the compile-time union — those fall back to empty string.
+  // not present in the compile-time union — those fall back to best-effort rendering.
   // TypeScript cannot correlate the indexed handler with the runtime node type,
   // a known limitation (microsoft/TypeScript#30581); the cast is sound because
   // we index BLOCK_HANDLERS by the same node.type that discriminates the union.
   const handler = BLOCK_HANDLERS[node.type] as ((n: AdfBlockNode) => string) | undefined
-  return handler ? handler(node) : ''
+  if (handler) return handler(node)
+  // Unknown block type from external ADF payloads (e.g. panel, expand, mediaGroup).
+  // Best-effort: extract and render child blocks so content is not silently swallowed.
+  const raw = node as unknown as { content?: AdfBlockNode[] }
+  if (Array.isArray(raw.content) && raw.content.length > 0) {
+    return raw.content.map(adfBlockToHtml).join('')
+  }
+  return ''
 }
 
 /**

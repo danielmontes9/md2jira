@@ -1,4 +1,4 @@
-import { useState, useMemo, useDeferredValue } from 'react'
+import { useState, useMemo, useDeferredValue, useEffect } from 'react'
 import { convert, convertToAdf } from 'md2jira-core'
 import type { AdfDocument } from 'md2jira-core'
 import { Header } from './components/Header.js'
@@ -20,7 +20,18 @@ export function App() {
 
   // useDeferredValue keeps the textarea fully responsive by deferring
   // the expensive convert() / convertToAdf() calls until the browser is idle.
-  const deferredMarkdown = useDeferredValue(markdown)
+  // For large documents (>10 KB) an additional 150 ms debounce prevents running
+  // convert() on every keystroke during rapid edits or bulk paste operations.
+  const [debouncedMarkdown, setDebouncedMarkdown] = useState(markdown)
+  useEffect(() => {
+    if (markdown.length <= 10_000) {
+      setDebouncedMarkdown(markdown)
+      return
+    }
+    const t = setTimeout(() => setDebouncedMarkdown(markdown), 150)
+    return () => clearTimeout(t)
+  }, [markdown])
+  const deferredMarkdown = useDeferredValue(debouncedMarkdown)
 
   // Debounced URL deep-linking: update ?md= param 500ms after the user stops typing.
   useDeepLink(markdown)
