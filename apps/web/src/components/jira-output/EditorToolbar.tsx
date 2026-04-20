@@ -32,13 +32,22 @@ export const EditorToolbar = memo(function EditorToolbar({
   }, [])
   const close = useCallback(() => setOpenKey(null), [])
 
-  // Close dropdowns when clicking outside the toolbar
+  // Close dropdowns when clicking outside the toolbar, or when Escape is pressed.
+  // The Escape handler satisfies WCAG 2.1 SC 1.3.1 — composite widgets must
+  // allow keyboard users to dismiss opened sub-menus.
   useEffect(() => {
     const ac = new AbortController()
     document.addEventListener(
       'mousedown',
       (e: MouseEvent) => {
         if (toolbarRef.current && !toolbarRef.current.contains(e.target as Node)) close()
+      },
+      { signal: ac.signal }
+    )
+    document.addEventListener(
+      'keydown',
+      (e: KeyboardEvent) => {
+        if (e.key === 'Escape') close()
       },
       { signal: ac.signal }
     )

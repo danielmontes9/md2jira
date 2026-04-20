@@ -1,6 +1,14 @@
 import TurndownService from 'turndown'
 
 /**
+ * Type-safe cast helper. The Turndown rule `filter` callback pre-validates
+ * `node.nodeName` before this is called, so the cast is always sound.
+ */
+function asElement(node: Node): HTMLElement {
+  return node as HTMLElement
+}
+
+/**
  * Creates and configures a TurndownService instance for converting the
  * WYSIWYG editor's HTML back to Markdown.
  *
@@ -40,7 +48,7 @@ export function createTurndownService(): TurndownService {
   // recursive pass) so bold, links, code etc. inside the panel are preserved.
   td.addRule('infoPanel', {
     filter: (node) =>
-      node.nodeName === 'DIV' && (node as HTMLElement).getAttribute('data-type') === 'info-panel',
+      node.nodeName === 'DIV' && asElement(node).getAttribute('data-type') === 'info-panel',
     replacement: (content: string) => {
       return `\n\n> ${content.trim()}\n\n`
     },
@@ -51,9 +59,9 @@ export function createTurndownService(): TurndownService {
   // filter wins (Turndown checks rules in registration order).
   td.addRule('taskListItem', {
     filter: (node) =>
-      node.nodeName === 'LI' && (node as HTMLElement).getAttribute('data-type') === 'taskItem',
+      node.nodeName === 'LI' && asElement(node).getAttribute('data-type') === 'taskItem',
     replacement: (content: string, node: Node) => {
-      const el = node as HTMLElement
+      const el = asElement(node)
       const checked = el.getAttribute('data-checked') === 'true'
       const text = content.replace(/\n+/g, ' ').trim()
       return `\n- [${checked ? 'x' : ' '}] ${text}`
@@ -62,7 +70,7 @@ export function createTurndownService(): TurndownService {
 
   td.addRule('taskList', {
     filter: (node) =>
-      node.nodeName === 'UL' && (node as HTMLElement).getAttribute('data-type') === 'taskList',
+      node.nodeName === 'UL' && asElement(node).getAttribute('data-type') === 'taskList',
     replacement: (content: string) => `\n\n${content.trim()}\n\n`,
   })
 
@@ -92,7 +100,7 @@ export function createTurndownService(): TurndownService {
   td.addRule('tableRow', {
     filter: 'tr',
     replacement: (content: string, node: Node) => {
-      const el = node as HTMLElement
+      const el = asElement(node)
       const isHeader = el.querySelectorAll('th').length > 0
       const row = `|${content}`
       if (isHeader) {

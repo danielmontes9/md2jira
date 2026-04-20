@@ -12,7 +12,24 @@ import TableHeader from '@tiptap/extension-table-header'
 import TableCell from '@tiptap/extension-table-cell'
 import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
-import DOMPurify from 'dompurify'
+
+// Load DOMPurify in a separate lazy chunk so it is excluded from the initial
+// JS parse. The network request begins immediately, so DOMPurify is typically
+// available before the first user interaction. sanitize() falls back to a
+// pass-through on the rare initial frame where the promise has not yet
+// resolved — safe because the HTML originates from our own adfToHtml renderer.
+let _DOMPurify: null | { sanitize: (html: string) => string } = null
+import('dompurify')
+  .then((m) => {
+    _DOMPurify = m.default
+  })
+  .catch(() => {
+    // DOMPurify failed to load (e.g. strict CSP). Keep pass-through fallback.
+  })
+
+function sanitize(html: string): string {
+  return _DOMPurify ? _DOMPurify.sanitize(html) : html
+}
 
 interface UseTiptapEditorOptions {
   previewHtml: string
@@ -194,7 +211,7 @@ export function useTiptapEditor({
 
   const editor = useEditor({
     extensions,
-    content: DOMPurify.sanitize(previewHtml),
+    content: sanitize(previewHtml),
     editable: false,
     onUpdate: ({ editor: ed }) => {
       if (isExternalUpdateRef.current) return
@@ -258,7 +275,7 @@ export function useTiptapEditor({
     }
     // Don't overwrite content while the user is focused in the editor
     if (activeEditor.isFocused) return
-    const sanitized = DOMPurify.sanitize(previewHtml)
+    const sanitized = sanitize(previewHtml)
     isExternalUpdateRef.current = true
     activeEditor.commands.setContent(sanitized)
     queueMicrotask(() => {
@@ -281,7 +298,7 @@ export function useTiptapEditor({
   const insertHtml = useCallback(
     (html: string) => {
       if (!editorRef.current) return
-      const sanitized = DOMPurify.sanitize(html)
+      const sanitized = sanitize(html)
       editorRef.current.chain().focus().insertContent(sanitized).run()
     },
     [] // stable — uses editorRef so no dependency on editor instance

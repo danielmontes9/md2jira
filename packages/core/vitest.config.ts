@@ -10,8 +10,8 @@ export default defineConfig({
       include: ['src/**/*.ts'],
       reporter: ['text', 'lcov'],
       thresholds: {
-        lines: 80,
-        functions: 80,
+        lines: 85,
+        functions: 85,
       },
     },
   },

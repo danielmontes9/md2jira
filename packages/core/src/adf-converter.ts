@@ -204,6 +204,14 @@ function transformTableToAdf(node: Table): AdfBlockNode {
   }
 }
 
+/**
+ * Returns true when an unknown remark node carries a string `.value` field.
+ * Avoids an inline `as { value: unknown }` cast in the default fallback case.
+ */
+function hasStringValue(node: object): node is { value: string } {
+  return 'value' in node && typeof (node as { value: unknown }).value === 'string'
+}
+
 function transformNodeToAdf(node: RootContent, ctx: AdfConvertContext): AdfBlockNode | null {
   switch (node.type) {
     case 'heading':
@@ -230,10 +238,10 @@ function transformNodeToAdf(node: RootContent, ctx: AdfConvertContext): AdfBlock
       // Unknown node type — emit a paragraph with raw text as fallback so content
       // is not silently discarded. Future consumers (CLI, VSCode) benefit from
       // graceful degradation rather than data loss.
-      if ('value' in node && typeof (node as { value: unknown }).value === 'string') {
+      if (hasStringValue(node)) {
         return {
           type: 'paragraph',
-          content: [{ type: 'text', text: (node as { value: string }).value }],
+          content: [{ type: 'text', text: node.value }],
         }
       }
       return null

@@ -103,3 +103,58 @@ test('conversion error banner appears for invalid markdown syntax', async ({ pag
   await page.goto('/')
   await expect(page.getByRole('alert')).not.toBeVisible()
 })
+
+// ─── WYSIWYG Editor (ADF / Jira Cloud mode) ──────────────────────────────────
+
+test('Edit toggle enables the WYSIWYG toolbar', async ({ page }) => {
+  await page.goto('/')
+
+  // The app defaults to Jira Cloud (ADF) mode and Preview view.
+  // The toolbar should not be visible before editing is enabled.
+  await expect(page.getByRole('toolbar', { name: 'Text formatting' })).not.toBeVisible()
+
+  // Switch to ADF preview mode and activate editing
+  const editBtn = page.getByRole('button', { name: /edit/i })
+  await expect(editBtn).toBeVisible()
+  await editBtn.click()
+
+  // After clicking Edit the toolbar should appear
+  await expect(page.getByRole('toolbar', { name: 'Text formatting' })).toBeVisible()
+})
+
+test('Escape key closes an open toolbar dropdown', async ({ page }) => {
+  await page.goto('/')
+
+  // Enter edit mode first
+  await page.getByRole('button', { name: /edit/i }).click()
+  await expect(page.getByRole('toolbar', { name: 'Text formatting' })).toBeVisible()
+
+  // Open the Text Style dropdown (first menu in toolbar)
+  const textStyleBtn = page.getByRole('button', { name: /text style/i })
+  await textStyleBtn.click()
+  // A listbox / menu should be visible
+  await expect(page.getByRole('listbox')).toBeVisible()
+
+  // Press Escape — dropdown must close
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('listbox')).not.toBeVisible()
+})
+
+test('Typing in edit mode updates the Markdown input panel', async ({ page }) => {
+  await page.goto('/')
+
+  // Clear the default content and start fresh
+  const textarea = page.getByLabel('Markdown input')
+  await textarea.fill('')
+
+  // Enter ADF edit mode
+  await page.getByRole('button', { name: /edit/i }).click()
+
+  // The TipTap editor should be focusable — click into it and type
+  const editor = page.locator('[contenteditable="true"]')
+  await editor.click()
+  await page.keyboard.type('Hello WYSIWYG')
+
+  // The Markdown textarea should eventually reflect the typed text
+  await expect(textarea).toContainText('Hello WYSIWYG', { timeout: 2000 })
+})
