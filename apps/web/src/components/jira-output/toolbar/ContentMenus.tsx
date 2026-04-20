@@ -143,6 +143,9 @@ export function ColorMenu({ exec, close, openKey, onOpen, activeColor }: ColorMe
           >
             Remove color
           </button>
+          <p className="mt-1.5 text-[10px] leading-tight text-neutral-400">
+            Color is editor-only and won&apos;t appear in exported Markdown or Jira markup.
+          </p>
         </div>
       </div>
     </ToolbarDropdown>
@@ -282,7 +285,9 @@ export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertM
         >
           <div className="text-left">
             <div>Mention</div>
-            <div className="text-xs text-neutral-400">Insert plain-text @mention (not a structured Jira mention)</div>
+            <div className="text-xs text-neutral-400">
+              Insert plain-text @mention (not a structured Jira mention)
+            </div>
           </div>
         </button>
         <button

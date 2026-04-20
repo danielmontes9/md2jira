@@ -190,11 +190,29 @@ export function App() {
       const worker = workerRef.current
 
       const onMessage = (e: MessageEvent<{ id: number; html: string }>) => {
-        if (e.data.id === id) setPreviewHtml(e.data.html)
+        if (e.data.id === id) {
+          clearTimeout(timeoutId)
+          setPreviewHtml(e.data.html)
+        }
       }
+      // 5 s safety net: if the worker stalls (e.g. pathologically large doc),
+      // terminate it and fall back to synchronous rendering.
+      const timeoutId = setTimeout(() => {
+        worker.removeEventListener('message', onMessage)
+        workerRef.current?.terminate()
+        workerRef.current = null
+        import('./components/jira-output/adf-renderer.js')
+          .then(({ adfToHtml }) => {
+            if (workerReqRef.current === id) setPreviewHtml(adfToHtml(adfDoc))
+          })
+          .catch(() => setPreviewHtml(''))
+      }, 5_000)
       worker.addEventListener('message', onMessage)
       worker.postMessage({ id, doc: adfDoc })
-      return () => worker.removeEventListener('message', onMessage)
+      return () => {
+        clearTimeout(timeoutId)
+        worker.removeEventListener('message', onMessage)
+      }
     } catch {
       // Worker URL construction or instantiation failed (e.g. jsdom unit tests,
       // or browsers without module-worker support) — render synchronously instead.

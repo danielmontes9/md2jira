@@ -96,7 +96,8 @@ export function createTurndownService(): TurndownService {
       const isHeader = el.querySelectorAll('th').length > 0
       const row = `|${content}`
       if (isHeader) {
-        const count = el.querySelectorAll('th').length
+        // Count all direct cell children (th + td) — TipTap may emit td even in header rows
+        const count = el.querySelectorAll('th, td').length
         const sep = `| ${Array(count).fill('---').join(' | ')} |`
         return `\n${row}\n${sep}`
       }

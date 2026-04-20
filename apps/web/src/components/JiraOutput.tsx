@@ -145,6 +145,11 @@ export const JiraOutput = memo(function JiraOutput({
           Copies as rich text — paste directly into Jira Cloud comments
         </div>
       )}
+      {format === 'wiki' && (
+        <div className="border-b border-neutral-200 bg-neutral-50 px-4 py-1.5 text-xs text-neutral-400 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-500">
+          Raw Wiki Markup — copy and paste into Jira Server/Data Center
+        </div>
+      )}
 
       {/* ── Editor toolbar ── */}
       {canEdit && (

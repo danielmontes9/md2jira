@@ -31,9 +31,27 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   private static MAX_RETRIES = 3
+  /** After this many ms without errors, reset retryCount so the user can retry again. */
+  private static RESET_TIMEOUT_MS = 30_000
+  private resetTimer: ReturnType<typeof setTimeout> | undefined
 
   private handleRetry = () => {
     this.setState((prev) => ({ hasError: false, message: '', retryCount: prev.retryCount + 1 }))
+  }
+
+  override componentDidUpdate(_prevProps: Props, prevState: State): void {
+    // When we recover from an error (hasError becomes false), start a timer
+    // to reset retryCount so the user gets fresh retries if errors recur later.
+    if (prevState.hasError && !this.state.hasError) {
+      clearTimeout(this.resetTimer)
+      this.resetTimer = setTimeout(() => {
+        this.setState({ retryCount: 0 })
+      }, ErrorBoundary.RESET_TIMEOUT_MS)
+    }
+  }
+
+  override componentWillUnmount(): void {
+    clearTimeout(this.resetTimer)
   }
 
   override render(): ReactNode {
