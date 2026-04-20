@@ -1,7 +1,8 @@
+import { memo } from 'react'
 import type { OutputFormat } from '../../types.js'
 
 /** Shared Copy + Edit toggle button group — rendered in the JiraOutput header. */
-export function CopyEditGroup({
+export const CopyEditGroup = memo(function CopyEditGroup({
   copied,
   editMode,
   canEdit,
@@ -50,4 +51,4 @@ export function CopyEditGroup({
       )}
     </div>
   )
-}
+})

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef, memo } from 'react'
 import { MOD_KEY } from '../../utils/keyboard.js'
 import { type DropKey, BTN_CLS } from './toolbar/shared.js'
 import { TextStyleMenu, FormatMenu } from './toolbar/FormatMenus.js'
@@ -17,7 +17,7 @@ interface EditorToolbarProps {
  * WYSIWYG editor toolbar. Commands are delegated to the parent's exec/insertHtml
  * callbacks which route to TipTap chain commands.
  */
-export function EditorToolbar({
+export const EditorToolbar = memo(function EditorToolbar({
   exec,
   insertHtml,
   activeBlock,
@@ -104,4 +104,4 @@ export function EditorToolbar({
       </button>
     </div>
   )
-}
+})

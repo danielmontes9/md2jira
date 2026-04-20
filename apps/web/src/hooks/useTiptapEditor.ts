@@ -146,6 +146,8 @@ function getActiveFormats(editor: Editor): Set<string> {
   return fmts
 }
 
+const EMPTY_FORMATS = new Set<string>()
+
 export function useTiptapEditor({
   previewHtml,
   onMarkdownChange,
@@ -286,7 +288,19 @@ export function useTiptapEditor({
   )
 
   const activeBlock = activeEditor ? getActiveBlock(activeEditor) : 'p'
-  const activeFormats = activeEditor ? getActiveFormats(activeEditor) : new Set<string>()
+
+  // Stabilize the Set reference: only create a new Set when the active formats
+  // actually change, so React.memo consumers (e.g. EditorToolbar) can skip re-renders.
+  const prevFormatsKeyRef = useRef('')
+  const stableFormatsRef = useRef(EMPTY_FORMATS)
+  const rawFormats = activeEditor ? getActiveFormats(activeEditor) : EMPTY_FORMATS
+  const formatsKey = Array.from(rawFormats).join(',')
+  if (formatsKey !== prevFormatsKeyRef.current) {
+    prevFormatsKeyRef.current = formatsKey
+    stableFormatsRef.current = rawFormats
+  }
+  const activeFormats = stableFormatsRef.current
+
   const activeColor = activeEditor
     ? (activeEditor.getAttributes('textStyle').color as string | undefined)
     : undefined
