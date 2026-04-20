@@ -90,7 +90,6 @@ export default defineConfig({
           // lazy chunk. Without this, Rollup scatters them across the main bundle
           // and the react-vendor chunk, inflating the initial download.
           if (id.includes('@tiptap/')) return 'tiptap'
-          if (id.includes('turndown')) return 'turndown'
           if (id.includes('dompurify')) return 'dompurify'
           if (id.includes('react-dom') || id.includes('react/')) return 'react-vendor'
         },

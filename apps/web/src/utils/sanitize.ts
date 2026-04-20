@@ -21,9 +21,14 @@ import('dompurify')
     // DOMPurify failed to load (e.g. strict CSP). stripTags fallback remains.
   })
 
-/** Strip all HTML tags as a last-resort fallback when DOMPurify is unavailable. */
+/** Strip all HTML tags as a last-resort fallback when DOMPurify is unavailable.
+ *
+ * The regex consumes quoted attribute values before matching '>' so that
+ * attributes containing literal '>' (e.g. <img src="x>">) are handled
+ * correctly and no residual markup leaks into the output.
+ */
 function stripTags(html: string): string {
-  return html.replace(/<[^>]*>/g, '')
+  return html.replace(/<(?:[^>"']|"[^"]*"|'[^']*')*>/g, '')
 }
 
 /** Sanitize HTML with DOMPurify, falling back to tag-stripping if unavailable. */

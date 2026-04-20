@@ -6,9 +6,13 @@
  * RFC 4648 §5) and strip padding `=` so the URL is clean.
  */
 
-// Max URL-safe encoded length (~1500 chars encoded ≈ ~1000 chars raw markdown).
-// Beyond this limit we skip updating the ?md= param to avoid exceeding browser URL limits.
-export const URL_MD_MAX_ENCODED = 1500
+// Max URL-safe encoded length for the ?md= query param.
+// Non-ASCII content (CJK, accented characters) encodes up to ~9× longer via
+// encodeURIComponent before base64, so effective raw-character capacity drops
+// proportionally: 2000 covers ~1400 ASCII chars but only ~150 CJK chars.
+// Beyond this limit we skip updating the ?md= param to avoid exceeding browser
+// URL limits (commonly 2000–8000 chars depending on the sharing platform).
+export const URL_MD_MAX_ENCODED = 2000
 
 export function encodeMarkdown(md: string): string {
   return btoa(encodeURIComponent(md)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
