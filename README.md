@@ -50,6 +50,9 @@ Paste your Markdown on the left, get Jira-ready markup on the right. No backend,
 - **Blockquotes**
 - **Horizontal rules**
 - **Tables** (core feature): headers, multiline cells, inline formatting inside cells, column normalization, escape characters
+- **Task lists**: GFM `- [x]` / `- [ ]` syntax supported in both output modes
+
+> **Note — Wiki Markup mode task lists:** Jira Wiki Markup has no native checkbox syntax. Task list items are rendered as `(/) Done item` and `(x) Todo item` using Jira emoticons. For native interactive checkboxes, use the **Jira Cloud (ADF)** output mode.
 
 ---
 

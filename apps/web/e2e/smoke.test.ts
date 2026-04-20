@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import path from 'node:path'
 
 /**
  * Smoke tests — verify core user flows work end-to-end in a real browser.
@@ -157,4 +158,19 @@ test('Typing in edit mode updates the Markdown input panel', async ({ page }) =>
 
   // The Markdown textarea should eventually reflect the typed text
   await expect(textarea).toContainText('Hello WYSIWYG', { timeout: 2000 })
+})
+
+// ─── File Import ──────────────────────────────────────────────────────────────
+
+test('importing a .md file populates the Markdown input', async ({ page }) => {
+  await page.goto('/')
+
+  // Use a fixture file located alongside the test
+  const fixturePath = path.join(__dirname, 'fixtures', 'sample.md')
+  const fileInput = page.locator('input[type="file"]')
+  await fileInput.setInputFiles(fixturePath)
+
+  // The textarea content should update to match the file contents
+  const textarea = page.getByLabel('Markdown input')
+  await expect(textarea).toContainText('# Sample', { timeout: 3000 })
 })
