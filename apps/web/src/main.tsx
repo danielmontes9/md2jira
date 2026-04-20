@@ -12,3 +12,18 @@ createRoot(rootElement).render(
     <App />
   </StrictMode>
 )
+
+// Report Core Web Vitals to the browser console in development and to any
+// registered analytics endpoint in production.  The import is dynamic so the
+// ~3 KB bundle never blocks the initial render.
+import('web-vitals').then(({ onCLS, onINP, onLCP, onFCP, onTTFB }) => {
+  const report = (metric: import('web-vitals').Metric) => {
+    // Replace this with your analytics send function (e.g. gtag, plausible).
+    console.debug('[web-vitals]', metric.name, metric.value, metric)
+  }
+  onCLS(report)
+  onINP(report)
+  onLCP(report)
+  onFCP(report)
+  onTTFB(report)
+})

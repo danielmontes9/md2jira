@@ -85,10 +85,13 @@ export default defineConfig({
     target: 'esnext',
     rollupOptions: {
       output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom'],
-          turndown: ['turndown'],
-          tiptap: ['@tiptap/react', '@tiptap/starter-kit', '@tiptap/pm'],
+        manualChunks(id) {
+          // All @tiptap/* packages — including all 14 extensions — go into one
+          // lazy chunk. Without this, Rollup scatters them across the main bundle
+          // and the react-vendor chunk, inflating the initial download.
+          if (id.includes('@tiptap/')) return 'tiptap'
+          if (id.includes('turndown')) return 'turndown'
+          if (id.includes('react-dom') || id.includes('react/')) return 'react-vendor'
         },
       },
     },

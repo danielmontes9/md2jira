@@ -32,7 +32,8 @@
     "md2jira-core": "workspace:*",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
-    "turndown": "^7.2.4"
+    "turndown": "^7.2.4",
+    "web-vitals": "^5.2.0"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.0",
