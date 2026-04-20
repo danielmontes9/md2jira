@@ -1,5 +1,5 @@
 /** Atlassian-style palette colors for the WYSIWYG text color picker. */
-export const TEXT_COLORS: string[] = [
+export const TEXT_COLORS = [
   '#091E42',
   '#172B4D',
   '#344563',
@@ -35,9 +35,9 @@ export const TEXT_COLORS: string[] = [
   '#FF991F',
   '#FFAB00',
   '#FFF0B3',
-]
+] as const
 
-export const EMOJI_CATEGORIES: Record<string, string[]> = {
+export const EMOJI_CATEGORIES = {
   Frequent: [
     '�',
     '👎',
@@ -179,4 +179,4 @@ export const EMOJI_CATEGORIES: Record<string, string[]> = {
     '💛',
     '🧡',
   ],
-}
+} as const

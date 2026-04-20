@@ -3,6 +3,7 @@ import { useState, useDeferredValue } from 'react'
 // EditorToolbar chunk. They are NOT in the initial bundle because EditorToolbar
 // is lazy-loaded via React.lazy — these constants only load on first render.
 import { TEXT_COLORS, EMOJI_CATEGORIES } from '../constants.js'
+import { INFO_PANEL_HTML, DECISION_PANEL_HTML } from './templates.js'
 import { MOD_KEY } from '../../../utils/keyboard.js'
 import {
   type DropKey,
@@ -308,9 +309,7 @@ export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertM
           role="menuitem"
           onMouseDown={(e) => {
             e.preventDefault()
-            insertHtml(
-              '<div data-type="info-panel" style="background:#deebff;border-left:4px solid #0052cc;border-radius:4px;padding:8px 12px;margin:4px 0"><p>ℹ️ Info panel</p></div><p><br></p>'
-            )
+            insertHtml(INFO_PANEL_HTML)
             close()
           }}
           className={DROP_ITEM_CLS}
@@ -338,9 +337,7 @@ export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertM
           role="menuitem"
           onMouseDown={(e) => {
             e.preventDefault()
-            insertHtml(
-              '<div style="background:#fffae6;border-left:4px solid #ff991f;border-radius:4px;padding:8px 12px;margin:4px 0"><p>&lt;&gt; Decision: </p></div><p><br></p>'
-            )
+            insertHtml(DECISION_PANEL_HTML)
             close()
           }}
           className={DROP_ITEM_CLS}

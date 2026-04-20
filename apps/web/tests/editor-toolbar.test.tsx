@@ -281,4 +281,30 @@ describe('EditorToolbar', () => {
     // Dropdown should be closed
     expect(screen.queryByText('Heading 1')).not.toBeInTheDocument()
   })
+
+  it('TextStyleMenu returns focus to trigger button on Escape', () => {
+    renderToolbar()
+    const ttBtn = screen.getByText('Tt').closest('button')!
+    fireEvent.mouseDown(ttBtn)
+    expect(screen.getByText('Heading 1')).toBeInTheDocument()
+    // Fire Escape on the open menu panel (onKeyDown is on the menu div)
+    const menu = screen.getByRole('menu')
+    fireEvent.keyDown(menu, { key: 'Escape' })
+    // Dropdown should close
+    expect(screen.queryByText('Heading 1')).not.toBeInTheDocument()
+    // Trigger button should have received focus
+    expect(document.activeElement).toBe(ttBtn)
+  })
+
+  it('TextStyleMenu returns focus to trigger button on Tab', () => {
+    renderToolbar()
+    const ttBtn = screen.getByText('Tt').closest('button')!
+    fireEvent.mouseDown(ttBtn)
+    expect(screen.getByText('Heading 1')).toBeInTheDocument()
+    const menus = screen.getAllByRole('menu')
+    // First menu in the DOM belongs to TextStyleMenu
+    fireEvent.keyDown(menus[0]!, { key: 'Tab' })
+    expect(screen.queryByText('Heading 1')).not.toBeInTheDocument()
+    expect(document.activeElement).toBe(ttBtn)
+  })
 })

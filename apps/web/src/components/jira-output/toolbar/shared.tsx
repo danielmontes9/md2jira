@@ -137,7 +137,8 @@ export function ToolbarDropdown({
       className="relative"
       data-toolbar
       onBlur={(e) => {
-        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) onClose()
+        const related = e.relatedTarget
+        if (!(related instanceof Node) || !e.currentTarget.contains(related)) onClose()
       }}
     >
       <button
