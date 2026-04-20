@@ -26,6 +26,35 @@ export function decodeMarkdown(encoded: string): string {
   }
 }
 
+/**
+ * Default Markdown shown on first load and in tests.
+ * Lives here (rather than App.tsx) so it is accessible to utilities and tests
+ * without importing the root component.
+ */
+export const PLACEHOLDER = `# My Issue
+
+Some **bold** text, _italic_, and ~~strikethrough~~.
+
+## Details
+
+| Field | Value |
+|-------|-------|
+| Status | In Progress |
+| Priority | **High** |
+
+- Item 1
+- Item 2
+  - Nested item
+
+\`\`\`js
+console.log("hello")
+\`\`\`
+
+> A blockquote
+
+[Jira Docs](https://confluence.atlassian.com/jira)
+`
+
 /** Reads the initial Markdown from the `?md=` URL parameter, or falls back to `placeholder`. */
 export function getInitialMarkdown(placeholder: string): string {
   const params = new URLSearchParams(window.location.search)

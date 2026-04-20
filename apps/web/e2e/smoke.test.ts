@@ -98,6 +98,17 @@ test('theme toggle button has accessible label', async ({ page }) => {
   await expect(page.getByRole('button', { name: /switch to/i })).toBeVisible()
 })
 
+test('WYSIWYG edit mode: toolbar appears and editor becomes writable', async ({ page }) => {
+  await page.goto('/')
+  const editBtn = page.getByRole('button', { name: 'Edit' })
+  await expect(editBtn).toBeVisible()
+  const editor = page.getByRole('textbox', { name: 'Jira content editor' })
+  await expect(editor).toHaveAttribute('aria-readonly', 'true')
+  await editBtn.click()
+  await expect(editor).toHaveAttribute('aria-readonly', 'false')
+  await expect(page.getByRole('button', { name: 'View' })).toBeVisible()
+})
+
 test('conversion error banner appears for invalid markdown syntax', async ({ page }) => {
   // The app has an error boundary that shows a banner on conversion failure.
   // Since conversions are resilient, we just verify the banner is NOT shown on load.

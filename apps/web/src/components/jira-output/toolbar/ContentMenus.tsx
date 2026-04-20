@@ -1,8 +1,8 @@
-import { useState, useDeferredValue } from 'react'
-// TEXT_COLORS and EMOJI_CATEGORIES are static data co-located in the lazy
-// EditorToolbar chunk. They are NOT in the initial bundle because EditorToolbar
-// is lazy-loaded via React.lazy — these constants only load on first render.
-import { TEXT_COLORS, EMOJI_CATEGORIES } from '../constants.js'
+import { useState, useDeferredValue, useEffect } from 'react'
+// TEXT_COLORS is static data co-located in the lazy
+// EditorToolbar chunk. It is NOT in the initial bundle because EditorToolbar
+// is lazy-loaded via React.lazy — this constant only loads on first render.
+import { TEXT_COLORS } from '../constants.js'
 import { INFO_PANEL_HTML, DECISION_PANEL_HTML } from './templates.js'
 import { MOD_KEY } from '../../../utils/keyboard.js'
 import {
@@ -14,9 +14,6 @@ import {
   ChevronDown,
 } from './shared.js'
 import { IconListBullet } from '../../icons.js'
-
-// Module-level constant — computed once at import time, never rebuilt per render
-const ALL_EMOJIS = [...new Set(Object.values(EMOJI_CATEGORIES).flat())]
 
 // ── Lists Menu ──
 
@@ -163,7 +160,21 @@ interface EmojiMenuProps extends ToolbarMenuProps {
 export function EmojiMenu({ exec, close, openKey, onOpen }: EmojiMenuProps) {
   const [emojiSearch, setEmojiSearch] = useState('')
   const deferredSearch = useDeferredValue(emojiSearch)
-  const filteredEmojis = emojiSearch ? ALL_EMOJIS.filter((em) => em.includes(deferredSearch)) : []
+
+  // Lazy-load emoji data only when the picker first opens
+  type EmojiCategoriesData = Record<string, readonly string[]>
+  const [emojiData, setEmojiData] = useState<EmojiCategoriesData | null>(null)
+  const isOpen = openKey === 'emoji'
+  useEffect(() => {
+    if (!isOpen || emojiData !== null) return
+    import('../emoji-data.js')
+      .then((m) => setEmojiData(m.EMOJI_CATEGORIES as EmojiCategoriesData))
+      .catch(() => setEmojiData({}))
+  }, [isOpen, emojiData])
+
+  const allEmojis = emojiData ? [...new Set(Object.values(emojiData).flat())] : []
+  const filteredEmojis =
+    emojiSearch && emojiData ? allEmojis.filter((em) => em.includes(deferredSearch)) : []
 
   return (
     <ToolbarDropdown
@@ -212,8 +223,10 @@ export function EmojiMenu({ exec, close, openKey, onOpen }: EmojiMenuProps) {
               ))
             )}
           </div>
+        ) : emojiData === null ? (
+          <p className="py-2 text-center text-xs text-neutral-400">Loading...</p>
         ) : (
-          Object.entries(EMOJI_CATEGORIES).map(([cat, emojis]) => (
+          Object.entries(emojiData).map(([cat, emojis]) => (
             <div key={cat} className="mb-2">
               <div className="mb-1 text-xs font-semibold text-neutral-400">{cat}</div>
               <div className="flex flex-wrap gap-0.5">

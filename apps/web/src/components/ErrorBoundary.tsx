@@ -28,21 +28,30 @@ export class ErrorBoundary extends Component<Props, State> {
     // Always log to console so the error appears in CI/DevTools.
     console.error('[ErrorBoundary]', error, info.componentStack)
     this.props.onError?.(error, info)
+    // Auto-retry with exponential backoff: 500ms → 1s → 2s
+    if (this.state.retryCount < ErrorBoundary.MAX_RETRIES) {
+      const delay = Math.pow(2, this.state.retryCount) * 500
+      clearTimeout(this.autoRetryTimer)
+      this.autoRetryTimer = setTimeout(this.handleRetry, delay)
+    }
   }
 
   private static MAX_RETRIES = 3
   /** After this many ms without errors, reset retryCount so the user can retry again. */
   private static RESET_TIMEOUT_MS = 30_000
   private resetTimer: ReturnType<typeof setTimeout> | undefined
+  private autoRetryTimer: ReturnType<typeof setTimeout> | undefined
 
   private handleRetry = () => {
     this.setState((prev) => ({ hasError: false, message: '', retryCount: prev.retryCount + 1 }))
   }
 
   override componentDidUpdate(_prevProps: Props, prevState: State): void {
-    // When we recover from an error (hasError becomes false), start a timer
-    // to reset retryCount so the user gets fresh retries if errors recur later.
+    // When we recover from an error (hasError becomes false), cancel the
+    // auto-retry timer (retry already fired) and start a timer to reset
+    // retryCount so the user gets fresh retries if errors recur later.
     if (prevState.hasError && !this.state.hasError) {
+      clearTimeout(this.autoRetryTimer)
       clearTimeout(this.resetTimer)
       this.resetTimer = setTimeout(() => {
         this.setState({ retryCount: 0 })
@@ -52,6 +61,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   override componentWillUnmount(): void {
     clearTimeout(this.resetTimer)
+    clearTimeout(this.autoRetryTimer)
   }
 
   override render(): ReactNode {

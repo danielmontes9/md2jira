@@ -12,31 +12,14 @@ import TableHeader from '@tiptap/extension-table-header'
 import TableCell from '@tiptap/extension-table-cell'
 import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
-
-// Load DOMPurify in a separate lazy chunk so it is excluded from the initial
-// JS parse. The network request begins immediately, so DOMPurify is typically
-// available before the first user interaction. sanitize() falls back to a
-// basic HTML-tag strip on the rare initial frame where the promise has not
-// yet resolved, and whenever DOMPurify fails to load (e.g. strict CSP).
-// The HTML always originates from our own adfToHtml renderer so the fallback
-// risk is minimal, but we never pass untrusted markup through unfiltered.
-let _DOMPurify: null | { sanitize: (html: string) => string } = null
-import('dompurify')
-  .then((m) => {
-    _DOMPurify = m.default
-  })
-  .catch(() => {
-    // DOMPurify failed to load (e.g. strict CSP). stripTags fallback remains.
-  })
-
-/** Strip all HTML tags as a last-resort fallback when DOMPurify is unavailable. */
-function stripTags(html: string): string {
-  return html.replace(/<[^>]*>/g, '')
-}
-
-function sanitize(html: string): string {
-  return _DOMPurify ? _DOMPurify.sanitize(html) : stripTags(html)
-}
+import { sanitize } from '../utils/sanitize.js'
+import {
+  execTiptapCommand,
+  getActiveBlock,
+  getActiveFormats,
+  EMPTY_FORMATS,
+} from '../utils/tiptap-commands.js'
+import { tiptapDocToMarkdown } from '../utils/tiptap-to-markdown.js'
 
 interface UseTiptapEditorOptions {
   previewHtml: string
@@ -62,116 +45,6 @@ export interface TiptapEditorState {
   insertHtml: (html: string) => void
 }
 
-/** Maps legacy execCommand names to TipTap chain commands. */
-function execTiptapCommand(editor: Editor, cmd: string, arg?: string): void {
-  const chain = editor.chain().focus()
-
-  switch (cmd) {
-    case 'bold':
-      chain.toggleBold().run()
-      break
-    case 'italic':
-      chain.toggleItalic().run()
-      break
-    case 'underline':
-      chain.toggleUnderline().run()
-      break
-    case 'strikeThrough':
-      chain.toggleStrike().run()
-      break
-    case 'subscript':
-      chain.toggleSubscript().run()
-      break
-    case 'superscript':
-      chain.toggleSuperscript().run()
-      break
-    case 'insertUnorderedList':
-      chain.toggleBulletList().run()
-      break
-    case 'insertOrderedList':
-      chain.toggleOrderedList().run()
-      break
-    case 'insertHorizontalRule':
-      chain.setHorizontalRule().run()
-      break
-    case 'undo':
-      chain.undo().run()
-      break
-    case 'redo':
-      chain.redo().run()
-      break
-    case 'removeFormat':
-      chain.unsetAllMarks().run()
-      break
-    case 'foreColor':
-      if (arg) chain.setColor(arg).run()
-      else chain.unsetColor().run()
-      break
-    case 'formatBlock':
-      if (arg) {
-        const tag = arg.toUpperCase()
-        if (tag === 'P') {
-          chain.setParagraph().run()
-        } else {
-          const match = /^H(\d)$/.exec(tag)
-          if (match) {
-            const level = parseInt(match[1]!) as 1 | 2 | 3 | 4 | 5 | 6
-            chain.toggleHeading({ level }).run()
-          }
-        }
-      }
-      break
-    case 'toggleTaskList':
-      chain.toggleTaskList().run()
-      break
-    case 'insertTable':
-      chain.insertTable({ rows: 2, cols: 2, withHeaderRow: true }).run()
-      break
-    case 'toggleBlockquote':
-      chain.toggleBlockquote().run()
-      break
-    case 'toggleCode':
-      chain.toggleCode().run()
-      break
-    case 'toggleCodeBlock':
-      chain.toggleCodeBlock().run()
-      break
-    case 'insertText':
-      if (arg) chain.insertContent(arg).run()
-      break
-    default:
-      // Unknown command — ignore
-      break
-  }
-}
-
-function getActiveBlock(editor: Editor): string {
-  for (let level = 1; level <= 6; level++) {
-    if (editor.isActive('heading', { level })) return `h${level}`
-  }
-  if (editor.isActive('codeBlock')) return 'pre'
-  if (editor.isActive('blockquote')) return 'blockquote'
-  return 'p'
-}
-
-function getActiveFormats(editor: Editor): Set<string> {
-  const fmts = new Set<string>()
-  if (editor.isActive('bold')) fmts.add('bold')
-  if (editor.isActive('italic')) fmts.add('italic')
-  if (editor.isActive('underline')) fmts.add('underline')
-  if (editor.isActive('strike')) fmts.add('strikeThrough')
-  if (editor.isActive('subscript')) fmts.add('subscript')
-  if (editor.isActive('superscript')) fmts.add('superscript')
-  if (editor.isActive('code')) fmts.add('code')
-  if (editor.isActive('bulletList')) fmts.add('insertUnorderedList')
-  if (editor.isActive('orderedList')) fmts.add('insertOrderedList')
-  if (editor.isActive('taskList')) fmts.add('toggleTaskList')
-  if (editor.isActive('blockquote')) fmts.add('toggleBlockquote')
-  return fmts
-}
-
-const EMPTY_FORMATS = new Set<string>()
-
 export function useTiptapEditor({
   previewHtml,
   onMarkdownChange,
@@ -187,9 +60,6 @@ export function useTiptapEditor({
   const updateTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
   // Guard against calling setState after the component that owns this hook unmounts.
   const isMountedRef = useRef(true)
-  // Lazy-loaded TurndownService for HTML→Markdown conversion
-  const tdRef = useRef<import('turndown') | null>(null)
-  const tdLoadingRef = useRef(false)
   // Stable reference to the current editor — keeps exec/insertHtml stable across renders
   const editorRef = useRef<Editor | null>(null)
 
@@ -229,41 +99,16 @@ export function useTiptapEditor({
 
       clearTimeout(updateTimeoutRef.current)
       updateTimeoutRef.current = setTimeout(() => {
-        if (!onMarkdownChangeRef.current) return
-        // Lazy-load Turndown
-        if (!tdRef.current) {
-          if (tdLoadingRef.current) return
-          tdLoadingRef.current = true
-          import('../components/jira-output/turndown-config.js')
-            .then(({ createTurndownService }) => {
-              tdRef.current = createTurndownService()
-              tdLoadingRef.current = false
-              if (!isMountedRef.current) return
-              // Re-trigger the update now that Turndown is ready
-              const html = ed.getHTML()
-              const md = tdRef.current!.turndown(html)
-              isExternalUpdateRef.current = true
-              onMarkdownChangeRef.current?.(md)
-              queueMicrotask(() => {
-                isExternalUpdateRef.current = false
-              })
-            })
-            .catch(() => {
-              tdLoadingRef.current = false
-            })
-          return
-        }
+        if (!isMountedRef.current || !onMarkdownChangeRef.current) return
         try {
-          if (!isMountedRef.current) return
-          const html = ed.getHTML()
-          const md = tdRef.current.turndown(html)
+          const md = tiptapDocToMarkdown(ed.state.doc)
           isExternalUpdateRef.current = true
-          onMarkdownChangeRef.current?.(md)
+          onMarkdownChangeRef.current(md)
           queueMicrotask(() => {
             isExternalUpdateRef.current = false
           })
         } catch {
-          // Turndown conversion failed — don't crash the editor
+          // Serialization failed — don't crash the editor
         }
       }, debounceMs)
     },
