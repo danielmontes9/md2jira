@@ -1,4 +1,4 @@
-import type { List, ListItem, Paragraph } from 'mdast'
+import type { List } from 'mdast'
 import { convertInlineChildren } from './formatting.js'
 
 export function transformList(node: List, parentPrefix: string = ''): string {
@@ -6,15 +6,14 @@ export function transformList(node: List, parentPrefix: string = ''): string {
   const prefix = parentPrefix + marker
 
   // Detect GFM task list: any item has a non-null checked state
-  const isTaskList =
-    !node.ordered && (node.children as ListItem[]).some((item) => item.checked !== null)
+  const isTaskList = !node.ordered && node.children.some((item) => item.checked !== null)
 
   const lines: string[] = []
 
-  for (const item of node.children as ListItem[]) {
+  for (const item of node.children) {
     for (const child of item.children) {
       if (child.type === 'paragraph') {
-        const text = convertInlineChildren((child as Paragraph).children)
+        const text = convertInlineChildren(child.children)
         if (isTaskList) {
           // Jira Wiki has no native task list syntax; use status emoticons:
           // (/) = green check (done), (x) = red cross (to do / not done)
@@ -24,7 +23,7 @@ export function transformList(node: List, parentPrefix: string = ''): string {
           lines.push(`${prefix} ${text}`)
         }
       } else if (child.type === 'list') {
-        lines.push(transformList(child as List, prefix))
+        lines.push(transformList(child, prefix))
       }
     }
   }

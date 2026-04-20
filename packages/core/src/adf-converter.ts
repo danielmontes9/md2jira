@@ -3,19 +3,10 @@ import type {
   Code,
   Heading,
   List,
-  ListItem,
   Paragraph,
   PhrasingContent,
   RootContent,
   Table,
-  TableCell,
-  TableRow,
-  Strong,
-  Emphasis,
-  Delete,
-  InlineCode,
-  Link,
-  Text,
 } from 'mdast'
 import { parseMarkdown } from './parse.js'
 import type {
@@ -37,38 +28,37 @@ function convertInlineToAdf(node: PhrasingContent, parentMarks: AdfMark[] = []):
       return [
         {
           type: 'text',
-          text: (node as Text).value,
+          text: node.value,
           ...(parentMarks.length > 0 ? { marks: [...parentMarks] } : {}),
         },
       ]
     case 'strong': {
       const marks: AdfMark[] = [...parentMarks, { type: 'strong' }]
-      return (node as Strong).children.flatMap((child) => convertInlineToAdf(child, marks))
+      return node.children.flatMap((child) => convertInlineToAdf(child, marks))
     }
     case 'emphasis': {
       const marks: AdfMark[] = [...parentMarks, { type: 'em' }]
-      return (node as Emphasis).children.flatMap((child) => convertInlineToAdf(child, marks))
+      return node.children.flatMap((child) => convertInlineToAdf(child, marks))
     }
     case 'delete': {
       const marks: AdfMark[] = [...parentMarks, { type: 'strike' }]
-      return (node as Delete).children.flatMap((child) => convertInlineToAdf(child, marks))
+      return node.children.flatMap((child) => convertInlineToAdf(child, marks))
     }
     case 'inlineCode':
       return [
         {
           type: 'text',
-          text: (node as InlineCode).value,
+          text: node.value,
           marks: [...parentMarks, { type: 'code' }],
         },
       ]
     case 'link': {
-      const linkNode = node as Link
-      const marks: AdfMark[] = [...parentMarks, { type: 'link', attrs: { href: linkNode.url } }]
-      if (linkNode.children.length === 0) {
+      const marks: AdfMark[] = [...parentMarks, { type: 'link', attrs: { href: node.url } }]
+      if (node.children.length === 0) {
         // Empty link text [](url) — use the URL itself as the display text
-        return [{ type: 'text', text: linkNode.url, marks }]
+        return [{ type: 'text', text: node.url, marks }]
       }
-      return linkNode.children.flatMap((child) => convertInlineToAdf(child, marks))
+      return node.children.flatMap((child) => convertInlineToAdf(child, marks))
     }
     case 'break':
       return [{ type: 'hardBreak' }]
@@ -105,7 +95,7 @@ interface AdfConvertContext {
 }
 
 function transformListToAdf(node: List, ctx: AdfConvertContext): AdfBlockNode {
-  const listItems = node.children as ListItem[]
+  const listItems = node.children
 
   // Detect GFM task list: at least one item has a checked state (boolean, not null)
   const isTaskList = !node.ordered && listItems.some((item) => item.checked !== null)
@@ -113,7 +103,7 @@ function transformListToAdf(node: List, ctx: AdfConvertContext): AdfBlockNode {
   if (isTaskList) {
     const listIdx = ctx.taskListIdx++
     const taskItems: AdfTaskItemNode[] = listItems.map((item, idx) => {
-      const paragraphs = item.children.filter((c) => c.type === 'paragraph') as Paragraph[]
+      const paragraphs = item.children.filter((c): c is Paragraph => c.type === 'paragraph')
       const content: AdfBlockNode[] = paragraphs.map(transformParagraphToAdf)
       return {
         type: 'taskItem',
@@ -133,9 +123,9 @@ function transformListToAdf(node: List, ctx: AdfConvertContext): AdfBlockNode {
     const content: AdfBlockNode[] = []
     for (const child of item.children) {
       if (child.type === 'paragraph') {
-        content.push(transformParagraphToAdf(child as Paragraph))
+        content.push(transformParagraphToAdf(child))
       } else if (child.type === 'list') {
-        content.push(transformListToAdf(child as List, ctx))
+        content.push(transformListToAdf(child, ctx))
       }
     }
     return { type: 'listItem', content }
@@ -159,21 +149,21 @@ function transformBlockquoteToAdf(node: Blockquote, ctx: AdfConvertContext): Adf
   const content: AdfBlockNode[] = []
   for (const child of node.children) {
     if (child.type === 'paragraph') {
-      content.push(transformParagraphToAdf(child as Paragraph))
+      content.push(transformParagraphToAdf(child))
     } else if (child.type === 'blockquote') {
       // Nested blockquote: ADF blockquote can contain another blockquote
-      content.push(transformBlockquoteToAdf(child as Blockquote, ctx))
+      content.push(transformBlockquoteToAdf(child, ctx))
     } else if (child.type === 'list') {
-      content.push(transformListToAdf(child as List, ctx))
+      content.push(transformListToAdf(child, ctx))
     } else if (child.type === 'code') {
-      content.push(transformCodeBlockToAdf(child as Code))
+      content.push(transformCodeBlockToAdf(child))
     }
   }
   return { type: 'blockquote', content }
 }
 
 function transformTableToAdf(node: Table): AdfBlockNode {
-  const rows = node.children as TableRow[]
+  const rows = node.children
   const adfRows: AdfTableRowNode[] = []
 
   // Calculate max columns for normalization
@@ -187,7 +177,7 @@ function transformTableToAdf(node: Table): AdfBlockNode {
     const cells: (AdfTableHeaderNode | AdfTableCellNode)[] = []
 
     for (let colIdx = 0; colIdx < maxCols; colIdx++) {
-      const cell = row.children[colIdx] as TableCell | undefined
+      const cell = row.children[colIdx]
       const cellContent: AdfBlockNode[] = cell
         ? [
             {
@@ -217,19 +207,19 @@ function transformTableToAdf(node: Table): AdfBlockNode {
 function transformNodeToAdf(node: RootContent, ctx: AdfConvertContext): AdfBlockNode | null {
   switch (node.type) {
     case 'heading':
-      return transformHeadingToAdf(node as Heading)
+      return transformHeadingToAdf(node)
     case 'paragraph':
-      return transformParagraphToAdf(node as Paragraph)
+      return transformParagraphToAdf(node)
     case 'list':
-      return transformListToAdf(node as List, ctx)
+      return transformListToAdf(node, ctx)
     case 'code':
-      return transformCodeBlockToAdf(node as Code)
+      return transformCodeBlockToAdf(node)
     case 'blockquote':
-      return transformBlockquoteToAdf(node as Blockquote, ctx)
+      return transformBlockquoteToAdf(node, ctx)
     case 'thematicBreak':
       return { type: 'rule' }
     case 'table':
-      return transformTableToAdf(node as Table)
+      return transformTableToAdf(node)
     case 'html':
       // Out of scope — ignore silently
       return null

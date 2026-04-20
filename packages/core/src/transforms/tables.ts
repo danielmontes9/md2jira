@@ -30,7 +30,7 @@ function normalizeColumnCount(rows: TableRow[]): number {
 }
 
 export function transformTable(node: Table): string {
-  const rows = node.children as TableRow[]
+  const rows = node.children
   if (rows.length === 0) return ''
 
   const colCount = normalizeColumnCount(rows)
@@ -41,7 +41,7 @@ export function transformTable(node: Table): string {
     const cells: string[] = []
 
     for (let colIdx = 0; colIdx < colCount; colIdx++) {
-      const cell = row.children[colIdx] as TableCell | undefined
+      const cell = row.children[colIdx]
       cells.push(cell ? getCellText(cell) : '')
     }
 

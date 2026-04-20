@@ -1,4 +1,4 @@
-import type { Blockquote, Code, List, Paragraph } from 'mdast'
+import type { Blockquote } from 'mdast'
 import { convertInlineChildren } from './formatting.js'
 import { transformList } from './lists.js'
 import { transformCodeBlock } from './codeblocks.js'
@@ -15,20 +15,20 @@ export function transformBlockquote(node: Blockquote): string {
   const parts: string[] = []
   for (const child of node.children) {
     if (child.type === 'paragraph') {
-      const text = convertInlineChildren((child as Paragraph).children)
+      const text = convertInlineChildren(child.children)
       // Hard line breaks within the paragraph produce \n; each sub-line needs its own bq. prefix.
       for (const sub of text.split('\n')) {
         parts.push(`bq. ${sub}`)
       }
     } else if (child.type === 'blockquote') {
       // Nested blockquote: recurse and flatten (Jira Wiki has no nested bq. syntax)
-      parts.push(transformBlockquote(child as Blockquote))
+      parts.push(transformBlockquote(child))
     } else if (child.type === 'list') {
       // Lists cannot be nested inside bq. — render them at the top level
-      parts.push(transformList(child as List))
+      parts.push(transformList(child))
     } else if (child.type === 'code') {
       // Code blocks cannot be nested inside bq. — render them at the top level
-      parts.push(transformCodeBlock(child as Code))
+      parts.push(transformCodeBlock(child))
     }
   }
   return parts.join('\n')

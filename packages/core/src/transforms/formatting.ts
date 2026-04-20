@@ -1,4 +1,4 @@
-import type { Strong, Emphasis, Delete, InlineCode, Link, PhrasingContent, Text } from 'mdast'
+import type { Strong, Emphasis, Delete, InlineCode, Link, PhrasingContent } from 'mdast'
 
 export function convertInlineChildren(children: PhrasingContent[]): string {
   return children.map((child) => convertInlineNode(child)).join('')
@@ -7,17 +7,17 @@ export function convertInlineChildren(children: PhrasingContent[]): string {
 export function convertInlineNode(node: PhrasingContent): string {
   switch (node.type) {
     case 'text':
-      return (node as Text).value
+      return node.value
     case 'strong':
-      return transformStrong(node as Strong)
+      return transformStrong(node)
     case 'emphasis':
-      return transformEmphasis(node as Emphasis)
+      return transformEmphasis(node)
     case 'delete':
-      return transformDelete(node as Delete)
+      return transformDelete(node)
     case 'inlineCode':
-      return transformInlineCode(node as InlineCode)
+      return transformInlineCode(node)
     case 'link':
-      return transformLink(node as Link)
+      return transformLink(node)
     case 'break':
       return '\n'
     case 'image':
