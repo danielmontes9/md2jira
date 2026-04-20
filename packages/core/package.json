@@ -13,6 +13,10 @@
     "./transforms": {
       "import": "./dist/transforms/index.js",
       "types": "./dist/transforms/index.d.ts"
+    },
+    "./adf-types": {
+      "import": "./dist/adf-types.js",
+      "types": "./dist/adf-types.d.ts"
     }
   },
   "files": [

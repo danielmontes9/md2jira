@@ -75,6 +75,14 @@ describe('preprocessMarkdown — combined BOM + CRLF + table gap', () => {
     const expected = '| A | B |\n|---|---|\n| 1 | 2 |\n| 3 | 4 |'
     expect(preprocessMarkdown(input)).toBe(expected)
   })
+
+  it('returns empty string for BOM-only input', () => {
+    expect(preprocessMarkdown('\uFEFF')).toBe('')
+  })
+
+  it('strips BOM from content that has no table', () => {
+    expect(preprocessMarkdown('\uFEFF# Title')).toBe('# Title')
+  })
 })
 
 describe('preprocessMarkdown — indented / blockquote tables', () => {
