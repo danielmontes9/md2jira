@@ -11,31 +11,7 @@ import { IconAlertOcticon } from './components/icons.js'
 import { useTheme } from './hooks/useTheme.js'
 import { useDeepLink } from './hooks/useDeepLink.js'
 import { useAdfHtmlWorker } from './hooks/useAdfHtmlWorker.js'
-import { getInitialMarkdown } from './utils/markdown-url.js'
-
-export const PLACEHOLDER = `# My Issue
-
-Some **bold** text, _italic_, and ~~strikethrough~~.
-
-## Details
-
-| Field | Value |
-|-------|-------|
-| Status | In Progress |
-| Priority | **High** |
-
-- Item 1
-- Item 2
-  - Nested item
-
-\`\`\`js
-console.log("hello")
-\`\`\`
-
-> A blockquote
-
-[Jira Docs](https://confluence.atlassian.com/jira)
-`
+import { getInitialMarkdown, PLACEHOLDER } from './utils/markdown-url.js'
 
 export function App() {
   const [markdown, setMarkdown] = useState(() => getInitialMarkdown(PLACEHOLDER))
@@ -71,7 +47,7 @@ export function App() {
   }, [deferredMarkdown, format])
 
   // Renders the ADF document to HTML off-thread using a Web Worker.
-  const previewHtml = useAdfHtmlWorker(adfDoc)
+  const { html: previewHtml, workerError, retryWorker } = useAdfHtmlWorker(adfDoc)
 
   return (
     <ToastProvider>
@@ -84,6 +60,22 @@ export function App() {
           >
             <IconAlertOcticon className="h-4 w-4 shrink-0" />
             Conversion error — check your Markdown for unsupported syntax.
+          </div>
+        )}
+        {workerError && format === 'adf' && (
+          <div
+            role="alert"
+            className="flex items-center gap-2 border-b border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/50 dark:text-red-400"
+          >
+            <IconAlertOcticon className="h-4 w-4 shrink-0" />
+            Preview rendering failed — the ADF output could not be displayed.
+            <button
+              type="button"
+              onClick={retryWorker}
+              className="ml-auto rounded px-2 py-0.5 text-xs font-medium underline hover:no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
+            >
+              Retry
+            </button>
           </div>
         )}
         <noscript>

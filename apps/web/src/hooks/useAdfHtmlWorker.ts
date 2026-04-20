@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import type { AdfDocument } from 'md2jira-core'
 
 /**
@@ -12,15 +12,20 @@ import type { AdfDocument } from 'md2jira-core'
  * - Falls back immediately to synchronous rendering when module Workers are
  *   not available (e.g. jsdom unit-test environments).
  */
-export function useAdfHtmlWorker(adfDoc: AdfDocument | null): string {
-  const [previewHtml, setPreviewHtml] = useState('')
+export function useAdfHtmlWorker(adfDoc: AdfDocument | null): {
+  html: string
+  workerError: boolean
+  retryWorker: () => void
+} {
+  const [state, setState] = useState({ html: '', workerError: false })
+  const [retryCount, setRetryCount] = useState(0)
   const workerRef = useRef<Worker | null>(null)
   // Monotonically increasing request id — used to discard stale worker responses
   const workerReqRef = useRef(0)
 
   useEffect(() => {
     if (!adfDoc) {
-      setPreviewHtml('')
+      setState({ html: '', workerError: false })
       return
     }
     const id = ++workerReqRef.current
@@ -33,7 +38,7 @@ export function useAdfHtmlWorker(adfDoc: AdfDocument | null): string {
         // Clear the preview and drop the stale worker if it throws an unhandled
         // error (e.g. malformed ADF payload from an external source).
         w.addEventListener('error', () => {
-          setPreviewHtml('')
+          setState({ html: '', workerError: true })
           workerRef.current = null
         })
         workerRef.current = w
@@ -43,7 +48,7 @@ export function useAdfHtmlWorker(adfDoc: AdfDocument | null): string {
       const onMessage = (e: MessageEvent<{ id: number; html: string }>) => {
         if (e.data.id === id) {
           clearTimeout(timeoutId)
-          setPreviewHtml(e.data.html)
+          setState({ html: e.data.html, workerError: false })
         }
       }
       // 5 s safety net: if the worker stalls (e.g. pathologically large doc),
@@ -54,9 +59,10 @@ export function useAdfHtmlWorker(adfDoc: AdfDocument | null): string {
         workerRef.current = null
         import('../components/jira-output/adf-renderer.js')
           .then(({ adfToHtml }) => {
-            if (workerReqRef.current === id) setPreviewHtml(adfToHtml(adfDoc))
+            if (workerReqRef.current === id)
+              setState({ html: adfToHtml(adfDoc), workerError: false })
           })
-          .catch(() => setPreviewHtml(''))
+          .catch(() => setState({ html: '', workerError: true }))
       }, 5_000)
       worker.addEventListener('message', onMessage)
       worker.postMessage({ id, doc: adfDoc })
@@ -72,19 +78,28 @@ export function useAdfHtmlWorker(adfDoc: AdfDocument | null): string {
       let cancelled = false
       import('../components/jira-output/adf-renderer.js')
         .then(({ adfToHtml }) => {
-          if (!cancelled && workerReqRef.current === id) setPreviewHtml(adfToHtml(adfDoc))
+          if (!cancelled && workerReqRef.current === id)
+            setState({ html: adfToHtml(adfDoc), workerError: false })
         })
         .catch(() => {
-          if (!cancelled) setPreviewHtml('')
+          if (!cancelled) setState({ html: '', workerError: true })
         })
       return () => {
         cancelled = true
       }
     }
-  }, [adfDoc])
+  }, [adfDoc, retryCount])
 
   // Terminate the worker when the hook unmounts to free resources.
   useEffect(() => () => workerRef.current?.terminate(), [])
 
-  return previewHtml
+  /** Terminates the stalled worker, clears the error, and re-triggers rendering. */
+  const retryWorker = useCallback(() => {
+    workerRef.current?.terminate()
+    workerRef.current = null
+    setState({ html: '', workerError: false })
+    setRetryCount((c) => c + 1)
+  }, [])
+
+  return { ...state, retryWorker }
 }

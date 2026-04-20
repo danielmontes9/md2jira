@@ -8,6 +8,8 @@ import { encodeMarkdown, URL_MD_MAX_ENCODED } from '../utils/markdown-url.js'
  */
 export function useDeepLink(markdown: string): void {
   useEffect(() => {
+    let idleCallbackId: number | undefined
+
     const handle = setTimeout(() => {
       const updateUrl = () => {
         const url = new URL(window.location.href)
@@ -24,11 +26,15 @@ export function useDeepLink(markdown: string): void {
         window.history.replaceState(null, '', url.toString())
       }
       if ('requestIdleCallback' in window) {
-        window.requestIdleCallback(updateUrl)
+        idleCallbackId = window.requestIdleCallback(updateUrl)
       } else {
         updateUrl()
       }
     }, 500)
-    return () => clearTimeout(handle)
+
+    return () => {
+      clearTimeout(handle)
+      if (idleCallbackId !== undefined) window.cancelIdleCallback(idleCallbackId)
+    }
   }, [markdown])
 }
