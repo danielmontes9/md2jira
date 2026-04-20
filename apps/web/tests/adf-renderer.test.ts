@@ -296,6 +296,7 @@ describe('adfBlockToHtml', () => {
     expect(result).toContain('data-type="taskList"')
     expect(result).toContain('data-type="taskItem"')
     expect(result).not.toContain('checked')
+    expect(result).toContain('tabindex="-1"')
     expect(result).toContain('Write tests')
   })
 
@@ -312,6 +313,27 @@ describe('adfBlockToHtml', () => {
       ],
     })
     expect(result).toContain('checked')
+    expect(result).toContain('tabindex="-1"')
     expect(result).toContain('Done task')
+  })
+
+  it('renders taskList with bold inline text inside item', () => {
+    const result = adfBlockToHtml({
+      type: 'taskList',
+      attrs: { localId: 'tl-0' },
+      content: [
+        {
+          type: 'taskItem',
+          attrs: { localId: 'task-0', state: 'TODO' },
+          content: [
+            {
+              type: 'paragraph',
+              content: [{ type: 'text', text: 'bold', marks: [{ type: 'strong' }] }],
+            },
+          ],
+        },
+      ],
+    })
+    expect(result).toContain('<strong>bold</strong>')
   })
 })

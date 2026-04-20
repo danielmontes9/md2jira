@@ -96,7 +96,7 @@ const BLOCK_HANDLERS: BlockHandlerMap = {
             block.type === 'paragraph' ? block.content.map(adfInlineToHtml) : []
           )
           .join('')
-        return `<li data-type="taskItem"><label><input type="checkbox"${item.attrs.state === 'DONE' ? ' checked' : ''} disabled> ${inlineHtml}</label></li>`
+        return `<li data-type="taskItem"><label><input type="checkbox"${item.attrs.state === 'DONE' ? ' checked' : ''} disabled tabindex="-1"> ${inlineHtml}</label></li>`
       })
       .join('')}</ul>`,
   table: (node) => {
