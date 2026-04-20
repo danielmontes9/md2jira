@@ -1,21 +1,28 @@
-import { useRef, useCallback, useMemo, useState, lazy, Suspense, memo } from 'react'
-const ShortcutsModal = lazy(() =>
-  import('./ShortcutsModal.js').then((m) => ({ default: m.ShortcutsModal }))
-)
+import { useRef, useCallback, useMemo, useState, Suspense, memo } from 'react'
 import { useMarkdownShortcuts } from '../hooks/useMarkdownShortcuts.js'
 import { useClipboardEvents } from '../hooks/useClipboardEvents.js'
 import { useFileImportExport } from '../hooks/useFileImportExport.js'
 import { useToast } from '../context/ToastContext.js'
+import { lazyNamed } from '../utils/lazy-named.js'
+import { IconLinkOff } from './icons.js'
+
+const ShortcutsModalLazy = lazyNamed(() => import('./ShortcutsModal.js'), 'ShortcutsModal')
 
 interface MarkdownInputProps {
   value: string
   onChange: (value: string) => void
+  /** When false, the document exceeds the URL deep-link limit and ?md= is not maintained. */
+  isDeepLinkActive?: boolean
 }
 
 const TOOLBAR_BTN_CLS =
   'rounded-md px-2 py-1 text-xs text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200'
 
-export const MarkdownInput = memo(function MarkdownInput({ value, onChange }: MarkdownInputProps) {
+export const MarkdownInput = memo(function MarkdownInput({
+  value,
+  onChange,
+  isDeepLinkActive = true,
+}: MarkdownInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const gutterRef = useRef<HTMLDivElement>(null)
   const [showShortcuts, setShowShortcuts] = useState(false)
@@ -39,7 +46,7 @@ export const MarkdownInput = memo(function MarkdownInput({ value, onChange }: Ma
     }
   }, [])
 
-  const handleKeyDown = useMarkdownShortcuts()
+  const handleKeyDown = useMarkdownShortcuts(onChange)
 
   const lineCount = value.split('\n').length
   const lineNumbers = useMemo(
@@ -63,6 +70,15 @@ export const MarkdownInput = memo(function MarkdownInput({ value, onChange }: Ma
           <span className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
             Markdown
           </span>
+          {!isDeepLinkActive && value && (
+            <span
+              title="Document too large for URL sharing"
+              aria-label="URL sharing unavailable — document exceeds size limit"
+              className="text-amber-500 dark:text-amber-400"
+            >
+              <IconLinkOff className="h-3.5 w-3.5" />
+            </span>
+          )}
           <div className="flex items-center justify-center gap-1 @[375px]:justify-end">
             <button
               onClick={handleImport}
@@ -120,7 +136,7 @@ export const MarkdownInput = memo(function MarkdownInput({ value, onChange }: Ma
         </div>
       </div>
       <Suspense fallback={null}>
-        {showShortcuts && <ShortcutsModal onClose={() => setShowShortcuts(false)} />}
+        {showShortcuts && <ShortcutsModalLazy onClose={() => setShowShortcuts(false)} />}
       </Suspense>
       <input
         ref={fileInputRef}

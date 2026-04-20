@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef, memo } from 'react'
+import type { KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { MOD_KEY } from '../../utils/keyboard.js'
 import { type DropKey, BTN_CLS } from './toolbar/shared.js'
 import { TextStyleMenu, FormatMenu } from './toolbar/FormatMenus.js'
@@ -32,6 +33,20 @@ export const EditorToolbar = memo(function EditorToolbar({
   }, [])
   const close = useCallback(() => setOpenKey(null), [])
 
+  // Arrow-key navigation between toolbar buttons (ARIA toolbar pattern).
+  // Left/Right arrows move focus to the previous/next button; wraps around.
+  const handleToolbarKeyDown = useCallback((e: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return
+    const toolbar = toolbarRef.current
+    if (!toolbar) return
+    const focusable = Array.from(toolbar.querySelectorAll<HTMLElement>('button:not([disabled])'))
+    const idx = focusable.indexOf(document.activeElement as HTMLElement)
+    if (idx === -1) return
+    e.preventDefault()
+    const next = e.key === 'ArrowRight' ? idx + 1 : idx - 1
+    focusable[(next + focusable.length) % focusable.length]?.focus()
+  }, [])
+
   // Close dropdowns when clicking outside the toolbar, or when Escape is pressed.
   // The Escape handler satisfies WCAG 2.1 SC 1.3.1 — composite widgets must
   // allow keyboard users to dismiss opened sub-menus.
@@ -61,6 +76,7 @@ export const EditorToolbar = memo(function EditorToolbar({
       ref={toolbarRef}
       role="toolbar"
       aria-label="Text formatting"
+      onKeyDown={handleToolbarKeyDown}
       className="flex flex-wrap items-center gap-px border-b border-neutral-200 bg-neutral-50 px-2 py-1 dark:border-neutral-800 dark:bg-neutral-950"
     >
       <TextStyleMenu {...menuProps} activeBlock={activeBlock} />

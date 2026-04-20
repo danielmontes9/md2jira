@@ -1,11 +1,11 @@
-import { useState, memo, lazy, Suspense, useEffect } from 'react'
+import { useState, memo, Suspense, useEffect } from 'react'
 import { useTiptapEditor } from '../hooks/useTiptapEditor.js'
 import { useJiraCopy } from '../hooks/useJiraCopy.js'
 import { JiraOutputHeader } from './jira-output/JiraOutputHeader.js'
 import { JiraOutputContent } from './jira-output/JiraOutputContent.js'
-const EditorToolbar = lazy(() =>
-  import('./jira-output/EditorToolbar.js').then((m) => ({ default: m.EditorToolbar }))
-)
+import { lazyNamed } from '../utils/lazy-named.js'
+
+const EditorToolbar = lazyNamed(() => import('./jira-output/EditorToolbar.js'), 'EditorToolbar')
 import './jira-output/jira-preview.css'
 import type { OutputFormat, ViewMode } from '../types.js'
 

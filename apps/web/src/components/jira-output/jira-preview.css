@@ -321,3 +321,39 @@
 .dark .json-number {
   color: #c084fc;
 } /* purple-400 */
+
+/* ── Wiki Markup syntax highlighting (wiki preview) ── */
+.wiki-heading {
+  color: #7c3aed;
+  font-weight: 600;
+} /* h1. – h6. keywords */
+.wiki-rule {
+  color: #737373;
+} /* ---- horizontal rule */
+.wiki-th {
+  color: #2563eb;
+  font-weight: 700;
+} /* || header delimiter */
+.wiki-td {
+  color: #374151;
+} /* | cell delimiter */
+.wiki-code-fence {
+  color: #16a34a;
+  font-weight: 600;
+} /* {code}/{noformat} fence */
+
+.dark .wiki-heading {
+  color: #c084fc;
+}
+.dark .wiki-rule {
+  color: #525252;
+}
+.dark .wiki-th {
+  color: #60a5fa;
+}
+.dark .wiki-td {
+  color: #9ca3af;
+}
+.dark .wiki-code-fence {
+  color: #4ade80;
+}

@@ -34,7 +34,7 @@ export function App() {
   const deferredMarkdown = useDeferredValue(debouncedMarkdown)
 
   // Debounced URL deep-linking: update ?md= param 500ms after the user stops typing.
-  useDeepLink(markdown)
+  const { isDeepLinkActive } = useDeepLink(markdown)
 
   const isPending = markdown !== deferredMarkdown
   const { jiraOutput, adfDoc, hasConversionError } = useMemo<{
@@ -90,8 +90,8 @@ export function App() {
           </div>
         )}
         <noscript>
-          <div style={{ padding: '2rem', textAlign: 'center' }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>md2jira-previewer</h2>
+          <div className="p-8 text-center">
+            <h2 className="text-xl font-bold">md2jira-previewer</h2>
             <p>
               Convert Markdown to Jira Wiki Markup and Atlassian Document Format (ADF). Please
               enable JavaScript to use this tool.
@@ -101,7 +101,11 @@ export function App() {
         <main className="flex flex-1 flex-col gap-4 overflow-auto p-4 sm:flex-row sm:overflow-hidden">
           <section aria-label="Markdown input" className="flex min-h-64 flex-1 flex-col sm:min-h-0">
             <ErrorBoundary>
-              <MarkdownInput value={markdown} onChange={setMarkdown} />
+              <MarkdownInput
+                value={markdown}
+                onChange={setMarkdown}
+                isDeepLinkActive={isDeepLinkActive}
+              />
             </ErrorBoundary>
           </section>
           <section aria-label="Jira output" className="flex min-h-64 flex-1 flex-col sm:min-h-0">

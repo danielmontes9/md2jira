@@ -1,7 +1,9 @@
-import { useState, Fragment, lazy, Suspense, memo, useCallback } from 'react'
+import { useState, Fragment, Suspense, memo, useCallback } from 'react'
 import { IconInfoCircle, IconSun, IconMoon, IconGitHub } from './icons.js'
 
-const InfoModal = lazy(() => import('./InfoModal.js').then((m) => ({ default: m.InfoModal })))
+import { lazyNamed } from '../utils/lazy-named.js'
+
+const InfoModal = lazyNamed(() => import('./InfoModal.js'), 'InfoModal')
 
 interface HeaderProps {
   theme: 'light' | 'dark'

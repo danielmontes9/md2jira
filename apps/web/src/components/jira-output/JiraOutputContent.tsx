@@ -1,6 +1,7 @@
 import { EditorContent } from '@tiptap/react'
 import type { Editor } from '@tiptap/react'
 import { highlightJson } from '../../utils/highlight-json.js'
+import { highlightWiki } from '../../utils/highlight-wiki.js'
 import type { OutputFormat, ViewMode } from '../../types.js'
 
 interface JiraOutputContentProps {
@@ -65,8 +66,9 @@ export function JiraOutputContent({
       role="region"
       aria-label="Wiki markup preview"
       className={`jira-preview flex-1 overflow-auto whitespace-pre-wrap p-6 font-mono text-sm text-neutral-900 dark:text-neutral-100 ${isPending ? 'opacity-50' : ''}`}
-    >
-      {value}
-    </pre>
+      // highlightWiki escapes HTML entities before injecting <span> tags — safe.
+      // eslint-disable-next-line react/no-danger
+      dangerouslySetInnerHTML={{ __html: highlightWiki(value) }}
+    />
   )
 }

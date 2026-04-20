@@ -14,6 +14,7 @@ const GROUPS = [
     shortcuts: [
       { key: `${mod}+B`, label: 'Bold' },
       { key: `${mod}+I`, label: 'Italic' },
+      { key: `${mod}+K`, label: 'Insert link' },
       { key: `${mod}+Shift+K`, label: 'Inline code' },
       { key: `${mod}+Shift+X`, label: 'Strikethrough' },
     ],
