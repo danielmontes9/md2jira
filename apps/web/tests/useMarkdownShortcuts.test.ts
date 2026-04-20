@@ -310,4 +310,25 @@ describe('useMarkdownShortcuts', () => {
     press('Enter')
     expect(ta.value).toBe('- [x] done\n- [ ] ')
   })
+
+  it('Enter after unchecked task item continues with empty task prefix', () => {
+    ta.value = '- [ ] todo'
+    ta.selectionStart = ta.selectionEnd = 10
+    press('Enter')
+    expect(ta.value).toBe('- [ ] todo\n- [ ] ')
+  })
+
+  it('Enter on empty task item cancels the task list', () => {
+    ta.value = '- [ ] '
+    ta.selectionStart = ta.selectionEnd = 6
+    press('Enter')
+    expect(ta.value).toBe('')
+  })
+
+  it('Enter on empty checked task item also cancels the task list', () => {
+    ta.value = '- [x] '
+    ta.selectionStart = ta.selectionEnd = 6
+    press('Enter')
+    expect(ta.value).toBe('')
+  })
 })
