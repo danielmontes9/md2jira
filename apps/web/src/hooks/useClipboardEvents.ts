@@ -15,10 +15,16 @@ import type { ToastType } from '../components/Toast.js'
 export function useClipboardEvents(
   value: string,
   textareaRef: RefObject<HTMLTextAreaElement>,
-  addToast: (msg: string, type: ToastType) => void
+  addToast: (msg: string, type: ToastType) => void,
+  onChange: (value: string) => void
 ): { copiedMd: boolean; handleCopyMd: () => void } {
   const [copiedMd, setCopiedMd] = useState(false)
   const copiedMdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Keep a stable ref to onChange so the native paste handler always sees the
+  // latest version without re-registering the event listener on every render.
+  const onChangeRef = useRef(onChange)
+  onChangeRef.current = onChange
 
   // Clean up the "copied" reset timer on unmount.
   useEffect(() => {
@@ -51,14 +57,20 @@ export function useClipboardEvents(
     }
 
     // Strip rich text (e.g. from VS Code) on paste — keep only plain text.
+    // Calls onChange directly (the React-idiomatic way for controlled inputs) and
+    // then restores the cursor position via requestAnimationFrame after re-render.
     const handlePaste = (e: ClipboardEvent) => {
       if (!e.clipboardData) return
       const plain = e.clipboardData.getData('text/plain')
       e.preventDefault()
-      const { selectionStart, selectionEnd } = textarea
-      textarea.focus()
-      textarea.setRangeText(plain, selectionStart, selectionEnd, 'end')
-      textarea.dispatchEvent(new Event('input', { bubbles: true }))
+      const { selectionStart, selectionEnd, value: current } = textarea
+      const newValue = current.slice(0, selectionStart) + plain + current.slice(selectionEnd)
+      onChangeRef.current(newValue)
+      // Restore insertion point after React re-renders the controlled textarea.
+      const newPos = selectionStart + plain.length
+      requestAnimationFrame(() => {
+        textarea.setSelectionRange(newPos, newPos)
+      })
     }
 
     const ac = new AbortController()

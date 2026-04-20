@@ -21,7 +21,7 @@ export const MarkdownInput = memo(function MarkdownInput({ value, onChange }: Ma
   const [showShortcuts, setShowShortcuts] = useState(false)
   const addToast = useToast()
 
-  const { copiedMd, handleCopyMd } = useClipboardEvents(value, textareaRef, addToast)
+  const { copiedMd, handleCopyMd } = useClipboardEvents(value, textareaRef, addToast, onChange)
   const {
     fileInputRef,
     handleImport,
