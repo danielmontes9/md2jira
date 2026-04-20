@@ -170,6 +170,30 @@ describe('App – URL deep-linking', () => {
     const textarea = screen.getByPlaceholderText('Paste your Markdown here...')
     expect(textarea).toHaveValue(PLACEHOLDER)
   })
+
+  it('falls back to PLACEHOLDER when ?md= param exceeds size limit', () => {
+    // URL_MD_MAX_ENCODED is 1500; decodeMarkdown rejects encoded.length > 3000
+    const oversized = 'A'.repeat(3001)
+    Object.defineProperty(window, 'location', {
+      writable: true,
+      value: { href: `http://localhost/?md=${oversized}`, search: `?md=${oversized}` },
+    })
+
+    render(<App />)
+    const textarea = screen.getByPlaceholderText('Paste your Markdown here...')
+    expect(textarea).toHaveValue(PLACEHOLDER)
+  })
+
+  it('falls back to PLACEHOLDER when ?md= param is empty string', () => {
+    Object.defineProperty(window, 'location', {
+      writable: true,
+      value: { href: 'http://localhost/?md=', search: '?md=' },
+    })
+
+    render(<App />)
+    const textarea = screen.getByPlaceholderText('Paste your Markdown here...')
+    expect(textarea).toHaveValue(PLACEHOLDER)
+  })
 })
 
 describe('App – loading state', () => {

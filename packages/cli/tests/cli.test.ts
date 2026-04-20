@@ -145,4 +145,44 @@ describe('md2jira CLI', () => {
     expect(stdout).toContain('--format')
     expect(stdout).toContain('adf')
   })
+
+  it('handles UTF-8 BOM in input file', async () => {
+    const bomPath = resolve(FIXTURES_DIR, 'bom.md')
+    await writeFile(bomPath, '\uFEFF# BOM Test\n', 'utf-8')
+    const { stdout, exitCode } = await run([bomPath])
+    expect(exitCode).toBe(0)
+    expect(stdout).toBe('h1. BOM Test')
+    await unlink(bomPath).catch(() => {})
+  })
+
+  it('converts markdown with unicode characters via stdin', async () => {
+    const md = '# Héllo Wörld\n\n- café\n- naïve\n'
+    const { stdout, exitCode } = await run([], { stdin: md })
+    expect(exitCode).toBe(0)
+    expect(stdout).toContain('h1. Héllo Wörld')
+    expect(stdout).toContain('* café')
+    expect(stdout).toContain('* naïve')
+  })
+
+  it('produces valid ADF with all element types', async () => {
+    const md = '# Title\n\n**bold** and _italic_\n\n- item\n\n```js\ncode\n```\n'
+    const { stdout, exitCode } = await run(['--format', 'adf'], { stdin: md })
+    expect(exitCode).toBe(0)
+    const doc = JSON.parse(stdout)
+    expect(doc.type).toBe('doc')
+    expect(doc.version).toBe(1)
+    const types = doc.content.map((n: { type: string }) => n.type)
+    expect(types).toContain('heading')
+    expect(types).toContain('paragraph')
+    expect(types).toContain('bulletList')
+    expect(types).toContain('codeBlock')
+  })
+
+  it('handles CRLF line endings in stdin', async () => {
+    const md = '# Title\r\n\r\nParagraph\r\n'
+    const { stdout, exitCode } = await run([], { stdin: md })
+    expect(exitCode).toBe(0)
+    expect(stdout).toContain('h1. Title')
+    expect(stdout).toContain('Paragraph')
+  })
 })

@@ -68,3 +68,25 @@ describe('preprocessMarkdown — GFM table gap collapsing', () => {
     expect(preprocessMarkdown(input)).toBe(expected)
   })
 })
+
+describe('preprocessMarkdown — combined BOM + CRLF + table gap', () => {
+  it('strips BOM, normalises CRLF, and collapses table gap in one pass', () => {
+    const input = '\uFEFF| A | B |\r\n|---|---|\r\n| 1 | 2 |\r\n\r\n| 3 | 4 |'
+    const expected = '| A | B |\n|---|---|\n| 1 | 2 |\n| 3 | 4 |'
+    expect(preprocessMarkdown(input)).toBe(expected)
+  })
+})
+
+describe('preprocessMarkdown — indented / blockquote tables', () => {
+  it('collapses an empty gap in a table that uses leading spaces (indented)', () => {
+    // TABLE_ROW_RE uses /^\s*\|/ so indented pipe rows are treated as table rows.
+    const input = '  | A | B |\n  |---|---|\n  | 1 | 2 |\n\n  | 3 | 4 |'
+    const expected = '  | A | B |\n  |---|---|\n  | 1 | 2 |\n  | 3 | 4 |'
+    expect(preprocessMarkdown(input)).toBe(expected)
+  })
+
+  it('does not collapse a gap when the next line after the gap is not a table row', () => {
+    const input = '  | A | B |\n  |---|---|\n  | 1 | 2 |\n\nSome paragraph.'
+    expect(preprocessMarkdown(input)).toBe(input)
+  })
+})

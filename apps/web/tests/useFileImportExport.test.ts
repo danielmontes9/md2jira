@@ -52,6 +52,21 @@ describe('useFileImportExport', () => {
     expect(mockOnChange).not.toHaveBeenCalled()
   })
 
+  it('handleFileChange rejects files exceeding 1 MB with a toast', () => {
+    const { result } = renderHook(() => useFileImportExport('', mockOnChange, mockAddToast))
+    // Create a file stub > 1 MB
+    const bigContent = new Uint8Array(1_048_577)
+    const mockFile = new File([bigContent], 'huge.md', { type: 'text/markdown' })
+    const event = {
+      target: { files: [mockFile], value: '' },
+    } as unknown as ChangeEvent<HTMLInputElement>
+    act(() => {
+      result.current.handleFileChange(event)
+    })
+    expect(mockAddToast).toHaveBeenCalledWith(expect.stringContaining('too large'), 'error')
+    expect(mockOnChange).not.toHaveBeenCalled()
+  })
+
   it('handleFileChange does nothing when no file is present', () => {
     const { result } = renderHook(() => useFileImportExport('', mockOnChange, mockAddToast))
     const event = {

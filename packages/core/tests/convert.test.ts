@@ -413,3 +413,70 @@ describe('blockquotes — complex children', () => {
     expect(result).toContain('{code:language=js}')
   })
 })
+
+describe('full-document integration', () => {
+  it('converts a document exercising all supported element types', () => {
+    const md = [
+      '# Main Title',
+      '',
+      'A paragraph with **bold**, _italic_, ~~strike~~, and `code`.',
+      '',
+      '[Link text](https://example.com)',
+      '',
+      '## Section',
+      '',
+      '- Bullet 1',
+      '- Bullet 2',
+      '',
+      '1. Ordered 1',
+      '2. Ordered 2',
+      '',
+      '- [x] Done task',
+      '- [ ] Todo task',
+      '',
+      '> A blockquote',
+      '',
+      '```typescript',
+      'const x = 42',
+      '```',
+      '',
+      '---',
+      '',
+      '| Header A | Header B |',
+      '|----------|----------|',
+      '| Cell 1   | Cell 2   |',
+    ].join('\n')
+
+    const result = convert(md)
+
+    // Headers
+    expect(result).toContain('h1. Main Title')
+    expect(result).toContain('h2. Section')
+    // Inline formatting
+    expect(result).toContain('*bold*')
+    expect(result).toContain('_italic_')
+    expect(result).toContain('-strike-')
+    expect(result).toContain('{{code}}')
+    // Link
+    expect(result).toContain('[Link text|https://example.com]')
+    // Lists
+    expect(result).toContain('* Bullet 1')
+    expect(result).toContain('* Bullet 2')
+    expect(result).toContain('# Ordered 1')
+    expect(result).toContain('# Ordered 2')
+    // Task list
+    expect(result).toContain('(/) Done task')
+    expect(result).toContain('(x) Todo task')
+    // Blockquote
+    expect(result).toContain('bq. A blockquote')
+    // Code block
+    expect(result).toContain('{code:language=typescript}')
+    expect(result).toContain('const x = 42')
+    expect(result).toContain('{code}')
+    // Thematic break
+    expect(result).toContain('----')
+    // Table
+    expect(result).toContain('||Header A||Header B||')
+    expect(result).toContain('|Cell 1|Cell 2|')
+  })
+})
