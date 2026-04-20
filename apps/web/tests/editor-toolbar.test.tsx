@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, within } from '@testing-library/react'
+import { render, screen, fireEvent, within, waitFor } from '@testing-library/react'
 import { EditorToolbar } from '../src/components/jira-output/EditorToolbar.js'
 
 // Minimal matchMedia stub required by toolbar internals
@@ -173,15 +173,20 @@ describe('EditorToolbar', () => {
     expect(screen.getByPlaceholderText('Search...')).toBeInTheDocument()
   })
 
-  it('EmojiMenu calls exec("insertText", emoji) when an emoji is clicked', () => {
+  it('EmojiMenu calls exec("insertText", emoji) when an emoji is clicked', async () => {
     renderToolbar()
     const emojiBtn = screen.getByTitle('Emoji').closest('button')!
     fireEvent.mouseDown(emojiBtn)
     // Scope to the dialog so we don't accidentally pick the trigger button (☺)
     const dialog = screen.getByRole('dialog')
-    const emojiButtons = within(dialog)
-      .getAllByRole('button')
-      .filter((btn) => btn.textContent && /\p{Emoji}/u.test(btn.textContent))
+    // Emoji data loads lazily — wait until buttons appear
+    const emojiButtons = await waitFor(() => {
+      const btns = within(dialog)
+        .getAllByRole('button')
+        .filter((btn) => btn.textContent && /\p{Emoji}/u.test(btn.textContent))
+      if (btns.length === 0) throw new Error('no emoji buttons yet')
+      return btns
+    })
     const first = emojiButtons[0]!
     const emoji = first.textContent ?? ''
     fireEvent.mouseDown(first)

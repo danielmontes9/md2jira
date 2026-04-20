@@ -56,7 +56,7 @@ describe('useAdfHtmlWorker', () => {
 
   it('returns empty string when adfDoc is null', () => {
     const { result } = renderHook(() => useAdfHtmlWorker(null))
-    expect(result.current).toBe('')
+    expect(result.current.html).toBe('')
   })
 
   it('returns rendered HTML for a valid ADF document (sync fallback path)', async () => {
@@ -64,20 +64,21 @@ describe('useAdfHtmlWorker', () => {
     await act(async () => {
       await vi.runAllTimersAsync()
     })
-    expect(result.current).toContain('Hello world')
+    expect(result.current.html).toContain('Hello world')
+    expect(result.current.workerError).toBe(false)
   })
 
   it('resets to empty string when adfDoc changes to null', async () => {
     const { result, rerender } = renderHook(
       ({ doc }: { doc: AdfDocument | null }) => useAdfHtmlWorker(doc),
-      { initialProps: { doc: SIMPLE_ADF } }
+      { initialProps: { doc: SIMPLE_ADF as AdfDocument | null } }
     )
     await act(async () => {
       await vi.runAllTimersAsync()
     })
-    expect(result.current).not.toBe('')
+    expect(result.current.html).not.toBe('')
     act(() => rerender({ doc: null }))
-    expect(result.current).toBe('')
+    expect(result.current.html).toBe('')
   })
 
   it('updates HTML when adfDoc changes to a different document', async () => {
@@ -99,13 +100,13 @@ describe('useAdfHtmlWorker', () => {
     await act(async () => {
       await vi.runAllTimersAsync()
     })
-    expect(result.current).toContain('First')
+    expect(result.current.html).toContain('First')
 
     rerender({ doc: docB })
     await act(async () => {
       await vi.runAllTimersAsync()
     })
-    expect(result.current).toContain('Second')
+    expect(result.current.html).toContain('Second')
   })
 
   it('returns empty string when renderer throws', async () => {
@@ -118,7 +119,8 @@ describe('useAdfHtmlWorker', () => {
       await vi.runAllTimersAsync()
     })
     // The catch branch sets previewHtml to '' — the hook must not crash
-    expect(result.current).toBe('')
+    expect(result.current.html).toBe('')
+    expect(result.current.workerError).toBe(true)
   })
 
   it('does not apply stale response after unmount', async () => {
@@ -129,6 +131,6 @@ describe('useAdfHtmlWorker', () => {
       await vi.runAllTimersAsync()
     })
     // No crash — result holds whatever state was last committed before unmount
-    expect(typeof result.current).toBe('string')
+    expect(typeof result.current.html).toBe('string')
   })
 })

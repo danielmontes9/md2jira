@@ -4,33 +4,23 @@
  *   user edits in TipTap
  *     → onUpdate fires
  *       → debounce (debounceMs)
- *         → lazy Turndown import
- *           → html → Markdown
- *             → onMarkdownChange(md)
+ *         → tiptapDocToMarkdown(editor.state.doc)
+ *           → onMarkdownChange(md)
  *
- * The Turndown module is mocked at the module level so the async dynamic
- * import inside useTiptapEditor resolves synchronously in tests.
+ * Turndown has been replaced by a direct ProseMirror doc→Markdown serializer,
+ * so there is no longer a dynamic import to mock.
  */
 
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { useTiptapEditor } from '../src/hooks/useTiptapEditor.js'
 
-// Mock the lazy-loaded Turndown module so there is no real network/FS import
-// in the test environment. The factory must be declared at module level so
-// Vitest's hoisting can intercept the dynamic import() inside the hook.
-vi.mock('../src/components/jira-output/turndown-config.js', () => ({
-  createTurndownService: () => ({
-    turndown: (html: string) => `mocked-md: ${html}`,
-  }),
-}))
-
 describe('useTiptapEditor — edit roundtrip', () => {
   afterEach(() => {
     vi.restoreAllMocks()
   })
 
-  it('calls onMarkdownChange after user edits (debounce + Turndown roundtrip)', async () => {
+  it('calls onMarkdownChange after user edits (debounce + PM serializer roundtrip)', async () => {
     const cb = vi.fn()
     const { result } = renderHook(() =>
       useTiptapEditor({
@@ -51,13 +41,13 @@ describe('useTiptapEditor — edit roundtrip', () => {
       result.current.insertHtml('<p>edited by user</p>')
     })
 
-    // Wait for debounce (50 ms) + async microtask chain (dynamic import → turndown → callback)
+    // Wait for debounce (50 ms) + microtask flush
     await waitFor(() => expect(cb).toHaveBeenCalled(), { timeout: 3000 })
 
     const [calledWith] = cb.mock.calls[0] as [string]
     expect(typeof calledWith).toBe('string')
-    // The mocked Turndown prepends "mocked-md:" so we know it went through
-    expect(calledWith).toContain('mocked-md:')
+    // The PM serializer returns Markdown — verify the text content is present
+    expect(calledWith).toContain('edited by user')
   })
 
   it('does not call onMarkdownChange when previewHtml is synced externally', async () => {

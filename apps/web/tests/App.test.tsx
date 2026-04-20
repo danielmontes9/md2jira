@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, act, within } from '@testing-library/react'
-import { App, PLACEHOLDER } from '../src/App.js'
+import { App } from '../src/App.js'
+import { PLACEHOLDER } from '../src/utils/markdown-url.js'
 
 // Minimal stubs required by App (jsdom lacks these browser APIs)
 Object.defineProperty(window, 'matchMedia', {
@@ -199,7 +200,7 @@ describe('App – URL deep-linking', () => {
 describe('App – loading state', () => {
   it('does not show a loading spinner when input and deferred value are in sync', () => {
     render(<App />)
-    // isPending is false when not transitioning — no spinner visible
-    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    // isPending is false when not transitioning — no spinner/progressbar visible
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
   })
 })
