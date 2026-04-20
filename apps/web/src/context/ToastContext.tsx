@@ -1,4 +1,5 @@
 import { createContext, useContext, useCallback, useState, useRef, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { ToastContainer } from '../components/Toast.js'
 import type { ToastType } from '../components/Toast.js'
 
@@ -29,7 +30,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ addToast }}>
       {children}
-      <ToastContainer toasts={toasts} onClose={removeToast} />
+      {createPortal(<ToastContainer toasts={toasts} onClose={removeToast} />, document.body)}
     </ToastContext.Provider>
   )
 }

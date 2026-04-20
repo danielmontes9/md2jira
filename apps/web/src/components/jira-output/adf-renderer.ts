@@ -78,7 +78,7 @@ const BLOCK_HANDLERS: BlockHandlerMap = {
   orderedList: (node) =>
     `<ol>${node.content.map((item: AdfListItemNode) => `<li>${item.content.map(adfBlockToHtml).join('')}</li>`).join('')}</ol>`,
   codeBlock: (node) => {
-    const lang = (node.attrs as { language?: string } | undefined)?.language
+    const lang = node.attrs?.language
     // Sanitize the language tag — only allow word characters so it can't inject HTML
     const safeLang = lang ? lang.replace(/[^\w-]/g, '') : ''
     const classAttr = safeLang ? ` class="language-${safeLang}"` : ''
@@ -114,10 +114,12 @@ const BLOCK_HANDLERS: BlockHandlerMap = {
 
 export function adfBlockToHtml(node: AdfBlockNode): string {
   // BLOCK_HANDLERS is total for all known AdfBlockNode types (compile-time guarantee).
-  // The `| undefined` cast handles external ADF payloads that may contain node
-  // types not present in the compile-time union — those fall back to empty string.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handler = BLOCK_HANDLERS[node.type] as ((node: any) => string) | undefined
+  // The `| undefined` handles external ADF payloads that may contain node types
+  // not present in the compile-time union — those fall back to empty string.
+  // TypeScript cannot correlate the indexed handler with the runtime node type,
+  // a known limitation (microsoft/TypeScript#30581); the cast is sound because
+  // we index BLOCK_HANDLERS by the same node.type that discriminates the union.
+  const handler = BLOCK_HANDLERS[node.type] as ((n: AdfBlockNode) => string) | undefined
   return handler ? handler(node) : ''
 }
 

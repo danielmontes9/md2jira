@@ -20,9 +20,11 @@ export interface FileImportExportState {
 }
 
 const ALLOWED_EXTENSIONS = ['.md', '.txt', '.text']
+/** Maximum file size allowed for import (1 MB). */
+const MAX_FILE_SIZE = 1_048_576
 
 /**
- * Validates file extension and reads the file as text.
+ * Validates file extension and size, then reads the file as text.
  * Calls `onSuccess` with the file text, or `onError` with a user-facing message.
  */
 function readValidatedFile(
@@ -33,6 +35,12 @@ function readValidatedFile(
   const ext = file.name.slice(file.name.lastIndexOf('.')).toLowerCase()
   if (!ALLOWED_EXTENSIONS.includes(ext)) {
     onError(`Unsupported file type "${ext}". Please use a .md, .txt, or .text file.`)
+    return
+  }
+  if (file.size > MAX_FILE_SIZE) {
+    onError(
+      `File is too large (${(file.size / 1_048_576).toFixed(1)} MB). Maximum allowed size is 1 MB.`
+    )
     return
   }
   const reader = new FileReader()
@@ -97,7 +105,8 @@ export function useFileImportExport(
   const handleDragLeave = useCallback((e: DragEvent) => {
     e.preventDefault()
     // Only clear when leaving the drop zone entirely (not entering a child element)
-    if (!(e.currentTarget as Element).contains(e.relatedTarget as Node)) {
+    const related = e.relatedTarget
+    if (!(related instanceof Node) || !e.currentTarget.contains(related)) {
       setIsDragging(false)
     }
   }, [])
