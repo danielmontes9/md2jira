@@ -179,6 +179,12 @@ describe('tiptapDocToMarkdown — inline marks', () => {
     expect(md).toContain('hello')
     expect(md).toContain('world')
   })
+
+  it('escapes Markdown-special characters in plain text nodes', () => {
+    // Text typed literally — should NOT become bold/italic when re-parsed.
+    const doc = htmlToDoc('<p>not **bold** and _italic_</p>')
+    expect(tiptapDocToMarkdown(doc)).toBe('not \\*\\*bold\\*\\* and \\_italic\\_')
+  })
 })
 
 // ── Tables ────────────────────────────────────────────────────────────────────
