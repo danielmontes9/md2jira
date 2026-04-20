@@ -6,6 +6,7 @@ import { transformCodeBlock } from './transforms/codeblocks.js'
 import { transformTable } from './transforms/tables.js'
 import { transformBlockquote } from './transforms/blockquotes.js'
 import { parseMarkdown } from './parse.js'
+import { hasStringValue } from './utils.js'
 
 function transformNode(node: RootContent): string | null {
   switch (node.type) {
@@ -33,8 +34,8 @@ function transformNode(node: RootContent): string | null {
       // Unknown node type (e.g. from remark plugins) — emit raw text value if available.
       // Matches the fallback behaviour in adf-converter.ts so unknown nodes are never
       // silently discarded when they carry readable content.
-      if ('value' in node && typeof (node as { value: unknown }).value === 'string') {
-        return (node as { value: string }).value
+      if (hasStringValue(node)) {
+        return node.value
       }
       return null
     }

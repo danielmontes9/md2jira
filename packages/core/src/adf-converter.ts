@@ -9,6 +9,7 @@ import type {
   Table,
 } from 'mdast'
 import { parseMarkdown } from './parse.js'
+import { hasStringValue } from './utils.js'
 import type {
   AdfBlockNode,
   AdfDocument,
@@ -202,14 +203,6 @@ function transformTableToAdf(node: Table): AdfBlockNode {
     attrs: { isNumberColumnEnabled: false, layout: 'default' },
     content: adfRows,
   }
-}
-
-/**
- * Returns true when an unknown remark node carries a string `.value` field.
- * Avoids an inline `as { value: unknown }` cast in the default fallback case.
- */
-function hasStringValue(node: object): node is { value: string } {
-  return 'value' in node && typeof (node as { value: unknown }).value === 'string'
 }
 
 function transformNodeToAdf(node: RootContent, ctx: AdfConvertContext): AdfBlockNode | null {
