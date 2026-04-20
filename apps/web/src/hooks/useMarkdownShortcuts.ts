@@ -1,22 +1,39 @@
-import { useCallback } from 'react'
+import { useCallback, useRef } from 'react'
 import type { KeyboardEvent } from 'react'
 
 /**
  * Returns a keydown handler for the Markdown textarea that implements
  * formatting shortcuts, auto-list continuation, and line manipulation.
  *
- * Uses textarea.setRangeText() for text insertion to avoid the deprecated
- * document.execCommand() API.
+ * Calls onChange(newValue) directly (the React-idiomatic way for controlled
+ * inputs) and restores cursor position via requestAnimationFrame after React
+ * re-renders the controlled textarea.
  */
 
 // ── Helpers ──
 
+/**
+ * Apply a text mutation to a controlled textarea:
+ * 1. Call onChange(newValue) so React state is updated.
+ * 2. Restore the cursor position in the next animation frame (after re-render).
+ */
+function applyChange(
+  ta: HTMLTextAreaElement,
+  newValue: string,
+  newPos: number,
+  onChange: (v: string) => void
+): void {
+  onChange(newValue)
+  requestAnimationFrame(() => {
+    ta.setSelectionRange(newPos, newPos)
+  })
+}
+
 /** Insert text at the current selection, replacing any selected text. */
-function insertText(textarea: HTMLTextAreaElement, text: string): void {
-  const { selectionStart, selectionEnd } = textarea
-  textarea.focus()
-  textarea.setRangeText(text, selectionStart, selectionEnd, 'end')
-  textarea.dispatchEvent(new Event('input', { bubbles: true }))
+function insertText(ta: HTMLTextAreaElement, text: string, onChange: (v: string) => void): void {
+  const { selectionStart, selectionEnd, value } = ta
+  const newValue = value.slice(0, selectionStart) + text + value.slice(selectionEnd)
+  applyChange(ta, newValue, selectionStart + text.length, onChange)
 }
 
 interface LineInfo {
@@ -33,25 +50,28 @@ function getLine(val: string, pos: number): LineInfo {
 }
 
 function replaceLine(
-  textarea: HTMLTextAreaElement,
+  ta: HTMLTextAreaElement,
   lineStart: number,
   lineEnd: number,
-  newText: string
-) {
-  textarea.setRangeText(newText, lineStart, lineEnd, 'end')
-  textarea.dispatchEvent(new Event('input', { bubbles: true }))
+  newText: string,
+  onChange: (v: string) => void
+): void {
+  const newValue = ta.value.slice(0, lineStart) + newText + ta.value.slice(lineEnd)
+  applyChange(ta, newValue, lineStart + newText.length, onChange)
 }
 
 function wrapSelection(
   e: KeyboardEvent<HTMLTextAreaElement>,
-  val: string,
-  selectionStart: number,
-  selectionEnd: number,
-  wrapper: string
-) {
+  wrapper: string,
+  onChange: (v: string) => void
+): void {
   e.preventDefault()
-  const selected = val.substring(selectionStart, selectionEnd)
-  insertText(e.currentTarget, `${wrapper}${selected}${wrapper}`)
+  const ta = e.currentTarget
+  const { selectionStart, selectionEnd, value } = ta
+  const selected = value.substring(selectionStart, selectionEnd)
+  const ins = `${wrapper}${selected}${wrapper}`
+  const newValue = value.slice(0, selectionStart) + ins + value.slice(selectionEnd)
+  applyChange(ta, newValue, selectionStart + ins.length, onChange)
 }
 
 const ctrlOrMeta = (e: KeyboardEvent<HTMLTextAreaElement>) => e.ctrlKey || e.metaKey
@@ -60,54 +80,61 @@ const ctrlOrMeta = (e: KeyboardEvent<HTMLTextAreaElement>) => e.ctrlKey || e.met
 
 interface ShortcutEntry {
   match: (e: KeyboardEvent<HTMLTextAreaElement>) => boolean
-  handle: (e: KeyboardEvent<HTMLTextAreaElement>, ta: HTMLTextAreaElement) => void
+  handle: (
+    e: KeyboardEvent<HTMLTextAreaElement>,
+    ta: HTMLTextAreaElement,
+    onChange: (v: string) => void
+  ) => void
 }
 
 const SHORTCUT_TABLE: ShortcutEntry[] = [
   // Tab → 2 spaces
   {
     match: (e) => e.key === 'Tab' && !ctrlOrMeta(e) && !e.altKey,
-    handle: (e, ta) => {
+    handle: (e, ta, onChange) => {
       e.preventDefault()
-      insertText(ta, '  ')
+      insertText(ta, '  ', onChange)
     },
   },
   // Ctrl+B → bold
   {
     match: (e) => e.key === 'b' && ctrlOrMeta(e) && !e.shiftKey && !e.altKey,
-    handle: (e) => {
-      const { value, selectionStart, selectionEnd } = e.currentTarget
-      wrapSelection(e, value, selectionStart, selectionEnd, '**')
-    },
+    handle: (e, _ta, onChange) => wrapSelection(e, '**', onChange),
   },
   // Ctrl+I → italic
   {
     match: (e) => e.key === 'i' && ctrlOrMeta(e) && !e.shiftKey && !e.altKey,
-    handle: (e) => {
-      const { value, selectionStart, selectionEnd } = e.currentTarget
-      wrapSelection(e, value, selectionStart, selectionEnd, '_')
+    handle: (e, _ta, onChange) => wrapSelection(e, '_', onChange),
+  },
+  // Ctrl+K → link — wraps selection as [text]() with cursor inside the parens
+  {
+    match: (e) => e.key === 'k' && ctrlOrMeta(e) && !e.shiftKey && !e.altKey,
+    handle: (e, ta, onChange) => {
+      e.preventDefault()
+      const { selectionStart, selectionEnd, value } = ta
+      const selected = value.substring(selectionStart, selectionEnd)
+      const ins = `[${selected}]()`
+      const newValue = value.slice(0, selectionStart) + ins + value.slice(selectionEnd)
+      // Cursor goes inside the parens: skip '[' + selected + '](' = selected.length + 3 chars
+      const urlPos = selectionStart + selected.length + 3
+      onChange(newValue)
+      requestAnimationFrame(() => ta.setSelectionRange(urlPos, urlPos))
     },
   },
   // Ctrl+Shift+K → inline code
   {
     match: (e) => e.key === 'k' && ctrlOrMeta(e) && e.shiftKey && !e.altKey,
-    handle: (e) => {
-      const { value, selectionStart, selectionEnd } = e.currentTarget
-      wrapSelection(e, value, selectionStart, selectionEnd, '`')
-    },
+    handle: (e, _ta, onChange) => wrapSelection(e, '`', onChange),
   },
   // Ctrl+Shift+X → strikethrough
   {
     match: (e) => e.key === 'x' && ctrlOrMeta(e) && e.shiftKey && !e.altKey,
-    handle: (e) => {
-      const { value, selectionStart, selectionEnd } = e.currentTarget
-      wrapSelection(e, value, selectionStart, selectionEnd, '~~')
-    },
+    handle: (e, _ta, onChange) => wrapSelection(e, '~~', onChange),
   },
   // Ctrl+Shift+H → cycle heading h1 → h2 → h3 → none
   {
     match: (e) => e.key === 'h' && ctrlOrMeta(e) && e.shiftKey && !e.altKey,
-    handle: (e, ta) => {
+    handle: (e, ta, onChange) => {
       e.preventDefault()
       const { lineStart, lineEnd, text } = getLine(ta.value, ta.selectionStart)
       const match = text.match(/^(#{1,6}) /)
@@ -119,84 +146,97 @@ const SHORTCUT_TABLE: ShortcutEntry[] = [
       } else {
         newLine = `${'#'.repeat(match[1].length + 1)} ${text.substring(match[0].length)}`
       }
-      replaceLine(ta, lineStart, lineEnd, newLine)
+      replaceLine(ta, lineStart, lineEnd, newLine, onChange)
     },
   },
   // Ctrl+Shift+L → toggle bullet list
   {
     match: (e) => e.key === 'l' && ctrlOrMeta(e) && e.shiftKey && !e.altKey,
-    handle: (e, ta) => {
-      e.preventDefault()
-      const { lineStart, lineEnd, text } = getLine(ta.value, ta.selectionStart)
-      replaceLine(ta, lineStart, lineEnd, text.startsWith('- ') ? text.substring(2) : `- ${text}`)
-    },
-  },
-  // Ctrl+Shift+O → toggle numbered list
-  {
-    match: (e) => e.key === 'o' && ctrlOrMeta(e) && e.shiftKey && !e.altKey,
-    handle: (e, ta) => {
+    handle: (e, ta, onChange) => {
       e.preventDefault()
       const { lineStart, lineEnd, text } = getLine(ta.value, ta.selectionStart)
       replaceLine(
         ta,
         lineStart,
         lineEnd,
-        /^\d+\. /.test(text) ? text.replace(/^\d+\. /, '') : `1. ${text}`
+        text.startsWith('- ') ? text.substring(2) : `- ${text}`,
+        onChange
+      )
+    },
+  },
+  // Ctrl+Shift+O → toggle numbered list
+  {
+    match: (e) => e.key === 'o' && ctrlOrMeta(e) && e.shiftKey && !e.altKey,
+    handle: (e, ta, onChange) => {
+      e.preventDefault()
+      const { lineStart, lineEnd, text } = getLine(ta.value, ta.selectionStart)
+      replaceLine(
+        ta,
+        lineStart,
+        lineEnd,
+        /^\d+\. /.test(text) ? text.replace(/^\d+\. /, '') : `1. ${text}`,
+        onChange
       )
     },
   },
   // Ctrl+Shift+Q → toggle blockquote
   {
     match: (e) => e.key === 'q' && ctrlOrMeta(e) && e.shiftKey && !e.altKey,
-    handle: (e, ta) => {
+    handle: (e, ta, onChange) => {
       e.preventDefault()
       const { lineStart, lineEnd, text } = getLine(ta.value, ta.selectionStart)
-      replaceLine(ta, lineStart, lineEnd, text.startsWith('> ') ? text.substring(2) : `> ${text}`)
+      replaceLine(
+        ta,
+        lineStart,
+        lineEnd,
+        text.startsWith('> ') ? text.substring(2) : `> ${text}`,
+        onChange
+      )
     },
   },
-  // Ctrl+Shift+C → insert fenced code block
+  // Ctrl+Shift+C → insert fenced code block, cursor on the blank middle line
   {
     match: (e) => e.key === 'c' && ctrlOrMeta(e) && e.shiftKey && !e.altKey,
-    handle: (e, ta) => {
+    handle: (e, ta, onChange) => {
       e.preventDefault()
-      insertText(ta, '```\n\n```')
-      requestAnimationFrame(() => {
-        const cur = ta.selectionStart
-        ta.selectionStart = ta.selectionEnd = cur - 3
-      })
+      const { selectionStart: ss, selectionEnd: se, value } = ta
+      const ins = '```\n\n```'
+      const newValue = value.slice(0, ss) + ins + value.slice(se)
+      // "```\n" is 4 chars → blank line is at ss + 4
+      onChange(newValue)
+      requestAnimationFrame(() => ta.setSelectionRange(ss + 4, ss + 4))
     },
   },
   // Ctrl+Enter → insert blank line below current line
   {
     match: (e) => e.key === 'Enter' && ctrlOrMeta(e) && !e.shiftKey && !e.altKey,
-    handle: (e, ta) => {
+    handle: (e, ta, onChange) => {
       e.preventDefault()
       const { lineEnd } = getLine(ta.value, ta.selectionStart)
-      ta.selectionStart = ta.selectionEnd = lineEnd
-      insertText(ta, '\n')
+      const newValue = ta.value.slice(0, lineEnd) + '\n' + ta.value.slice(lineEnd)
+      applyChange(ta, newValue, lineEnd + 1, onChange)
     },
   },
   // Alt+↑ → move line up
   {
     match: (e) => e.key === 'ArrowUp' && e.altKey && !ctrlOrMeta(e),
-    handle: (e, ta) => {
+    handle: (e, ta, onChange) => {
       e.preventDefault()
       const { lineStart, lineEnd, text: currentLine } = getLine(ta.value, ta.selectionStart)
       if (lineStart === 0) return
       const { lineStart: prevStart, text: prevLine } = getLine(ta.value, lineStart - 1)
       const cursorOffset = ta.selectionStart - lineStart
-      ta.setRangeText(`${currentLine}\n${prevLine}`, prevStart, lineEnd, 'end')
-      ta.dispatchEvent(new Event('input', { bubbles: true }))
-      requestAnimationFrame(() => {
-        const newPos = prevStart + cursorOffset
-        ta.selectionStart = ta.selectionEnd = newPos
-      })
+      const newValue =
+        ta.value.slice(0, prevStart) + `${currentLine}\n${prevLine}` + ta.value.slice(lineEnd)
+      const newPos = prevStart + cursorOffset
+      onChange(newValue)
+      requestAnimationFrame(() => ta.setSelectionRange(newPos, newPos))
     },
   },
   // Alt+↓ → move line down
   {
     match: (e) => e.key === 'ArrowDown' && e.altKey && !ctrlOrMeta(e),
-    handle: (e, ta) => {
+    handle: (e, ta, onChange) => {
       e.preventDefault()
       const val = ta.value
       const { lineStart, lineEnd, text: currentLine } = getLine(val, ta.selectionStart)
@@ -206,22 +246,21 @@ const SHORTCUT_TABLE: ShortcutEntry[] = [
       const nextEnd = nextEndRaw === -1 ? val.length : nextEndRaw
       const nextLine = val.substring(nextStart, nextEnd)
       const cursorOffset = ta.selectionStart - lineStart
-      ta.setRangeText(`${nextLine}\n${currentLine}`, lineStart, nextEnd, 'end')
-      ta.dispatchEvent(new Event('input', { bubbles: true }))
-      requestAnimationFrame(() => {
-        const newPos = lineStart + nextLine.length + 1 + cursorOffset
-        ta.selectionStart = ta.selectionEnd = newPos
-      })
+      const newValue = val.slice(0, lineStart) + `${nextLine}\n${currentLine}` + val.slice(nextEnd)
+      const newPos = lineStart + nextLine.length + 1 + cursorOffset
+      onChange(newValue)
+      requestAnimationFrame(() => ta.setSelectionRange(newPos, newPos))
     },
   },
   // Ctrl+D → duplicate line
   {
     match: (e) => e.key === 'd' && ctrlOrMeta(e) && !e.shiftKey && !e.altKey,
-    handle: (e, ta) => {
+    handle: (e, ta, onChange) => {
       e.preventDefault()
       const { lineEnd, text } = getLine(ta.value, ta.selectionStart)
-      ta.selectionStart = ta.selectionEnd = lineEnd
-      insertText(ta, `\n${text}`)
+      const ins = `\n${text}`
+      const newValue = ta.value.slice(0, lineEnd) + ins + ta.value.slice(lineEnd)
+      applyChange(ta, newValue, lineEnd + ins.length, onChange)
     },
   },
 ]
@@ -230,43 +269,44 @@ const SHORTCUT_TABLE: ShortcutEntry[] = [
 
 function handleEnterAutoContinue(
   e: KeyboardEvent<HTMLTextAreaElement>,
-  ta: HTMLTextAreaElement
+  ta: HTMLTextAreaElement,
+  onChange: (v: string) => void
 ): boolean {
   if (e.key !== 'Enter' || ctrlOrMeta(e) || e.shiftKey || e.altKey) return false
-  const { selectionStart, selectionEnd, value: val } = ta
+  const { selectionStart, selectionEnd } = ta
   if (selectionStart !== selectionEnd) return false
 
-  const { lineStart, lineEnd, text } = getLine(val, selectionStart)
+  const { lineStart, lineEnd, text } = getLine(ta.value, selectionStart)
   if (selectionStart !== lineEnd) return false
 
-  const bulletMatch = text.match(/^(\s*)([-*]) (.+)$/)
-  const numberedMatch = text.match(/^(\s*)(\d+)\. (.+)$/)
   const emptyBullet = text.match(/^(\s*)([-*]) $/)
   const emptyNumbered = text.match(/^(\s*)(\d+)\. $/)
   // Task list patterns — must be checked BEFORE bulletMatch since `- [ ] text`
   // also matches the generic bullet regex.
-  const taskMatch = text.match(/^(\s*)([-*]) \[[ x]\] (.+)$/)
   const emptyTask = text.match(/^(\s*)([-*]) \[[ x]\]\s*$/)
+  const taskMatch = text.match(/^(\s*)([-*]) \[[ x]\] (.+)$/)
+  const bulletMatch = text.match(/^(\s*)([-*]) (.+)$/)
+  const numberedMatch = text.match(/^(\s*)(\d+)\. (.+)$/)
 
   if (emptyTask || emptyBullet || emptyNumbered) {
     e.preventDefault()
-    replaceLine(ta, lineStart, lineEnd, '')
+    replaceLine(ta, lineStart, lineEnd, '', onChange)
     return true
   }
   if (taskMatch) {
     e.preventDefault()
-    insertText(ta, `\n${taskMatch[1]}${taskMatch[2]} [ ] `)
+    insertText(ta, `\n${taskMatch[1]}${taskMatch[2]} [ ] `, onChange)
     return true
   }
   if (bulletMatch) {
     e.preventDefault()
-    insertText(ta, `\n${bulletMatch[1]}${bulletMatch[2]} `)
+    insertText(ta, `\n${bulletMatch[1]}${bulletMatch[2]} `, onChange)
     return true
   }
   if (numberedMatch) {
     e.preventDefault()
     const nextNum = parseInt(numberedMatch[2] ?? '1') + 1
-    insertText(ta, `\n${numberedMatch[1] ?? ''}${nextNum}. `)
+    insertText(ta, `\n${numberedMatch[1] ?? ''}${nextNum}. `, onChange)
     return true
   }
   return false
@@ -274,17 +314,25 @@ function handleEnterAutoContinue(
 
 // ── Hook ──
 
-export function useMarkdownShortcuts(): (e: KeyboardEvent<HTMLTextAreaElement>) => void {
+export function useMarkdownShortcuts(
+  onChange: (v: string) => void
+): (e: KeyboardEvent<HTMLTextAreaElement>) => void {
+  // Keep a stable ref so the handler can always access the latest onChange
+  // without re-registering (avoids stale-closure for onChange).
+  const onChangeRef = useRef(onChange)
+  onChangeRef.current = onChange
+
   return useCallback((e: KeyboardEvent<HTMLTextAreaElement>) => {
     const ta = e.currentTarget
+    const oc = onChangeRef.current
 
     for (const shortcut of SHORTCUT_TABLE) {
       if (shortcut.match(e)) {
-        shortcut.handle(e, ta)
+        shortcut.handle(e, ta, oc)
         return
       }
     }
 
-    handleEnterAutoContinue(e, ta)
-  }, [])
+    handleEnterAutoContinue(e, ta, oc)
+  }, []) // stable — uses onChangeRef, no dependency on onChange
 }
