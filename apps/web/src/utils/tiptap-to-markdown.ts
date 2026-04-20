@@ -151,8 +151,18 @@ function sameMarks(a: readonly Mark[], b: readonly Mark[]): boolean {
 
 // ─── Mark application ─────────────────────────────────────────────────────────
 
-/**
- * Priority order for mark wrapping: higher number → applied first (innermost).
+/** * Escapes characters that would be interpreted as Markdown syntax in plain-text
+ * nodes (i.e. text nodes with no formatting marks). Without this, text like
+ * `**not bold**` typed literally in the WYSIWYG editor would round-trip as bold
+ * when the resulting Markdown is re-parsed.
+ *
+ * `\` must be first to prevent double-escaping.
+ */
+function escapeMd(text: string): string {
+  return text.replace(/[\\*_`~[\]]/g, '\\$&')
+}
+
+/** * Priority order for mark wrapping: higher number → applied first (innermost).
  * `code` is last because backtick spans cannot contain other Markdown syntax.
  */
 const MARK_PRIORITY: Record<string, number> = {
@@ -168,7 +178,9 @@ const MARK_PRIORITY: Record<string, number> = {
 }
 
 function applyMarks(text: string, marks: readonly Mark[]): string {
-  if (marks.length === 0) return text
+  // No marks: escape Markdown-special characters so plain text like **foo**
+  // doesn't become bold when the resulting Markdown is re-parsed.
+  if (marks.length === 0) return escapeMd(text)
   const sorted = [...marks].sort(
     (a, b) => (MARK_PRIORITY[b.type.name] ?? 50) - (MARK_PRIORITY[a.type.name] ?? 50)
   )
