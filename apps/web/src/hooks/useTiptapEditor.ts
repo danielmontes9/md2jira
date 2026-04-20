@@ -185,6 +185,8 @@ export function useTiptapEditor({
   // external previewHtml, the onUpdate callback fires — we must ignore it.
   const isExternalUpdateRef = useRef(false)
   const updateTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
+  // Guard against calling setState after the component that owns this hook unmounts.
+  const isMountedRef = useRef(true)
   // Lazy-loaded TurndownService for HTML→Markdown conversion
   const tdRef = useRef<import('turndown') | null>(null)
   const tdLoadingRef = useRef(false)
@@ -236,6 +238,7 @@ export function useTiptapEditor({
             .then(({ createTurndownService }) => {
               tdRef.current = createTurndownService()
               tdLoadingRef.current = false
+              if (!isMountedRef.current) return
               // Re-trigger the update now that Turndown is ready
               const html = ed.getHTML()
               const md = tdRef.current!.turndown(html)
@@ -251,6 +254,7 @@ export function useTiptapEditor({
           return
         }
         try {
+          if (!isMountedRef.current) return
           const html = ed.getHTML()
           const md = tdRef.current.turndown(html)
           isExternalUpdateRef.current = true
@@ -293,6 +297,14 @@ export function useTiptapEditor({
   // Cancel any pending debounced HTML→Markdown conversion when the active editor
   // changes (e.g. format switches from ADF to wiki) or when the hook unmounts.
   useEffect(() => () => clearTimeout(updateTimeoutRef.current), [activeEditor])
+
+  // Mark as unmounted so pending async callbacks don't call stale setState.
+  useEffect(
+    () => () => {
+      isMountedRef.current = false
+    },
+    []
+  )
 
   const exec = useCallback(
     (cmd: string, arg?: string) => {
