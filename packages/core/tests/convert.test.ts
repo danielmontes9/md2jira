@@ -414,6 +414,26 @@ describe('blockquotes — complex children', () => {
   })
 })
 
+// ── Known gap: table without a GFM separator row ──────────────────────────────
+// remark-gfm requires a separator row (|---|---) to recognise a table block.
+// Without it, the rows are plain paragraphs. AGENTS.md lists "treat first row
+// as header" as the desired behaviour, but this requires a preprocessing step
+// that is not yet implemented. These tests document the CURRENT behaviour so
+// that a future implementation can flip the assertions intentionally.
+describe('tables — missing separator row (known gap)', () => {
+  it('table without separator row is NOT parsed as a table (current behaviour)', () => {
+    const md = '| Name | Age |\n| John | 30 |'
+    const result = convert(md)
+    // Without a separator row, remark-gfm produces paragraphs, not a table.
+    expect(result).not.toContain('||')
+  })
+
+  it('table with separator row is still parsed correctly', () => {
+    const md = '| Name | Age |\n|------|-----|\n| John | 30 |'
+    expect(convert(md)).toBe('||Name||Age||\n|John|30|')
+  })
+})
+
 describe('full-document integration', () => {
   it('converts a document exercising all supported element types', () => {
     const md = [
