@@ -86,6 +86,7 @@ export function ToolbarDropdown({
 }) {
   const isOpen = openKey === dropKey
   const menuRef = useRef<HTMLDivElement | null>(null)
+  const triggerRef = useRef<HTMLButtonElement | null>(null)
 
   // When the dropdown opens via keyboard, focus the first interactive item.
   useEffect(() => {
@@ -103,6 +104,7 @@ export function ToolbarDropdown({
       e.preventDefault()
       e.stopPropagation()
       onClose()
+      triggerRef.current?.focus()
       return
     }
     // Tab key: close the dropdown so focus leaves to the next toolbar button.
@@ -110,6 +112,7 @@ export function ToolbarDropdown({
     // trapping keyboard users (violates WCAG 2.1 SC 2.1.1).
     if (e.key === 'Tab') {
       onClose()
+      triggerRef.current?.focus()
       return
     }
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
@@ -138,6 +141,7 @@ export function ToolbarDropdown({
       }}
     >
       <button
+        ref={triggerRef}
         onMouseDown={(e) => {
           e.preventDefault()
           if (isOpen) onClose()
