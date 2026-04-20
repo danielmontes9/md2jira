@@ -134,13 +134,17 @@ export function App() {
   }, [])
 
   const isPending = markdown !== deferredMarkdown
-  const { jiraOutput, adfDoc, hasConversionError } = useMemo(() => {
+  const { jiraOutput, adfDoc, hasConversionError } = useMemo<{
+    jiraOutput: string
+    adfDoc: AdfDocument | null
+    hasConversionError: boolean
+  }>(() => {
     try {
       if (format === 'adf') {
         const adf = convertToAdf(deferredMarkdown)
         return {
           jiraOutput: JSON.stringify(adf, null, 2),
-          adfDoc: adf as AdfDocument,
+          adfDoc: adf,
           hasConversionError: false,
         }
       }
@@ -216,12 +220,19 @@ export function App() {
     } catch {
       // Worker URL construction or instantiation failed (e.g. jsdom unit tests,
       // or browsers without module-worker support) — render synchronously instead.
+      // The `cancelled` flag prevents calling setPreviewHtml after the component
+      // unmounts or after a newer request supersedes this one.
+      let cancelled = false
       import('./components/jira-output/adf-renderer.js')
         .then(({ adfToHtml }) => {
-          if (workerReqRef.current === id) setPreviewHtml(adfToHtml(adfDoc))
+          if (!cancelled && workerReqRef.current === id) setPreviewHtml(adfToHtml(adfDoc))
         })
-        .catch(() => setPreviewHtml(''))
-      return // no cleanup needed for the synchronous fallback path
+        .catch(() => {
+          if (!cancelled) setPreviewHtml('')
+        })
+      return () => {
+        cancelled = true
+      }
     }
   }, [adfDoc])
 

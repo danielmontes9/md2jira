@@ -82,7 +82,7 @@ export function createTurndownService(): TurndownService {
   td.addRule('codeBlockPre', {
     filter: (node) => node.nodeName === 'PRE' && node.querySelector('code') !== null,
     replacement: (_content: string, node: Node) => {
-      const code = (node as HTMLElement).querySelector('code')
+      const code = asElement(node).querySelector('code')
       // Recover the language from the `language-*` class injected by adf-renderer
       const lang =
         Array.from(code?.classList ?? [])

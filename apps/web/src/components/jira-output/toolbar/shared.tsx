@@ -105,6 +105,13 @@ export function ToolbarDropdown({
       onClose()
       return
     }
+    // Tab key: close the dropdown so focus leaves to the next toolbar button.
+    // Without this, Tab would move focus inside the dropdown panel indefinitely,
+    // trapping keyboard users (violates WCAG 2.1 SC 2.1.1).
+    if (e.key === 'Tab') {
+      onClose()
+      return
+    }
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault()
       const items = Array.from(

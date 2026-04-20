@@ -16,19 +16,26 @@ import TaskItem from '@tiptap/extension-task-item'
 // Load DOMPurify in a separate lazy chunk so it is excluded from the initial
 // JS parse. The network request begins immediately, so DOMPurify is typically
 // available before the first user interaction. sanitize() falls back to a
-// pass-through on the rare initial frame where the promise has not yet
-// resolved — safe because the HTML originates from our own adfToHtml renderer.
+// basic HTML-tag strip on the rare initial frame where the promise has not
+// yet resolved, and whenever DOMPurify fails to load (e.g. strict CSP).
+// The HTML always originates from our own adfToHtml renderer so the fallback
+// risk is minimal, but we never pass untrusted markup through unfiltered.
 let _DOMPurify: null | { sanitize: (html: string) => string } = null
 import('dompurify')
   .then((m) => {
     _DOMPurify = m.default
   })
   .catch(() => {
-    // DOMPurify failed to load (e.g. strict CSP). Keep pass-through fallback.
+    // DOMPurify failed to load (e.g. strict CSP). stripTags fallback remains.
   })
 
+/** Strip all HTML tags as a last-resort fallback when DOMPurify is unavailable. */
+function stripTags(html: string): string {
+  return html.replace(/<[^>]*>/g, '')
+}
+
 function sanitize(html: string): string {
-  return _DOMPurify ? _DOMPurify.sanitize(html) : html
+  return _DOMPurify ? _DOMPurify.sanitize(html) : stripTags(html)
 }
 
 interface UseTiptapEditorOptions {
