@@ -94,10 +94,14 @@ export function useClipboardEvents(
       { type: 'text/html' }
     )
     const textBlob = new Blob([value], { type: 'text/plain' })
+    let mounted = true
     const done = () => {
+      if (!mounted) return
       setCopiedMd(true)
       if (copiedMdTimerRef.current !== null) clearTimeout(copiedMdTimerRef.current)
-      copiedMdTimerRef.current = setTimeout(() => setCopiedMd(false), 1500)
+      copiedMdTimerRef.current = setTimeout(() => {
+        if (mounted) setCopiedMd(false)
+      }, 1500)
     }
     navigator.clipboard
       .write([new ClipboardItem({ 'text/html': htmlBlob, 'text/plain': textBlob })])
@@ -106,8 +110,13 @@ export function useClipboardEvents(
         navigator.clipboard
           .writeText(value)
           .then(done)
-          .catch(() => addToast('Failed to copy to clipboard', 'error'))
+          .catch(() => {
+            if (mounted) addToast('Failed to copy to clipboard', 'error')
+          })
       )
+    return () => {
+      mounted = false
+    }
   }, [value, addToast])
 
   return { copiedMd, handleCopyMd }
