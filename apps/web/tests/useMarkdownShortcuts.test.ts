@@ -86,6 +86,27 @@ describe('useMarkdownShortcuts', () => {
     expect(mockOnChange).not.toHaveBeenCalled()
   })
 
+  it('Shift+Tab works when cursor is at position 0 (start of textarea)', () => {
+    ta.value = '  indented'
+    ta.selectionStart = ta.selectionEnd = 0
+    press('Tab', { shift: true })
+    expect(changedValue()).toBe('indented')
+  })
+
+  it('Shift+Tab dedents the correct line in a multi-line value', () => {
+    ta.value = 'first\n  second'
+    ta.selectionStart = ta.selectionEnd = 8 // inside '  second'
+    press('Tab', { shift: true })
+    expect(changedValue()).toBe('first\nsecond')
+  })
+
+  it('Shift+Tab on a spaces-only line removes all spaces (up to 2)', () => {
+    ta.value = '  '
+    ta.selectionStart = ta.selectionEnd = 2
+    press('Tab', { shift: true })
+    expect(changedValue()).toBe('')
+  })
+
   // ── Ctrl+B / I / K / Shift+K / Shift+X ──────────────────────────────────────
 
   it('Ctrl+B wraps selected text in **', () => {
