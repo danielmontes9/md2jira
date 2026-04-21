@@ -55,6 +55,37 @@ describe('useMarkdownShortcuts', () => {
     expect(changedValue()).toBe('he  llo')
   })
 
+  // ── Shift+Tab — dedent ────────────────────────────────────────────────────────
+
+  it('Shift+Tab removes 2 leading spaces from an indented line', () => {
+    ta.value = '  list item'
+    ta.selectionStart = ta.selectionEnd = 7
+    const e = press('Tab', { shift: true })
+    expect(e.preventDefault).toHaveBeenCalled()
+    expect(changedValue()).toBe('list item')
+  })
+
+  it('Shift+Tab removes only 1 space when line has exactly 1 leading space', () => {
+    ta.value = ' item'
+    ta.selectionStart = ta.selectionEnd = 3
+    press('Tab', { shift: true })
+    expect(changedValue()).toBe('item')
+  })
+
+  it('Shift+Tab removes at most 2 spaces even when more are present', () => {
+    ta.value = '    deeply indented'
+    ta.selectionStart = ta.selectionEnd = 5
+    press('Tab', { shift: true })
+    expect(changedValue()).toBe('  deeply indented')
+  })
+
+  it('Shift+Tab does nothing when the line has no leading spaces', () => {
+    ta.value = 'no indent'
+    ta.selectionStart = ta.selectionEnd = 3
+    press('Tab', { shift: true })
+    expect(mockOnChange).not.toHaveBeenCalled()
+  })
+
   // ── Ctrl+B / I / K / Shift+K / Shift+X ──────────────────────────────────────
 
   it('Ctrl+B wraps selected text in **', () => {

@@ -88,6 +88,22 @@ interface ShortcutEntry {
 }
 
 const SHORTCUT_TABLE: ShortcutEntry[] = [
+  // Shift+Tab → dedent: remove up to 2 leading spaces from the current line.
+  // Must be listed before the plain-Tab entry so it matches first in the loop.
+  {
+    match: (e) => e.key === 'Tab' && e.shiftKey && !ctrlOrMeta(e) && !e.altKey,
+    handle: (e, ta, onChange) => {
+      e.preventDefault()
+      const { lineStart, lineEnd, text } = getLine(ta.value, ta.selectionStart)
+      const dedented = text.replace(/^ {1,2}/, '')
+      if (dedented === text) return // nothing to remove
+      const removed = text.length - dedented.length
+      const newValue = ta.value.slice(0, lineStart) + dedented + ta.value.slice(lineEnd)
+      // Keep cursor at the same column offset, clamped to the line start.
+      const newPos = Math.max(lineStart, ta.selectionStart - removed)
+      applyChange(ta, newValue, newPos, onChange)
+    },
+  },
   // Tab → 2 spaces
   {
     match: (e) => e.key === 'Tab' && !ctrlOrMeta(e) && !e.altKey,
