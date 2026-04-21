@@ -7,7 +7,11 @@ import { InfoModal } from '../src/components/InfoModal.js'
 // jsdom stubs
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockReturnValue({ matches: false }),
+  value: vi.fn().mockReturnValue({
+    matches: false,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  }),
 })
 
 describe('Header', () => {
