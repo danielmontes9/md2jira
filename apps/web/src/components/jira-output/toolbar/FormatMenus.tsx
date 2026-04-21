@@ -126,7 +126,7 @@ export function FormatMenu({ exec, close, openKey, onOpen, activeFormats }: Form
           </span>
           <span className="flex items-center gap-2">
             {activeFormats.has('code') && <CheckIcon />}
-            <span className="text-xs text-neutral-400">{`${MOD_KEY}+Shift+M`}</span>
+            <span className="text-xs text-neutral-400">{`${MOD_KEY}+Shift+K`}</span>
           </span>
         </button>
         <p className="mt-1.5 border-t border-neutral-100 px-4 pt-2 pb-1.5 text-[10px] leading-tight text-neutral-400 dark:border-neutral-800">
