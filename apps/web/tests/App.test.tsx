@@ -74,7 +74,7 @@ describe('App – conversion pipeline', () => {
 
     // The code view pre should show JSON with ADF version field
     await waitFor(() => {
-      const pre = screen.getByRole('region', { name: /jira markup code/i })
+      const pre = screen.getByRole('region', { name: /adf json code/i })
       expect(pre.textContent).toContain('"version"')
     })
   })
