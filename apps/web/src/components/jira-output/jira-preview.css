@@ -374,6 +374,10 @@
   font-style: italic;
   color: inherit;
 } /* _italic_ */
+.wiki-strike {
+  text-decoration: line-through;
+  color: inherit;
+} /* -strike- */
 .wiki-inline-code {
   color: #c2410c;
   font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
@@ -386,6 +390,10 @@
   color: #d97706;
   font-weight: 600;
 } /* {color:red} macro tokens */
+.wiki-block-macro {
+  color: #0891b2;
+  font-weight: 600;
+} /* {info} {panel} {note} block macros */
 
 .dark .wiki-blockquote {
   color: #38bdf8;
@@ -401,4 +409,7 @@
 }
 .dark .wiki-macro {
   color: #fbbf24;
+}
+.dark .wiki-block-macro {
+  color: #22d3ee;
 }

@@ -73,6 +73,11 @@ function highlightWikiLine(line: string): string {
     return `<span class="wiki-code-fence">${esc}</span>`
   }
 
+  // Block macros: {info}, {note}, {warning}, {tip}, {quote}, {panel:title=...}
+  if (/^\{(?:panel|info|note|warning|tip|quote)(?::[^}]*)?\}$/.test(line)) {
+    return `<span class="wiki-block-macro">${esc}</span>`
+  }
+
   // Blockquote: bq. text
   if (/^bq\. /.test(line)) {
     return esc.replace(/^(bq\.)/, '<span class="wiki-blockquote">$1</span>')
@@ -131,7 +136,15 @@ function applyInlineHighlights(esc: string): string {
     return `<span class="wiki-italic">${match}</span>`
   })
 
-  // 6. Restore link placeholders
+  // 6. Strikethrough: -text- (Jira wiki output for ~~text~~ from Markdown).
+  //    Negative lookarounds prevent false positives in hyphenated words and dates
+  //    (e.g. "e-mail" or "2024-04-20" are not matched).
+  result = result.replace(
+    /(?<![a-zA-Z0-9])-([^\s-](?:[^-\n]*[^\s-])?)-(?![a-zA-Z0-9])/g,
+    (match) => `<span class="wiki-strike">${match}</span>`
+  )
+
+  // 7. Restore link placeholders
   result = result.replace(/\x02(\d+)\x02/g, (_, idx: string) => linkSegments[Number(idx)] ?? '')
 
   // 7. Restore inline code placeholders
