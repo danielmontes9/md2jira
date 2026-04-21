@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { EditorContent } from '@tiptap/react'
 import type { Editor } from '@tiptap/react'
 import { highlightJson } from '../../utils/highlight-json.js'
@@ -33,6 +34,11 @@ export function JiraOutputContent({
   editMode,
   isPending,
 }: JiraOutputContentProps) {
+  // Memoize expensive syntax-highlight passes: only recompute when `value` changes,
+  // not on every render triggered by isPending / editMode / canEdit toggling.
+  const highlightedJson = useMemo(() => highlightJson(value), [value])
+  const highlightedWiki = useMemo(() => highlightWiki(value), [value])
+
   if (viewMode === 'code') {
     return (
       <pre
@@ -41,7 +47,7 @@ export function JiraOutputContent({
         className="flex-1 overflow-auto whitespace-pre-wrap p-4 font-mono text-sm text-neutral-900 dark:text-neutral-100"
         // highlightJson escapes HTML entities before injecting <span> tags — safe.
         // eslint-disable-next-line react/no-danger
-        dangerouslySetInnerHTML={format === 'adf' ? { __html: highlightJson(value) } : undefined}
+        dangerouslySetInnerHTML={format === 'adf' ? { __html: highlightedJson } : undefined}
       >
         {format !== 'adf' ? value : undefined}
       </pre>
@@ -68,7 +74,7 @@ export function JiraOutputContent({
       className={`jira-preview flex-1 overflow-auto whitespace-pre-wrap p-6 font-mono text-sm text-neutral-900 dark:text-neutral-100 ${isPending ? 'opacity-50' : ''}`}
       // highlightWiki escapes HTML entities before injecting <span> tags — safe.
       // eslint-disable-next-line react/no-danger
-      dangerouslySetInnerHTML={{ __html: highlightWiki(value) }}
+      dangerouslySetInnerHTML={{ __html: highlightedWiki }}
     />
   )
 }
