@@ -33,15 +33,17 @@ export function App() {
 
   // useDeferredValue keeps the textarea fully responsive by deferring
   // the expensive convert() / convertToAdf() calls until the browser is idle.
-  // For large documents (>10 KB) an additional 150 ms debounce prevents running
-  // convert() on every keystroke during rapid edits or bulk paste operations.
+  // For large documents an additional debounce prevents running convert() on
+  // every keystroke during rapid edits or bulk paste operations.
+  const LARGE_DOC_THRESHOLD = 10_000 // chars — below this, convert on every keystroke
+  const LARGE_DOC_DEBOUNCE_MS = 150 // ms — debounce delay for large documents
   const [debouncedMarkdown, setDebouncedMarkdown] = useState(markdown)
   useEffect(() => {
-    if (markdown.length <= 10_000) {
+    if (markdown.length <= LARGE_DOC_THRESHOLD) {
       setDebouncedMarkdown(markdown)
       return
     }
-    const t = setTimeout(() => setDebouncedMarkdown(markdown), 150)
+    const t = setTimeout(() => setDebouncedMarkdown(markdown), LARGE_DOC_DEBOUNCE_MS)
     return () => clearTimeout(t)
   }, [markdown])
   const deferredMarkdown = useDeferredValue(debouncedMarkdown)
