@@ -26,7 +26,10 @@ const GROUPS = [
       { key: `${mod}+Shift+L`, label: 'Toggle bullet list' },
       { key: `${mod}+Shift+O`, label: 'Toggle numbered list' },
       { key: `${mod}+Shift+Q`, label: 'Toggle blockquote' },
-      { key: `${mod}+Shift+C`, label: 'Insert code block' },
+      {
+        key: `${mod}+Shift+C`,
+        label: 'Insert code block ⚠ may conflict with DevTools on Chrome/Edge',
+      },
       { key: `${mod}+Enter`, label: 'Insert blank line below' },
     ],
   },

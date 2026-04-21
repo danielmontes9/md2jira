@@ -87,23 +87,23 @@ export const JiraOutput = memo(function JiraOutput({
       {/* ── Editor toolbar ── */}
       {canEdit && (
         <div
+          className={`grid transition-[grid-template-rows] duration-200 ${showToolbar ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
           aria-hidden={!showToolbar}
           {...(showToolbar ? {} : { inert: '' })}
-          className={`transition-all duration-200 ${showToolbar ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
-          style={{
-            height: showToolbar ? undefined : 0,
-            overflow: showToolbar ? 'visible' : 'hidden',
-          }}
         >
-          <Suspense fallback={null}>
-            <EditorToolbar
-              exec={exec}
-              insertHtml={insertHtml}
-              activeBlock={activeBlock}
-              activeFormats={activeFormats}
-              activeColor={activeColor}
-            />
-          </Suspense>
+          <div
+            className={`overflow-hidden transition-opacity duration-200 ${showToolbar ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
+          >
+            <Suspense fallback={null}>
+              <EditorToolbar
+                exec={exec}
+                insertHtml={insertHtml}
+                activeBlock={activeBlock}
+                activeFormats={activeFormats}
+                activeColor={activeColor}
+              />
+            </Suspense>
+          </div>
         </div>
       )}
 

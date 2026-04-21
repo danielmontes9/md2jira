@@ -45,10 +45,14 @@ export function useAdfHtmlWorker(adfDoc: AdfDocument | null): {
       }
       const worker = workerRef.current
 
-      const onMessage = (e: MessageEvent<{ id: number; html: string }>) => {
+      const onMessage = (e: MessageEvent<{ id: number; html: string; error?: boolean }>) => {
         if (e.data.id === id) {
           clearTimeout(timeoutId)
-          setState({ html: e.data.html, workerError: false })
+          if (e.data.error) {
+            setState({ html: '', workerError: true })
+          } else {
+            setState({ html: e.data.html, workerError: false })
+          }
         }
       }
       // 5 s safety net: if the worker stalls (e.g. pathologically large doc),

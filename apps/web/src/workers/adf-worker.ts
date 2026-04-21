@@ -18,6 +18,11 @@ interface AdfWorkerRequest {
 
 self.onmessage = (e: MessageEvent<AdfWorkerRequest>) => {
   const { id, doc } = e.data
-  const html = adfToHtml(doc)
-  self.postMessage({ id, html })
+  try {
+    const html = adfToHtml(doc)
+    self.postMessage({ id, html })
+  } catch {
+    // Malformed ADF payload — report the error without crashing the worker.
+    self.postMessage({ id, html: '', error: true })
+  }
 }
