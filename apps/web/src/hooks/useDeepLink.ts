@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { encodeMarkdown, URL_MD_MAX_ENCODED } from '../utils/markdown-url.js'
 import type { OutputFormat } from '../types.js'
 
@@ -13,10 +13,16 @@ import type { OutputFormat } from '../types.js'
  * too large to deep-link (param is silently dropped).
  */
 export function useDeepLink(markdown: string, format: OutputFormat): { isDeepLinkActive: boolean } {
-  // Memoized so encodeMarkdown (btoa) only runs when markdown changes, not on every render.
+  // Cache the encoded value so both the memo and the effect reuse it without
+  // calling btoa + encodeURIComponent twice per markdown change.
+  const encodedRef = useRef('')
+  const encoded = markdown ? encodeMarkdown(markdown) : ''
+  encodedRef.current = encoded
+
   const isDeepLinkActive = useMemo(
-    () => !markdown || encodeMarkdown(markdown).length <= URL_MD_MAX_ENCODED,
-    [markdown]
+    () => !markdown || encoded.length <= URL_MD_MAX_ENCODED,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [markdown] // `encoded` is derived from markdown — one dep is sufficient
   )
 
   useEffect(() => {
@@ -28,9 +34,10 @@ export function useDeepLink(markdown: string, format: OutputFormat): { isDeepLin
         if (!markdown) {
           url.searchParams.delete('md')
         } else {
-          const encoded = encodeMarkdown(markdown)
-          if (encoded.length <= URL_MD_MAX_ENCODED) {
-            url.searchParams.set('md', encoded)
+          // Read the cached encoded value — no second btoa call.
+          const enc = encodedRef.current
+          if (enc.length <= URL_MD_MAX_ENCODED) {
+            url.searchParams.set('md', enc)
           } else {
             url.searchParams.delete('md')
           }
