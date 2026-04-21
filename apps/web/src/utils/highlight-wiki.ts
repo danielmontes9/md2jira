@@ -147,7 +147,7 @@ function applyInlineHighlights(esc: string): string {
   // 7. Restore link placeholders
   result = result.replace(/\x02(\d+)\x02/g, (_, idx: string) => linkSegments[Number(idx)] ?? '')
 
-  // 7. Restore inline code placeholders
+  // 8. Restore inline code placeholders
   result = result.replace(/\x01(\d+)\x01/g, (_, idx: string) => codeSegments[Number(idx)] ?? '')
 
   return result
