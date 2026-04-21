@@ -243,23 +243,23 @@ describe('EditorToolbar', () => {
     expect(codeBtn).toHaveAttribute('aria-pressed', 'false')
   })
 
-  it('FormatMenu Bold item has aria-pressed="true" when bold is in activeFormats', () => {
+  it('FormatMenu Bold item has aria-checked="true" when bold is in activeFormats', () => {
     renderToolbar(new Set(['bold']))
     const bBtn = screen.getByTitle('Format text').closest('button')!
     fireEvent.mouseDown(bBtn)
     const boldItem = screen.getByText('Bold').closest('button')!
-    expect(boldItem).toHaveAttribute('aria-pressed', 'true')
+    expect(boldItem).toHaveAttribute('aria-checked', 'true')
   })
 
-  it('FormatMenu Bold item has aria-pressed="false" when bold is not in activeFormats', () => {
+  it('FormatMenu Bold item has aria-checked="false" when bold is not in activeFormats', () => {
     renderToolbar(new Set())
     const bBtn = screen.getByTitle('Format text').closest('button')!
     fireEvent.mouseDown(bBtn)
     const boldItem = screen.getByText('Bold').closest('button')!
-    expect(boldItem).toHaveAttribute('aria-pressed', 'false')
+    expect(boldItem).toHaveAttribute('aria-checked', 'false')
   })
 
-  it('ListsMenu Bullet list item has aria-pressed="true" when bullet list is active', () => {
+  it('ListsMenu Bullet list item has aria-checked="true" when bullet list is active', () => {
     renderToolbar(new Set(['insertUnorderedList']))
     const menuTriggers = screen
       .getAllByRole('button')
@@ -267,7 +267,7 @@ describe('EditorToolbar', () => {
     const listsBtn = menuTriggers[2]!
     fireEvent.mouseDown(listsBtn)
     const bulletItem = screen.getByText('Bullet list').closest('button')!
-    expect(bulletItem).toHaveAttribute('aria-pressed', 'true')
+    expect(bulletItem).toHaveAttribute('aria-checked', 'true')
   })
 
   it('ColorMenu "Remove color" has aria-selected="true" when no color is active', () => {

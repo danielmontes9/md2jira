@@ -93,10 +93,10 @@ describe('useFileImportExport', () => {
       await new Promise<void>((resolve) => setTimeout(resolve, 50))
     })
     expect(mockOnChange).toHaveBeenCalledWith(content)
-    expect(mockAddToast).not.toHaveBeenCalled()
+    expect(mockAddToast).toHaveBeenCalledWith('Imported "test.md"', 'success')
   })
 
-  it('handleFileChange accepts .txt files without showing a toast', async () => {
+  it('handleFileChange accepts .txt files and shows a success toast', async () => {
     const { result } = renderHook(() => useFileImportExport('', mockOnChange, mockAddToast))
     const content = 'plain text'
     const mockFile = new File([content], 'notes.txt', { type: 'text/plain' })
@@ -110,7 +110,7 @@ describe('useFileImportExport', () => {
       await new Promise<void>((resolve) => setTimeout(resolve, 50))
     })
     expect(mockOnChange).toHaveBeenCalledWith(content)
-    expect(mockAddToast).not.toHaveBeenCalled()
+    expect(mockAddToast).toHaveBeenCalledWith('Imported "notes.txt"', 'success')
   })
 
   it('handleFileChange shows an error toast when FileReader fires an error', async () => {
