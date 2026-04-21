@@ -39,39 +39,39 @@ export function ListsMenu({ exec, close, openKey, onOpen, activeFormats }: Lists
     >
       <div className={`${DROP_CLS} min-w-53.75`}>
         <button
-          role="menuitem"
+          role="menuitemcheckbox"
           onMouseDown={(e) => {
             e.preventDefault()
             exec('insertUnorderedList')
             close()
           }}
-          aria-pressed={activeFormats.has('insertUnorderedList')}
+          aria-checked={activeFormats.has('insertUnorderedList')}
           className={`${DROP_ITEM_CLS} justify-between ${activeFormats.has('insertUnorderedList') ? 'bg-neutral-100 dark:bg-neutral-800' : ''}`}
         >
           <span>Bullet list</span>
           <span className="text-xs text-neutral-400">{`${MOD_KEY}+Shift+8`}</span>
         </button>
         <button
-          role="menuitem"
+          role="menuitemcheckbox"
           onMouseDown={(e) => {
             e.preventDefault()
             exec('insertOrderedList')
             close()
           }}
-          aria-pressed={activeFormats.has('insertOrderedList')}
+          aria-checked={activeFormats.has('insertOrderedList')}
           className={`${DROP_ITEM_CLS} justify-between ${activeFormats.has('insertOrderedList') ? 'bg-neutral-100 dark:bg-neutral-800' : ''}`}
         >
           <span>Numbered list</span>
           <span className="text-xs text-neutral-400">{`${MOD_KEY}+Shift+7`}</span>
         </button>
         <button
-          role="menuitem"
+          role="menuitemcheckbox"
           onMouseDown={(e) => {
             e.preventDefault()
             exec('toggleTaskList')
             close()
           }}
-          aria-pressed={activeFormats.has('toggleTaskList')}
+          aria-checked={activeFormats.has('toggleTaskList')}
           className={`${DROP_ITEM_CLS} justify-between ${activeFormats.has('toggleTaskList') ? 'bg-neutral-100 dark:bg-neutral-800' : ''}`}
         >
           <span>Task list</span>
