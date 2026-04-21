@@ -48,6 +48,9 @@ function readValidatedFile(
     const text = ev.target?.result
     if (typeof text === 'string') onSuccess(text, file.name)
   }
+  reader.onerror = () => {
+    onError('Could not read the file. It may be corrupted or inaccessible.')
+  }
   reader.readAsText(file)
 }
 

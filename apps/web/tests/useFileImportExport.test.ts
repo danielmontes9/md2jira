@@ -113,6 +113,37 @@ describe('useFileImportExport', () => {
     expect(mockAddToast).not.toHaveBeenCalled()
   })
 
+  it('handleFileChange shows an error toast when FileReader fires an error', async () => {
+    const { result } = renderHook(() => useFileImportExport('', mockOnChange, mockAddToast))
+    const mockFile = new File(['content'], 'test.md', { type: 'text/markdown' })
+
+    // Stub FileReader so it fires onerror synchronously
+    const OriginalFileReader = global.FileReader
+    class ErrorFileReader {
+      onload: (() => void) | null = null
+      onerror: (() => void) | null = null
+      readAsText() {
+        setTimeout(() => this.onerror?.(), 0)
+      }
+    }
+    global.FileReader = ErrorFileReader as unknown as typeof FileReader
+
+    const event = {
+      target: { files: [mockFile], value: '' },
+    } as unknown as ChangeEvent<HTMLInputElement>
+    act(() => {
+      result.current.handleFileChange(event)
+    })
+    await act(async () => {
+      await new Promise<void>((resolve) => setTimeout(resolve, 50))
+    })
+
+    expect(mockAddToast).toHaveBeenCalledWith(expect.stringContaining('read'), 'error')
+    expect(mockOnChange).not.toHaveBeenCalled()
+
+    global.FileReader = OriginalFileReader
+  })
+
   it('handleExport creates a download anchor with filename document.md', () => {
     const createObjectURL = vi.fn(() => 'blob:test-url')
     const revokeObjectURL = vi.fn()
