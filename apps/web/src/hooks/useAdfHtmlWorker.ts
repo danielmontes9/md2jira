@@ -15,8 +15,6 @@ import type { AdfDocument } from 'md2jira-core'
 export function useAdfHtmlWorker(adfDoc: AdfDocument | null): {
   html: string
   workerError: boolean
-  /** True while the worker (or sync fallback) is rendering the ADF document. */
-  isRendering: boolean
   retryWorker: () => void
 } {
   const [state, setState] = useState({ html: '', workerError: false, isRendering: false })
@@ -109,5 +107,5 @@ export function useAdfHtmlWorker(adfDoc: AdfDocument | null): {
     setRetryCount((c) => c + 1)
   }, [])
 
-  return { ...state, retryWorker }
+  return { html: state.html, workerError: state.workerError, retryWorker }
 }

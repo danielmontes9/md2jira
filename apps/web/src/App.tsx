@@ -84,7 +84,7 @@ export function App() {
   }, [deferredMarkdown, format])
 
   // Renders the ADF document to HTML off-thread using a Web Worker.
-  const { html: previewHtml, workerError, retryWorker, isRendering } = useAdfHtmlWorker(adfDoc)
+  const { html: previewHtml, workerError, retryWorker } = useAdfHtmlWorker(adfDoc)
 
   // isPending drives the spinner in the output panel header.
   // Only show for large documents (> LARGE_DOC_THRESHOLD) where the 150 ms

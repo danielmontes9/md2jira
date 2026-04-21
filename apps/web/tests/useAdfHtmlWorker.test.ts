@@ -134,17 +134,16 @@ describe('useAdfHtmlWorker', () => {
     expect(typeof result.current.html).toBe('string')
   })
 
-  it('returns isRendering false when adfDoc is null', () => {
+  it('returns empty html when adfDoc is null', () => {
     const { result } = renderHook(() => useAdfHtmlWorker(null))
-    expect(result.current.isRendering).toBe(false)
+    expect(result.current.html).toBe('')
   })
 
-  it('returns isRendering false after rendering completes', async () => {
+  it('returns html after rendering completes', async () => {
     const { result } = renderHook(() => useAdfHtmlWorker(SIMPLE_ADF))
     await act(async () => {
       await vi.runAllTimersAsync()
     })
-    expect(result.current.isRendering).toBe(false)
     expect(result.current.html).toContain('Hello world')
   })
 })
