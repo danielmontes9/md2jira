@@ -37,7 +37,7 @@ export function ListsMenu({ exec, close, openKey, onOpen, activeFormats }: Lists
         </>
       }
     >
-      <div className={DROP_CLS} style={{ minWidth: 215 }}>
+      <div className={`${DROP_CLS} min-w-[215px]`}>
         <button
           role="menuitem"
           onMouseDown={(e) => {
@@ -105,7 +105,7 @@ export function ColorMenu({ exec, close, openKey, onOpen, activeColor }: ColorMe
         </span>
       }
     >
-      <div className={`${DROP_CLS} p-3`} style={{ minWidth: 222 }}>
+      <div className={`${DROP_CLS} p-3 min-w-[222px]`}>
         <div className="grid grid-cols-7 gap-1">
           {TEXT_COLORS.map((color) => (
             <button
@@ -189,10 +189,7 @@ export function EmojiMenu({ exec, close, openKey, onOpen }: EmojiMenuProps) {
         </span>
       }
     >
-      <div
-        className={`${DROP_CLS} p-2`}
-        style={{ minWidth: 280, maxHeight: 300, overflowY: 'auto' }}
-      >
+      <div className={`${DROP_CLS} p-2 min-w-[280px] max-h-[300px] overflow-y-auto`}>
         <input
           type="text"
           aria-label="Search emojis"
@@ -273,7 +270,7 @@ export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertM
         </span>
       }
     >
-      <div className={DROP_CLS} style={{ minWidth: 265 }}>
+      <div className={`${DROP_CLS} min-w-[265px]`}>
         <button
           role="menuitem"
           onMouseDown={(e) => {

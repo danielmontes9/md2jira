@@ -49,8 +49,11 @@ export const MarkdownInput = memo(function MarkdownInput({
   const handleKeyDown = useMarkdownShortcuts(onChange)
 
   const lineCount = value.split('\n').length
-  const lineNumbers = useMemo(
-    () => Array.from({ length: lineCount }, (_, i) => <div key={i + 1}>{i + 1}</div>),
+  // A single pre-formatted text node is far cheaper than O(n) individual DOM
+  // elements for large documents. String of "1\n2\n3\n..." renders identically
+  // with `whitespace-pre` applied to the container.
+  const lineNumbersText = useMemo(
+    () => Array.from({ length: lineCount }, (_, i) => i + 1).join('\n'),
     [lineCount]
   )
 
@@ -115,9 +118,9 @@ export const MarkdownInput = memo(function MarkdownInput({
           <div
             ref={gutterRef}
             aria-hidden="true"
-            className="select-none overflow-hidden border-r border-neutral-200 bg-neutral-50 px-3 py-4 text-right font-mono text-sm leading-6 text-neutral-600 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-400"
+            className="select-none overflow-hidden whitespace-pre border-r border-neutral-200 bg-neutral-50 px-3 py-4 text-right font-mono text-sm leading-6 text-neutral-600 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-400"
           >
-            {lineNumbers}
+            {lineNumbersText}
           </div>
           {/* Textarea */}
           <textarea

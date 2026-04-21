@@ -13,9 +13,22 @@ import { useDeepLink } from './hooks/useDeepLink.js'
 import { useAdfHtmlWorker } from './hooks/useAdfHtmlWorker.js'
 import { getInitialMarkdown, PLACEHOLDER } from './utils/markdown-url.js'
 
+/** Reads the initial output format from the ?fmt= URL param, then localStorage, then 'adf'. */
+function getInitialFormat(): OutputFormat {
+  const urlFmt = new URLSearchParams(window.location.search).get('fmt')
+  if (urlFmt === 'wiki' || urlFmt === 'adf') return urlFmt
+  try {
+    const stored = localStorage.getItem('output-format')
+    if (stored === 'wiki' || stored === 'adf') return stored
+  } catch {
+    // localStorage unavailable (sandboxed iframe, privacy mode)
+  }
+  return 'adf'
+}
+
 export function App() {
   const [markdown, setMarkdown] = useState(() => getInitialMarkdown(PLACEHOLDER))
-  const [format, setFormat] = useState<OutputFormat>('adf')
+  const [format, setFormat] = useState<OutputFormat>(getInitialFormat)
   const { theme, toggleTheme } = useTheme()
 
   // useDeferredValue keeps the textarea fully responsive by deferring
@@ -33,8 +46,17 @@ export function App() {
   }, [markdown])
   const deferredMarkdown = useDeferredValue(debouncedMarkdown)
 
-  // Debounced URL deep-linking: update ?md= param 500ms after the user stops typing.
-  const { isDeepLinkActive } = useDeepLink(markdown)
+  // Persist format preference to localStorage whenever it changes.
+  useEffect(() => {
+    try {
+      localStorage.setItem('output-format', format)
+    } catch {
+      // localStorage unavailable — preference not persisted
+    }
+  }, [format])
+
+  // Debounced URL deep-linking: update ?md= and ?fmt= params 500ms after changes.
+  const { isDeepLinkActive } = useDeepLink(markdown, format)
 
   const isPending = markdown !== deferredMarkdown
   const { jiraOutput, adfDoc, hasConversionError } = useMemo<{
@@ -89,15 +111,6 @@ export function App() {
             </button>
           </div>
         )}
-        <noscript>
-          <div className="p-8 text-center">
-            <h2 className="text-xl font-bold">md2jira-previewer</h2>
-            <p>
-              Convert Markdown to Jira Wiki Markup and Atlassian Document Format (ADF). Please
-              enable JavaScript to use this tool.
-            </p>
-          </div>
-        </noscript>
         <main className="flex flex-1 flex-col gap-4 overflow-auto p-4 sm:flex-row sm:overflow-hidden">
           <section aria-label="Markdown input" className="flex min-h-64 flex-1 flex-col sm:min-h-0">
             <ErrorBoundary>

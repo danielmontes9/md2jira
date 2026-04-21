@@ -35,7 +35,7 @@ export function TextStyleMenu({ exec, close, openKey, onOpen, activeBlock }: Tex
         </>
       }
     >
-      <div className={DROP_CLS} style={{ minWidth: 190 }}>
+      <div className={`${DROP_CLS} min-w-[190px]`}>
         {TEXT_STYLES.map(({ label, tag, cls }) => {
           const isActive = activeBlock === tag.toLowerCase()
           return (
@@ -84,7 +84,7 @@ export function FormatMenu({ exec, close, openKey, onOpen, activeFormats }: Form
         </>
       }
     >
-      <div className={DROP_CLS} style={{ minWidth: 215 }}>
+      <div className={`${DROP_CLS} min-w-[215px]`}>
         {FORMAT_ITEMS.map(({ label, shortcut, iconCls, icon, cmd }) => {
           const isActive = activeFormats.has(cmd)
           return (
@@ -129,6 +129,10 @@ export function FormatMenu({ exec, close, openKey, onOpen, activeFormats }: Form
             <span className="text-xs text-neutral-400">{`${MOD_KEY}+Shift+M`}</span>
           </span>
         </button>
+        <p className="mt-1.5 border-t border-neutral-100 px-4 pt-2 pb-1.5 text-[10px] leading-tight text-neutral-400 dark:border-neutral-800">
+          Underline, subscript, superscript and color are editor-only — they serialize to HTML tags
+          in exported Markdown.
+        </p>
       </div>
     </ToolbarDropdown>
   )

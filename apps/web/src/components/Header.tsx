@@ -5,6 +5,8 @@ import { lazyNamed } from '../utils/lazy-named.js'
 
 const InfoModal = lazyNamed(() => import('./InfoModal.js'), 'InfoModal')
 
+const GITHUB_URL = 'https://github.com/danielmontes9/md2jira'
+
 interface HeaderProps {
   theme: 'light' | 'dark'
   onToggleTheme: () => void
@@ -58,7 +60,7 @@ export const Header = memo(function Header({ theme, onToggleTheme }: HeaderProps
           </a>
           <div className="flex items-center gap-1 sm:order-3 sm:shrink-0">
             <a
-              href="https://github.com/danielmontes9/md2jira"
+              href={GITHUB_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="hidden items-center gap-1.5 rounded-full border border-neutral-200 px-3 py-1 text-xs text-neutral-500 transition-colors hover:border-yellow-400 hover:text-yellow-500 sm:flex dark:border-neutral-700 dark:text-neutral-400 dark:hover:border-yellow-500 dark:hover:text-yellow-400"
@@ -67,7 +69,7 @@ export const Header = memo(function Header({ theme, onToggleTheme }: HeaderProps
               Star on GitHub
             </a>
             <a
-              href="https://github.com/danielmontes9/md2jira"
+              href={GITHUB_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="rounded-md p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
