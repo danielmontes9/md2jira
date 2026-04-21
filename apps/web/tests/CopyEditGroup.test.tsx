@@ -1,7 +1,8 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { CopyEditGroup } from '../src/components/jira-output/CopyEditGroup.js'
+import { JiraOutputHeader } from '../src/components/jira-output/JiraOutputHeader.js'
 
 const noop = () => {}
 
@@ -183,5 +184,72 @@ describe('CopyEditGroup', () => {
       'title',
       'Copy Wiki Markup to clipboard'
     )
+  })
+})
+
+describe('JiraOutputHeader — format toggle', () => {
+  const baseProps = {
+    viewMode: 'preview' as const,
+    isPending: false,
+    onFormatChange: noop,
+    onViewModeChange: noop,
+    canEdit: false,
+    editMode: false,
+    copied: false,
+    onCopy: noop,
+    onToggleEdit: noop,
+  }
+
+  it('format toggle is rendered as a radiogroup', () => {
+    render(<JiraOutputHeader format="adf" {...baseProps} />)
+    expect(screen.getByRole('radiogroup', { name: /output format/i })).toBeInTheDocument()
+  })
+
+  it('"Jira Cloud" radio is checked and "Wiki Markup" is unchecked when format is "adf"', () => {
+    render(<JiraOutputHeader format="adf" {...baseProps} />)
+    expect(screen.getByRole('radio', { name: 'Jira Cloud' })).toHaveAttribute(
+      'aria-checked',
+      'true'
+    )
+    expect(screen.getByRole('radio', { name: 'Wiki Markup' })).toHaveAttribute(
+      'aria-checked',
+      'false'
+    )
+  })
+
+  it('"Wiki Markup" radio is checked and "Jira Cloud" is unchecked when format is "wiki"', () => {
+    render(<JiraOutputHeader format="wiki" {...baseProps} />)
+    expect(screen.getByRole('radio', { name: 'Wiki Markup' })).toHaveAttribute(
+      'aria-checked',
+      'true'
+    )
+    expect(screen.getByRole('radio', { name: 'Jira Cloud' })).toHaveAttribute(
+      'aria-checked',
+      'false'
+    )
+  })
+
+  it('clicking "Wiki Markup" radio calls onFormatChange("wiki")', () => {
+    const onFormatChange = vi.fn()
+    render(<JiraOutputHeader format="adf" {...baseProps} onFormatChange={onFormatChange} />)
+    fireEvent.click(screen.getByRole('radio', { name: 'Wiki Markup' }))
+    expect(onFormatChange).toHaveBeenCalledWith('wiki')
+  })
+
+  it('clicking "Jira Cloud" radio calls onFormatChange("adf")', () => {
+    const onFormatChange = vi.fn()
+    render(<JiraOutputHeader format="wiki" {...baseProps} onFormatChange={onFormatChange} />)
+    fireEvent.click(screen.getByRole('radio', { name: 'Jira Cloud' }))
+    expect(onFormatChange).toHaveBeenCalledWith('adf')
+  })
+
+  it('view-mode toggle is rendered as a radiogroup when format is "adf"', () => {
+    render(<JiraOutputHeader format="adf" {...baseProps} />)
+    expect(screen.getByRole('radiogroup', { name: /view mode/i })).toBeInTheDocument()
+  })
+
+  it('view-mode toggle is not rendered when format is "wiki"', () => {
+    render(<JiraOutputHeader format="wiki" {...baseProps} />)
+    expect(screen.queryByRole('radiogroup', { name: /view mode/i })).not.toBeInTheDocument()
   })
 })

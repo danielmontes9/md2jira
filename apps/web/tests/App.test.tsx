@@ -33,7 +33,7 @@ describe('App – conversion pipeline', () => {
     render(<App />)
 
     // Switch to Wiki Markup format
-    const wikiBtn = screen.getByRole('button', { name: 'Wiki Markup' })
+    const wikiBtn = screen.getByRole('radio', { name: 'Wiki Markup' })
     await act(async () => {
       fireEvent.click(wikiBtn)
     })
@@ -49,7 +49,7 @@ describe('App – conversion pipeline', () => {
     render(<App />)
 
     // Switch to Wiki Markup format first
-    const wikiBtn = screen.getByRole('button', { name: 'Wiki Markup' })
+    const wikiBtn = screen.getByRole('radio', { name: 'Wiki Markup' })
     await act(async () => {
       fireEvent.click(wikiBtn)
     })
@@ -70,8 +70,8 @@ describe('App – conversion pipeline', () => {
     render(<App />)
 
     // App starts in ADF format. Switch to Code view.
-    const viewModeGroup = screen.getByRole('group', { name: /view mode/i })
-    const codeBtn = within(viewModeGroup).getByRole('button', { name: 'Code' })
+    const viewModeGroup = screen.getByRole('radiogroup', { name: /view mode/i })
+    const codeBtn = within(viewModeGroup).getByRole('radio', { name: 'Code' })
     await act(async () => {
       fireEvent.click(codeBtn)
     })
@@ -91,7 +91,7 @@ describe('App – format toggle', () => {
     // Initially ADF (no wiki region)
     expect(screen.queryByRole('region', { name: /wiki markup preview/i })).not.toBeInTheDocument()
 
-    const wikiBtn = screen.getByRole('button', { name: 'Wiki Markup' })
+    const wikiBtn = screen.getByRole('radio', { name: 'Wiki Markup' })
     await act(async () => {
       fireEvent.click(wikiBtn)
     })
@@ -106,14 +106,14 @@ describe('App – format toggle', () => {
 
     // Go to Wiki Markup
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Wiki Markup' }))
+      fireEvent.click(screen.getByRole('radio', { name: 'Wiki Markup' }))
     })
     await waitFor(() => {
       expect(screen.getByRole('region', { name: /wiki markup preview/i })).toBeInTheDocument()
     })
 
     // Go back to Jira Cloud (ADF)
-    const adfBtn = screen.getByRole('button', { name: 'Jira Cloud' })
+    const adfBtn = screen.getByRole('radio', { name: 'Jira Cloud' })
     await act(async () => {
       fireEvent.click(adfBtn)
     })

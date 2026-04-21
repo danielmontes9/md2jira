@@ -142,7 +142,7 @@ describe('Markdown → output conversion', () => {
     fireEvent.change(textarea, { target: { value: '# Hello World' } })
 
     // Switch to Wiki Markup format
-    const wikiBtn = screen.getAllByRole('button', { name: /wiki markup/i })
+    const wikiBtn = screen.getAllByRole('radio', { name: /wiki markup/i })
     fireEvent.click(wikiBtn[0]!)
 
     // Wiki mode has no Code/Preview toggle — the raw markup is shown directly in the
@@ -157,7 +157,7 @@ describe('Markdown → output conversion', () => {
     fireEvent.change(textarea, { target: { value: '# Test' } })
 
     // Jira Cloud (ADF) is the default format — switch to Code view
-    const codeBtns = screen.getAllByRole('button', { name: /^code$/i })
+    const codeBtns = screen.getAllByRole('radio', { name: /^code$/i })
     fireEvent.click(codeBtns[0]!)
 
     const pre = document.querySelector('pre')
@@ -169,7 +169,7 @@ describe('Markdown → output conversion', () => {
     const textarea = screen.getByPlaceholderText('Paste your Markdown here...')
     fireEvent.change(textarea, { target: { value: '**bold**' } })
 
-    const codeBtns = screen.getAllByRole('button', { name: /^code$/i })
+    const codeBtns = screen.getAllByRole('radio', { name: /^code$/i })
     fireEvent.click(codeBtns[0]!)
 
     // ADF output is JSON
@@ -178,7 +178,7 @@ describe('Markdown → output conversion', () => {
     expect(adfText).toContain('"type": "doc"')
 
     // Switch to Wiki Markup
-    const wikiBtn = screen.getAllByRole('button', { name: /wiki markup/i })
+    const wikiBtn = screen.getAllByRole('radio', { name: /wiki markup/i })
     fireEvent.click(wikiBtn[0]!)
 
     const preWiki = document.querySelector('pre')

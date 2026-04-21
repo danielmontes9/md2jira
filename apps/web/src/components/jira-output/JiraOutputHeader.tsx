@@ -57,20 +57,22 @@ export const JiraOutputHeader = memo(function JiraOutputHeader({
         </span>
         <div className="flex items-center gap-2">
           <div
-            role="group"
+            role="radiogroup"
             aria-label="Output format"
             className="flex flex-1 rounded-md border border-neutral-300 text-xs @[460px]:flex-none dark:border-neutral-700"
           >
             <button
               onClick={() => onFormatChange('adf')}
-              aria-pressed={format === 'adf'}
+              role="radio"
+              aria-checked={format === 'adf'}
               className={toggleBtnCls(format === 'adf', 'left')}
             >
               Jira Cloud
             </button>
             <button
               onClick={() => onFormatChange('wiki')}
-              aria-pressed={format === 'wiki'}
+              role="radio"
+              aria-checked={format === 'wiki'}
               className={toggleBtnCls(format === 'wiki', 'right')}
             >
               Wiki Markup
@@ -78,20 +80,22 @@ export const JiraOutputHeader = memo(function JiraOutputHeader({
           </div>
           {format === 'adf' && (
             <div
-              role="group"
+              role="radiogroup"
               aria-label="View mode"
               className="flex flex-1 rounded-md border border-neutral-300 text-xs @[460px]:flex-none dark:border-neutral-700"
             >
               <button
                 onClick={() => onViewModeChange('preview')}
-                aria-pressed={viewMode === 'preview'}
+                role="radio"
+                aria-checked={viewMode === 'preview'}
                 className={toggleBtnCls(viewMode === 'preview', 'left')}
               >
                 Preview
               </button>
               <button
                 onClick={() => onViewModeChange('code')}
-                aria-pressed={viewMode === 'code'}
+                role="radio"
+                aria-checked={viewMode === 'code'}
                 className={toggleBtnCls(viewMode === 'code', 'right')}
               >
                 Code
