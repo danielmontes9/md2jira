@@ -13,6 +13,13 @@ import TableCell from '@tiptap/extension-table-cell'
 import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
 import { sanitize } from '../utils/sanitize.js'
+import {
+  execTiptapCommand,
+  getActiveBlock,
+  getActiveFormats,
+  EMPTY_FORMATS,
+} from '../utils/tiptap-commands.js'
+import { tiptapDocToMarkdown } from '../utils/tiptap-to-markdown.js'
 
 // Extend TableCell and TableHeader to carry a text-alignment attribute.
 // This lets the tiptap-to-markdown serializer output the correct Markdown
@@ -50,13 +57,6 @@ const AlignedTableHeader = TableHeader.extend({
     }
   },
 })
-import {
-  execTiptapCommand,
-  getActiveBlock,
-  getActiveFormats,
-  EMPTY_FORMATS,
-} from '../utils/tiptap-commands.js'
-import { tiptapDocToMarkdown } from '../utils/tiptap-to-markdown.js'
 
 interface UseTiptapEditorOptions {
   previewHtml: string
@@ -180,12 +180,12 @@ export function useTiptapEditor({
   // changes (e.g. format switches from ADF to wiki) or when the hook unmounts.
   useEffect(() => () => clearTimeout(updateTimeoutRef.current), [activeEditor])
 
-  // On unmount: mark as dead and cancel any pending conversion timer so that
-  // neither setState nor onMarkdownChange are called after the owner unmounts.
+  // On unmount: mark as dead so that pending debounced callbacks don't call
+  // onMarkdownChange after the owner component is gone.
+  // clearTimeout is already handled by the [activeEditor] effect above on unmount.
   useEffect(
     () => () => {
       isMountedRef.current = false
-      clearTimeout(updateTimeoutRef.current)
     },
     []
   )

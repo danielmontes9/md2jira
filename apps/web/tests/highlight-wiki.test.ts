@@ -218,4 +218,44 @@ describe('highlightWiki', () => {
     expect(result).toContain('&lt;script&gt;')
     expect(result).not.toContain('<script>')
   })
+
+  // ── Link protection from bold/italic ────────────────────────────────────────
+
+  it('does not apply bold highlighting inside a link span', () => {
+    // [*bold*|url] — the *bold* inside the link should NOT get a wiki-bold span
+    const result = highlightWiki('[*bold text*|https://example.com]')
+    // The entire link is wrapped in wiki-link
+    expect(result).toContain('<span class="wiki-link">')
+    // But no wiki-bold span should appear inside it
+    expect(result).not.toContain('wiki-bold')
+  })
+
+  it('does not apply italic highlighting inside a link span', () => {
+    const result = highlightWiki('[_italic text_|https://example.com]')
+    expect(result).toContain('<span class="wiki-link">')
+    expect(result).not.toContain('wiki-italic')
+  })
+
+  // ── Color macro tokens ───────────────────────────────────────────────────────
+
+  it('highlights {color:red} opening tag with wiki-macro span', () => {
+    const result = highlightWiki('{color:red}hello{color}')
+    expect(result).toContain('<span class="wiki-macro">{color:red}</span>')
+  })
+
+  it('highlights {color} closing tag with wiki-macro span', () => {
+    const result = highlightWiki('{color:blue}text{color}')
+    expect(result).toContain('<span class="wiki-macro">{color}</span>')
+  })
+
+  it('highlights {color:#ff0000} hex color with wiki-macro span', () => {
+    const result = highlightWiki('{color:#ff0000}red text{color}')
+    expect(result).toContain('<span class="wiki-macro">{color:#ff0000}</span>')
+  })
+
+  it('still applies bold to text between color macro tokens', () => {
+    const result = highlightWiki('{color:red}*bold*{color}')
+    expect(result).toContain('wiki-macro')
+    expect(result).toContain('wiki-bold')
+  })
 })

@@ -382,6 +382,10 @@
 .wiki-link {
   color: #2563eb;
 } /* [text|url] */
+.wiki-macro {
+  color: #d97706;
+  font-weight: 600;
+} /* {color:red} macro tokens */
 
 .dark .wiki-blockquote {
   color: #38bdf8;
@@ -394,4 +398,7 @@
 }
 .dark .wiki-link {
   color: #60a5fa;
+}
+.dark .wiki-macro {
+  color: #fbbf24;
 }

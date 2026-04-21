@@ -96,12 +96,11 @@ function highlightWikiLine(line: string): string {
  * (none of which are Jira inline delimiters), the patterns work correctly.
  */
 function applyInlineHighlights(esc: string): string {
-  // Process in a defined order so that inline-code spans are applied last
-  // and do not have bold/italic applied inside them.
+  // Process in a defined order so that inner content is never double-highlighted.
+  // Inline code and links are protected with placeholders before bold/italic run.
   let result = esc
 
-  // Inline code: {{text}} — apply first, protect content from further processing
-  // Use a placeholder to prevent bold/italic from matching inside code spans.
+  // 1. Inline code: {{text}} — protect content from all further processing.
   const codeSegments: string[] = []
   result = result.replace(/\{\{(.+?)\}\}/g, (_, inner: string) => {
     const idx = codeSegments.length
@@ -109,22 +108,33 @@ function applyInlineHighlights(esc: string): string {
     return `\x01${idx}\x01`
   })
 
-  // Links: [text|url] or [url]
+  // 2. Links: [text|url] or [url] — protect from bold/italic matching inside.
+  const linkSegments: string[] = []
   result = result.replace(/\[([^\]]+)\]/g, (match) => {
-    return `<span class="wiki-link">${match}</span>`
+    const idx = linkSegments.length
+    linkSegments.push(`<span class="wiki-link">${match}</span>`)
+    return `\x02${idx}\x02`
   })
 
-  // Bold: *text* (non-greedy, no nesting)
+  // 3. Color macro tokens: {color:VALUE} and {color} (close tag)
+  result = result.replace(/\{color(?::[^}]*)?\}/g, (match) => {
+    return `<span class="wiki-macro">${match}</span>`
+  })
+
+  // 4. Bold: *text* (non-greedy, no nesting)
   result = result.replace(/\*([^*\n]+)\*/g, (match) => {
     return `<span class="wiki-bold">${match}</span>`
   })
 
-  // Italic: _text_ (non-greedy, no nesting)
+  // 5. Italic: _text_ (non-greedy, no nesting)
   result = result.replace(/_([^_\n]+)_/g, (match) => {
     return `<span class="wiki-italic">${match}</span>`
   })
 
-  // Restore inline code placeholders
+  // 6. Restore link placeholders
+  result = result.replace(/\x02(\d+)\x02/g, (_, idx: string) => linkSegments[Number(idx)] ?? '')
+
+  // 7. Restore inline code placeholders
   result = result.replace(/\x01(\d+)\x01/g, (_, idx: string) => codeSegments[Number(idx)] ?? '')
 
   return result

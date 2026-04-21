@@ -31,7 +31,6 @@ export function useClipboardEvents(
 
   // Clean up the "copied" reset timer on unmount.
   useEffect(() => {
-    mountedRef.current = true
     return () => {
       mountedRef.current = false
       if (copiedMdTimerRef.current !== null) clearTimeout(copiedMdTimerRef.current)
