@@ -95,8 +95,6 @@ export function useTiptapEditor({
   // external previewHtml, the onUpdate callback fires — we must ignore it.
   const isExternalUpdateRef = useRef(false)
   const updateTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
-  // Guard against calling setState after the component that owns this hook unmounts.
-  const isMountedRef = useRef(true)
   // Stable reference to the current editor — keeps exec/insertHtml stable across renders
   const editorRef = useRef<Editor | null>(null)
 
@@ -136,7 +134,7 @@ export function useTiptapEditor({
 
       clearTimeout(updateTimeoutRef.current)
       updateTimeoutRef.current = setTimeout(() => {
-        if (!isMountedRef.current || !onMarkdownChangeRef.current) return
+        if (!onMarkdownChangeRef.current) return
         try {
           const md = tiptapDocToMarkdown(ed.state.doc)
           isExternalUpdateRef.current = true
@@ -178,17 +176,9 @@ export function useTiptapEditor({
 
   // Cancel any pending debounced HTML→Markdown conversion when the active editor
   // changes (e.g. format switches from ADF to wiki) or when the hook unmounts.
+  // This also prevents the callback from firing after unmount — isMountedRef is
+  // not needed because clearTimeout is guaranteed to run before any pending timer fires.
   useEffect(() => () => clearTimeout(updateTimeoutRef.current), [activeEditor])
-
-  // On unmount: mark as dead so that pending debounced callbacks don't call
-  // onMarkdownChange after the owner component is gone.
-  // clearTimeout is already handled by the [activeEditor] effect above on unmount.
-  useEffect(
-    () => () => {
-      isMountedRef.current = false
-    },
-    []
-  )
 
   const exec = useCallback(
     (cmd: string, arg?: string) => {
