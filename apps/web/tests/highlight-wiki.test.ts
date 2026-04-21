@@ -116,4 +116,71 @@ describe('highlightWiki', () => {
     const result = highlightWiki('just some text')
     expect(result).toBe('just some text')
   })
+
+  // ── Inline token highlighting ────────────────────────────────────────────────
+
+  it('highlights *bold* with wiki-bold span', () => {
+    const result = highlightWiki('This is *bold* text')
+    expect(result).toContain('<span class="wiki-bold">*bold*</span>')
+  })
+
+  it('highlights _italic_ with wiki-italic span', () => {
+    const result = highlightWiki('This is _italic_ text')
+    expect(result).toContain('<span class="wiki-italic">_italic_</span>')
+  })
+
+  it('highlights {{inline code}} with wiki-inline-code span', () => {
+    const result = highlightWiki('Use {{myVar}} here')
+    expect(result).toContain('<span class="wiki-inline-code">{{myVar}}</span>')
+  })
+
+  it('highlights [text|url] link with wiki-link span', () => {
+    const result = highlightWiki('See [Jira|https://jira.atlassian.com]')
+    expect(result).toContain('<span class="wiki-link">[Jira|https://jira.atlassian.com]</span>')
+  })
+
+  it('highlights bare [url] link with wiki-link span', () => {
+    const result = highlightWiki('Visit [https://jira.atlassian.com]')
+    expect(result).toContain('<span class="wiki-link">[https://jira.atlassian.com]</span>')
+  })
+
+  it('highlights bq. blockquote prefix with wiki-blockquote span', () => {
+    const result = highlightWiki('bq. A quoted note')
+    expect(result).toContain('<span class="wiki-blockquote">bq.</span>')
+  })
+
+  it('highlights * unordered list marker with wiki-list-marker span', () => {
+    const result = highlightWiki('* List item')
+    expect(result).toContain('<span class="wiki-list-marker">*</span>')
+  })
+
+  it('highlights ** nested list marker with wiki-list-marker span', () => {
+    const result = highlightWiki('** Nested item')
+    expect(result).toContain('<span class="wiki-list-marker">**</span>')
+  })
+
+  it('highlights # ordered list marker with wiki-list-marker span', () => {
+    const result = highlightWiki('# Ordered item')
+    expect(result).toContain('<span class="wiki-list-marker">#</span>')
+  })
+
+  it('inline code protects its content from bold/italic highlighting', () => {
+    const result = highlightWiki('{{*not bold*}}')
+    // The content should be inside wiki-inline-code, NOT wiki-bold
+    expect(result).toContain('wiki-inline-code')
+    expect(result).not.toContain('wiki-bold')
+  })
+
+  it('does not apply inline highlights inside heading lines', () => {
+    // Heading lines return early and don't go through inline processing
+    const result = highlightWiki('h1. *Title*')
+    expect(result).toContain('wiki-heading')
+    expect(result).not.toContain('wiki-bold')
+  })
+
+  it('escapes HTML-special chars inside inline bold before wrapping span', () => {
+    const result = highlightWiki('*<b>html</b>*')
+    expect(result).toContain('&lt;b&gt;')
+    expect(result).not.toContain('<b>')
+  })
 })

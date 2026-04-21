@@ -357,3 +357,41 @@
 .dark .wiki-code-fence {
   color: #4ade80;
 }
+/* Inline tokens */
+.wiki-blockquote {
+  color: #0369a1;
+  font-weight: 600;
+} /* bq. keyword */
+.wiki-list-marker {
+  color: #9333ea;
+  font-weight: 700;
+} /* * # list prefix */
+.wiki-bold {
+  font-weight: 700;
+  color: inherit;
+} /* *bold* */
+.wiki-italic {
+  font-style: italic;
+  color: inherit;
+} /* _italic_ */
+.wiki-inline-code {
+  color: #c2410c;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 0.9em;
+} /* {{code}} */
+.wiki-link {
+  color: #2563eb;
+} /* [text|url] */
+
+.dark .wiki-blockquote {
+  color: #38bdf8;
+}
+.dark .wiki-list-marker {
+  color: #c084fc;
+}
+.dark .wiki-inline-code {
+  color: #fb923c;
+}
+.dark .wiki-link {
+  color: #60a5fa;
+}
