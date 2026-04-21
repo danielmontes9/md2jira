@@ -130,8 +130,8 @@ export function FormatMenu({ exec, close, openKey, onOpen, activeFormats }: Form
           </span>
         </button>
         <p className="mt-1.5 border-t border-neutral-100 px-4 pt-2 pb-1.5 text-[10px] leading-tight text-neutral-400 dark:border-neutral-800">
-          Underline, subscript, superscript and color are editor-only — they serialize to HTML tags
-          in exported Markdown.
+          Underline, subscript and superscript are editor-only — they serialize to HTML tags in
+          exported Markdown.
         </p>
       </div>
     </ToolbarDropdown>
