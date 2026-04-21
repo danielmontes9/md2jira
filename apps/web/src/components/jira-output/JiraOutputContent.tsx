@@ -45,12 +45,10 @@ export function JiraOutputContent({
         role="region"
         aria-label={format === 'adf' ? 'ADF JSON code' : 'Wiki markup code'}
         className="flex-1 overflow-auto whitespace-pre-wrap p-4 font-mono text-sm text-neutral-900 dark:text-neutral-100"
-        // highlightJson escapes HTML entities before injecting <span> tags — safe.
+        // highlightJson/highlightWiki escape HTML before injecting <span> tags — safe.
         // eslint-disable-next-line react/no-danger
-        dangerouslySetInnerHTML={format === 'adf' ? { __html: highlightedJson } : undefined}
-      >
-        {format !== 'adf' ? value : undefined}
-      </pre>
+        dangerouslySetInnerHTML={{ __html: format === 'adf' ? highlightedJson : highlightedWiki }}
+      />
     )
   }
 
