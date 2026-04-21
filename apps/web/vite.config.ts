@@ -60,6 +60,24 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,woff2}'],
         cleanupOutdatedCaches: true,
+        runtimeCaching: [
+          {
+            // App-shell navigation requests — always serve latest from network,
+            // fall back to cache when offline.
+            urlPattern: ({ request }: { request: Request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst' as const,
+            options: { cacheName: 'app-shell', networkTimeoutSeconds: 5 },
+          },
+          {
+            // Buy Me a Coffee CDN image — cached for 7 days.
+            urlPattern: /^https:\/\/cdn\.buymeacoffee\.com\//,
+            handler: 'CacheFirst' as const,
+            options: {
+              cacheName: 'bmac-assets',
+              expiration: { maxEntries: 5, maxAgeSeconds: 60 * 60 * 24 * 7 },
+            },
+          },
+        ],
       },
     }),
     // Bundle size visualizer — generates stats.html in dist/ when ANALYZE=true.
