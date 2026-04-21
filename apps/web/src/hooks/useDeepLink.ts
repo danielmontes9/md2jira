@@ -13,16 +13,16 @@ import type { OutputFormat } from '../types.js'
  * too large to deep-link (param is silently dropped).
  */
 export function useDeepLink(markdown: string, format: OutputFormat): { isDeepLinkActive: boolean } {
-  // Cache the encoded value so both the memo and the effect reuse it without
-  // calling btoa + encodeURIComponent twice per markdown change.
+  // Memoize the encoded value — encodeMarkdown (btoa + encodeURIComponent) is
+  // moderately expensive and only needs to re-run when markdown actually changes,
+  // not on every parent re-render (theme toggle, spinner state, etc.).
   const encodedRef = useRef('')
-  const encoded = markdown ? encodeMarkdown(markdown) : ''
+  const encoded = useMemo(() => (markdown ? encodeMarkdown(markdown) : ''), [markdown])
   encodedRef.current = encoded
 
   const isDeepLinkActive = useMemo(
     () => !markdown || encoded.length <= URL_MD_MAX_ENCODED,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [markdown] // `encoded` is derived from markdown — one dep is sufficient
+    [markdown, encoded]
   )
 
   useEffect(() => {

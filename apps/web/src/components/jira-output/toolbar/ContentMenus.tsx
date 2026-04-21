@@ -1,4 +1,4 @@
-import { useState, useDeferredValue, useEffect } from 'react'
+import { useState, useDeferredValue, useEffect, useMemo } from 'react'
 // TEXT_COLORS is static data co-located in the lazy
 // EditorToolbar chunk. It is NOT in the initial bundle because EditorToolbar
 // is lazy-loaded via React.lazy — this constant only loads on first render.
@@ -37,7 +37,7 @@ export function ListsMenu({ exec, close, openKey, onOpen, activeFormats }: Lists
         </>
       }
     >
-      <div className={`${DROP_CLS} min-w-[215px]`}>
+      <div className={`${DROP_CLS} min-w-53.75`}>
         <button
           role="menuitem"
           onMouseDown={(e) => {
@@ -105,7 +105,7 @@ export function ColorMenu({ exec, close, openKey, onOpen, activeColor }: ColorMe
         </span>
       }
     >
-      <div className={`${DROP_CLS} p-3 min-w-[222px]`}>
+      <div className={`${DROP_CLS} p-3 min-w-55.5`}>
         <div className="grid grid-cols-7 gap-1">
           {TEXT_COLORS.map((color) => (
             <button
@@ -172,9 +172,23 @@ export function EmojiMenu({ exec, close, openKey, onOpen }: EmojiMenuProps) {
       .catch(() => setEmojiData({}))
   }, [isOpen, emojiData])
 
-  const allEmojis = emojiData ? [...new Set(Object.values(emojiData).flat())] : []
-  const filteredEmojis =
-    emojiSearch && emojiData ? allEmojis.filter((em) => em.includes(deferredSearch)) : []
+  const allEmojis = useMemo(
+    () => (emojiData ? [...new Set(Object.values(emojiData).flat())] : []),
+    [emojiData]
+  )
+  // Search by category name (case-insensitive). Falls back to exact emoji
+  // character match so pasting an emoji into the field still finds it.
+  const filteredEmojis = useMemo(() => {
+    if (!emojiSearch || !emojiData) return []
+    const q = deferredSearch.toLowerCase()
+    const fromCategories: string[] = []
+    for (const [cat, emojis] of Object.entries(emojiData)) {
+      if (cat.toLowerCase().includes(q)) fromCategories.push(...emojis)
+    }
+    if (fromCategories.length > 0) return [...new Set(fromCategories)]
+    // Exact emoji character fallback (user pasted an emoji into the field)
+    return allEmojis.filter((em) => em === deferredSearch)
+  }, [emojiSearch, deferredSearch, emojiData, allEmojis])
 
   return (
     <ToolbarDropdown
@@ -189,11 +203,11 @@ export function EmojiMenu({ exec, close, openKey, onOpen }: EmojiMenuProps) {
         </span>
       }
     >
-      <div className={`${DROP_CLS} p-2 min-w-[280px] max-h-[300px] overflow-y-auto`}>
+      <div className={`${DROP_CLS} p-2 min-w-70 max-h-75 overflow-y-auto`}>
         <input
           type="text"
           aria-label="Search emojis"
-          placeholder="Search..."
+          placeholder="Search by category (Frequent, People, Objects, Symbols…)"
           value={emojiSearch}
           onChange={(e) => setEmojiSearch(e.target.value)}
           onMouseDown={(e) => e.stopPropagation()}
@@ -204,9 +218,9 @@ export function EmojiMenu({ exec, close, openKey, onOpen }: EmojiMenuProps) {
             {filteredEmojis.length === 0 ? (
               <p className="w-full py-2 text-center text-xs text-neutral-400">No emojis found</p>
             ) : (
-              filteredEmojis.map((em, i) => (
+              filteredEmojis.map((em) => (
                 <button
-                  key={i}
+                  key={em}
                   onMouseDown={(e) => {
                     e.preventDefault()
                     exec('insertText', em)
@@ -227,9 +241,9 @@ export function EmojiMenu({ exec, close, openKey, onOpen }: EmojiMenuProps) {
             <div key={cat} className="mb-2">
               <div className="mb-1 text-xs font-semibold text-neutral-400">{cat}</div>
               <div className="flex flex-wrap gap-0.5">
-                {emojis.map((em, i) => (
+                {emojis.map((em) => (
                   <button
-                    key={i}
+                    key={em}
                     onMouseDown={(e) => {
                       e.preventDefault()
                       exec('insertText', em)
@@ -270,7 +284,7 @@ export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertM
         </span>
       }
     >
-      <div className={`${DROP_CLS} min-w-[265px]`}>
+      <div className={`${DROP_CLS} min-w-66.25`}>
         <button
           role="menuitem"
           onMouseDown={(e) => {

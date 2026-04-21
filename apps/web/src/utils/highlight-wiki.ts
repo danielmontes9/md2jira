@@ -32,14 +32,40 @@ function highlightWikiLine(line: string): string {
     return `<span class="wiki-rule">${esc}</span>`
   }
 
-  // Table rows: lines starting with | (includes || header rows)
+  // Table rows: lines starting with | (includes || header rows).
+  // Scan the already-HTML-escaped line, wrapping each pipe delimiter in a
+  // span and applying inline highlighting to the content between delimiters.
   if (/^\s*\|/.test(line)) {
-    // Use placeholder substitution to avoid || vs | ambiguity:
-    // 1. Replace || with placeholder, 2. Replace remaining |, 3. Restore placeholder
-    return esc
-      .replace(/\|\|/g, '\x02')
-      .replace(/\|/g, '<span class="wiki-td">|</span>')
-      .replace(/\x02/g, '<span class="wiki-th">||</span>')
+    let result = ''
+    let i = 0
+    while (i < esc.length) {
+      if (esc[i] === '|' && esc[i + 1] === '|') {
+        result += '<span class="wiki-th">||</span>'
+        i += 2
+      } else if (esc[i] === '|') {
+        result += '<span class="wiki-td">|</span>'
+        i += 1
+      } else {
+        // Collect cell content until the next unbracketed '|'.
+        // Skip over [...] sequences so the pipe inside [text|url] links is
+        // not mistaken for a cell delimiter.
+        let segEnd = i
+        while (segEnd < esc.length) {
+          if (esc[segEnd] === '[') {
+            // Advance past the matching ']', or to end-of-string if unmatched.
+            const close = esc.indexOf(']', segEnd + 1)
+            segEnd = close === -1 ? esc.length : close + 1
+          } else if (esc[segEnd] === '|') {
+            break
+          } else {
+            segEnd++
+          }
+        }
+        result += applyInlineHighlights(esc.slice(i, segEnd))
+        i = segEnd
+      }
+    }
+    return result
   }
 
   // Code block delimiters: {code}, {code:language=js}, {noformat}, etc.

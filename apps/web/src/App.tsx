@@ -13,6 +13,11 @@ import { useDeepLink } from './hooks/useDeepLink.js'
 import { useAdfHtmlWorker } from './hooks/useAdfHtmlWorker.js'
 import { getInitialMarkdown, PLACEHOLDER } from './utils/markdown-url.js'
 
+/** Below this character count, convert() runs on every keystroke. */
+const LARGE_DOC_THRESHOLD = 10_000
+/** Debounce delay in ms applied to documents above LARGE_DOC_THRESHOLD. */
+const LARGE_DOC_DEBOUNCE_MS = 150
+
 /** Reads the initial output format from the ?fmt= URL param, then localStorage, then 'adf'. */
 function getInitialFormat(): OutputFormat {
   const urlFmt = new URLSearchParams(window.location.search).get('fmt')
@@ -35,8 +40,6 @@ export function App() {
   // the expensive convert() / convertToAdf() calls until the browser is idle.
   // For large documents an additional debounce prevents running convert() on
   // every keystroke during rapid edits or bulk paste operations.
-  const LARGE_DOC_THRESHOLD = 10_000 // chars — below this, convert on every keystroke
-  const LARGE_DOC_DEBOUNCE_MS = 150 // ms — debounce delay for large documents
   const [debouncedMarkdown, setDebouncedMarkdown] = useState(markdown)
   useEffect(() => {
     if (markdown.length <= LARGE_DOC_THRESHOLD) {
@@ -60,7 +63,6 @@ export function App() {
   // Debounced URL deep-linking: update ?md= and ?fmt= params 500ms after changes.
   const { isDeepLinkActive } = useDeepLink(markdown, format)
 
-  const isPending = markdown !== deferredMarkdown
   const { jiraOutput, adfDoc, hasConversionError } = useMemo<{
     jiraOutput: string
     adfDoc: AdfDocument | null
@@ -82,7 +84,12 @@ export function App() {
   }, [deferredMarkdown, format])
 
   // Renders the ADF document to HTML off-thread using a Web Worker.
-  const { html: previewHtml, workerError, retryWorker } = useAdfHtmlWorker(adfDoc)
+  const { html: previewHtml, workerError, retryWorker, isRendering } = useAdfHtmlWorker(adfDoc)
+
+  // isPending drives the spinner in the output panel header.
+  // Wiki format: pending while deferred markdown conversion hasn't caught up.
+  // ADF format: also pending while the Web Worker is rendering the preview.
+  const isPending = markdown !== deferredMarkdown || (format === 'adf' && isRendering)
 
   return (
     <ToastProvider>

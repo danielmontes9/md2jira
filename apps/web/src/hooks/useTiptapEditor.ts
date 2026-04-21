@@ -13,6 +13,43 @@ import TableCell from '@tiptap/extension-table-cell'
 import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
 import { sanitize } from '../utils/sanitize.js'
+
+// Extend TableCell and TableHeader to carry a text-alignment attribute.
+// This lets the tiptap-to-markdown serializer output the correct Markdown
+// column-alignment markers (`:---:`, `---:`) when cells carry inline styles.
+const AlignedTableCell = TableCell.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      alignment: {
+        default: null,
+        parseHTML: (element: HTMLElement) =>
+          (element.style.textAlign || null) as 'left' | 'center' | 'right' | null,
+        renderHTML: (attrs: Record<string, unknown>) => {
+          const a = attrs['alignment'] as string | null
+          return a ? { style: `text-align: ${a}` } : {}
+        },
+      },
+    }
+  },
+})
+
+const AlignedTableHeader = TableHeader.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      alignment: {
+        default: null,
+        parseHTML: (element: HTMLElement) =>
+          (element.style.textAlign || null) as 'left' | 'center' | 'right' | null,
+        renderHTML: (attrs: Record<string, unknown>) => {
+          const a = attrs['alignment'] as string | null
+          return a ? { style: `text-align: ${a}` } : {}
+        },
+      },
+    }
+  },
+})
 import {
   execTiptapCommand,
   getActiveBlock,
@@ -80,8 +117,8 @@ export function useTiptapEditor({
       Color,
       Table.configure({ resizable: false }),
       TableRow,
-      TableHeader,
-      TableCell,
+      AlignedTableHeader,
+      AlignedTableCell,
       TaskList,
       TaskItem.configure({ nested: true }),
     ],
@@ -143,10 +180,12 @@ export function useTiptapEditor({
   // changes (e.g. format switches from ADF to wiki) or when the hook unmounts.
   useEffect(() => () => clearTimeout(updateTimeoutRef.current), [activeEditor])
 
-  // Mark as unmounted so pending async callbacks don't call stale setState.
+  // On unmount: mark as dead and cancel any pending conversion timer so that
+  // neither setState nor onMarkdownChange are called after the owner unmounts.
   useEffect(
     () => () => {
       isMountedRef.current = false
+      clearTimeout(updateTimeoutRef.current)
     },
     []
   )

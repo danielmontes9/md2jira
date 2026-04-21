@@ -273,3 +273,103 @@ describe('tiptapDocToMarkdown — special chars inside marks', () => {
     expect(md).toContain('\\`')
   })
 })
+
+// ── Table column alignment ──────────────────────────────────────────────────
+// These tests extend TableCell/TableHeader with an `alignment` attribute that
+// maps the text-align CSS property — mirroring the AlignedTable* extensions
+// in useTiptapEditor — so the serializer can emit :---: / ---: markers.
+
+const AlignedTableCell = TableCell.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      alignment: {
+        default: null,
+        parseHTML: (element: HTMLElement) =>
+          (element.style.textAlign || null) as 'left' | 'center' | 'right' | null,
+        renderHTML: (attrs: Record<string, unknown>) => {
+          const a = attrs['alignment'] as string | null
+          return a ? { style: `text-align: ${a}` } : {}
+        },
+      },
+    }
+  },
+})
+
+const AlignedTableHeader = TableHeader.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      alignment: {
+        default: null,
+        parseHTML: (element: HTMLElement) =>
+          (element.style.textAlign || null) as 'left' | 'center' | 'right' | null,
+        renderHTML: (attrs: Record<string, unknown>) => {
+          const a = attrs['alignment'] as string | null
+          return a ? { style: `text-align: ${a}` } : {}
+        },
+      },
+    }
+  },
+})
+
+const ALIGNED_EXTENSIONS = [
+  StarterKit.configure({ heading: { levels: [1, 2, 3, 4, 5, 6] }, underline: false }),
+  Table.configure({ resizable: false }),
+  TableRow,
+  AlignedTableHeader,
+  AlignedTableCell,
+]
+
+function htmlToAlignedDoc(html: string) {
+  const editor = new Editor({ extensions: ALIGNED_EXTENSIONS, content: html })
+  const doc = editor.state.doc
+  editor.destroy()
+  return doc
+}
+
+describe('tiptapDocToMarkdown — table column alignment', () => {
+  it('outputs :---: separator for a center-aligned column', () => {
+    const doc = htmlToAlignedDoc(
+      '<table><tbody>' +
+        '<tr><th style="text-align: center"><p>Center</p></th><th><p>Left</p></th></tr>' +
+        '<tr><td><p>a</p></td><td><p>b</p></td></tr>' +
+        '</tbody></table>'
+    )
+    expect(tiptapDocToMarkdown(doc)).toContain('| :---: | --- |')
+  })
+
+  it('outputs ---: separator for a right-aligned column', () => {
+    const doc = htmlToAlignedDoc(
+      '<table><tbody>' +
+        '<tr><th style="text-align: right"><p>Right</p></th></tr>' +
+        '<tr><td><p>val</p></td></tr>' +
+        '</tbody></table>'
+    )
+    expect(tiptapDocToMarkdown(doc)).toContain('| ---: |')
+  })
+
+  it('outputs --- for columns with no alignment (default)', () => {
+    const doc = htmlToAlignedDoc(
+      '<table><tbody>' +
+        '<tr><th><p>None</p></th></tr>' +
+        '<tr><td><p>val</p></td></tr>' +
+        '</tbody></table>'
+    )
+    expect(tiptapDocToMarkdown(doc)).toContain('| --- |')
+  })
+
+  it('handles a mix of center, right, and unaligned columns', () => {
+    const doc = htmlToAlignedDoc(
+      '<table><tbody>' +
+        '<tr>' +
+        '<th style="text-align: center"><p>C</p></th>' +
+        '<th style="text-align: right"><p>R</p></th>' +
+        '<th><p>L</p></th>' +
+        '</tr>' +
+        '<tr><td><p>1</p></td><td><p>2</p></td><td><p>3</p></td></tr>' +
+        '</tbody></table>'
+    )
+    expect(tiptapDocToMarkdown(doc)).toContain('| :---: | ---: | --- |')
+  })
+})

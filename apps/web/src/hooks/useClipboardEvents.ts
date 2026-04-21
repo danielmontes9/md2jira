@@ -20,6 +20,9 @@ export function useClipboardEvents(
 ): { copiedMd: boolean; handleCopyMd: () => void } {
   const [copiedMd, setCopiedMd] = useState(false)
   const copiedMdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Tracks whether the hook is still mounted so async clipboard callbacks
+  // don't call setState after the component unmounts.
+  const mountedRef = useRef(true)
 
   // Keep a stable ref to onChange so the native paste handler always sees the
   // latest version without re-registering the event listener on every render.
@@ -28,7 +31,9 @@ export function useClipboardEvents(
 
   // Clean up the "copied" reset timer on unmount.
   useEffect(() => {
+    mountedRef.current = true
     return () => {
+      mountedRef.current = false
       if (copiedMdTimerRef.current !== null) clearTimeout(copiedMdTimerRef.current)
     }
   }, [])
@@ -94,13 +99,12 @@ export function useClipboardEvents(
       { type: 'text/html' }
     )
     const textBlob = new Blob([value], { type: 'text/plain' })
-    let mounted = true
     const done = () => {
-      if (!mounted) return
+      if (!mountedRef.current) return
       setCopiedMd(true)
       if (copiedMdTimerRef.current !== null) clearTimeout(copiedMdTimerRef.current)
       copiedMdTimerRef.current = setTimeout(() => {
-        if (mounted) setCopiedMd(false)
+        if (mountedRef.current) setCopiedMd(false)
       }, 1500)
     }
     navigator.clipboard
@@ -111,12 +115,9 @@ export function useClipboardEvents(
           .writeText(value)
           .then(done)
           .catch(() => {
-            if (mounted) addToast('Failed to copy to clipboard', 'error')
+            if (mountedRef.current) addToast('Failed to copy to clipboard', 'error')
           })
       )
-    return () => {
-      mounted = false
-    }
   }, [value, addToast])
 
   return { copiedMd, handleCopyMd }

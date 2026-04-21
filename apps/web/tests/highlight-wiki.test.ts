@@ -183,4 +183,39 @@ describe('highlightWiki', () => {
     expect(result).toContain('&lt;b&gt;')
     expect(result).not.toContain('<b>')
   })
+
+  // ── Inline highlighting inside table cells ────────────────────────────────────
+
+  it('applies bold highlighting inside wiki table cell content', () => {
+    const result = highlightWiki('| *bold* text |')
+    expect(result).toContain('<span class="wiki-bold">*bold*</span>')
+    expect(result).toContain('<span class="wiki-td">|</span>')
+  })
+
+  it('applies italic highlighting inside wiki table cell content', () => {
+    const result = highlightWiki('| _italic_ text |')
+    expect(result).toContain('<span class="wiki-italic">_italic_</span>')
+  })
+
+  it('applies inline-code highlighting inside wiki table cell content', () => {
+    const result = highlightWiki('| {{myVar}} |')
+    expect(result).toContain('<span class="wiki-inline-code">{{myVar}}</span>')
+  })
+
+  it('applies link highlighting inside wiki table cell content', () => {
+    const result = highlightWiki('| [Jira|https://jira.com] |')
+    expect(result).toContain('<span class="wiki-link">')
+  })
+
+  it('still wraps || header delimiters when cell contains inline tokens', () => {
+    const result = highlightWiki('|| *Header* || plain ||')
+    expect(result).toContain('<span class="wiki-th">||</span>')
+    expect(result).toContain('<span class="wiki-bold">*Header*</span>')
+  })
+
+  it('does not produce unescaped HTML when cell contains angle brackets', () => {
+    const result = highlightWiki('| <script>alert(1)</script> |')
+    expect(result).toContain('&lt;script&gt;')
+    expect(result).not.toContain('<script>')
+  })
 })

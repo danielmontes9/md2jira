@@ -170,7 +170,7 @@ describe('EditorToolbar', () => {
     renderToolbar()
     const emojiBtn = screen.getByTitle('Emoji').closest('button')!
     fireEvent.mouseDown(emojiBtn)
-    expect(screen.getByPlaceholderText('Search...')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText(/Search by category/)).toBeInTheDocument()
   })
 
   it('EmojiMenu calls exec("insertText", emoji) when an emoji is clicked', async () => {

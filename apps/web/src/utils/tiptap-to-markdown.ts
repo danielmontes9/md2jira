@@ -236,10 +236,18 @@ function serializeTable(table: Node): string {
   if (table.childCount === 0) return ''
 
   const rows: string[][] = []
+  const colAlignments: Array<'left' | 'center' | 'right' | null> = []
 
-  table.forEach((rowNode) => {
+  table.forEach((rowNode, _offset, rowIdx) => {
     const cells: string[] = []
-    rowNode.forEach((cellNode) => {
+    rowNode.forEach((cellNode, _cellOffset, colIdx) => {
+      // Capture column alignments from the first row only.
+      // The `alignment` attr is added by the AlignedTableCell/AlignedTableHeader
+      // extensions in useTiptapEditor; defaults to null for standard cells.
+      if (rowIdx === 0) {
+        const al = (cellNode.attrs as { alignment?: string | null }).alignment ?? null
+        colAlignments[colIdx] = al as 'left' | 'center' | 'right' | null
+      }
       // Collect inline content from each paragraph inside the cell
       let cellContent = ''
       cellNode.forEach((child) => {
@@ -259,9 +267,15 @@ function serializeTable(table: Node): string {
     ...Array<string>(Math.max(0, colCount - row.length)).fill(''),
   ])
 
-  const firstRow = paddedRows[0]!
-  const separator = Array<string>(colCount).fill('---')
+  // Build separator cells with alignment markers where applicable
+  const separator = Array.from({ length: colCount }, (_, i) => {
+    const al = colAlignments[i] ?? null
+    if (al === 'center') return ':---:'
+    if (al === 'right') return '---:'
+    return '---'
+  })
 
+  const firstRow = paddedRows[0]!
   let out = '| ' + firstRow.join(' | ') + ' |\n'
   out += '| ' + separator.join(' | ') + ' |\n'
   for (let i = 1; i < paddedRows.length; i++) {

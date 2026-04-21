@@ -35,7 +35,7 @@ export function TextStyleMenu({ exec, close, openKey, onOpen, activeBlock }: Tex
         </>
       }
     >
-      <div className={`${DROP_CLS} min-w-[190px]`}>
+      <div className={`${DROP_CLS} min-w-47.5`}>
         {TEXT_STYLES.map(({ label, tag, cls }) => {
           const isActive = activeBlock === tag.toLowerCase()
           return (
@@ -84,7 +84,7 @@ export function FormatMenu({ exec, close, openKey, onOpen, activeFormats }: Form
         </>
       }
     >
-      <div className={`${DROP_CLS} min-w-[215px]`}>
+      <div className={`${DROP_CLS} min-w-53.75`}>
         {FORMAT_ITEMS.map(({ label, shortcut, iconCls, icon, cmd }) => {
           const isActive = activeFormats.has(cmd)
           return (
