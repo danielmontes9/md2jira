@@ -328,4 +328,36 @@ describe('useMarkdownShortcuts', () => {
     press('Enter')
     expect(changedValue()).toBe('')
   })
+
+  // ── Ctrl+Shift+C — insert fenced code block ──────────────────────────────────
+
+  it('Ctrl+Shift+C inserts a fenced code block at cursor position', () => {
+    ta.value = 'before'
+    ta.selectionStart = ta.selectionEnd = 6
+    const e = press('c', { ctrl: true, shift: true })
+    expect(e.preventDefault).toHaveBeenCalled()
+    expect(changedValue()).toBe('before```\n\n```')
+  })
+
+  it('Ctrl+Shift+C inserts code block in the middle of text', () => {
+    ta.value = 'hello world'
+    ta.selectionStart = ta.selectionEnd = 5
+    press('c', { ctrl: true, shift: true })
+    expect(changedValue()).toBe('hello```\n\n``` world')
+  })
+
+  it('Ctrl+Shift+C replaces selected text with code block', () => {
+    ta.value = 'hello world'
+    ta.selectionStart = 6
+    ta.selectionEnd = 11
+    press('c', { ctrl: true, shift: true })
+    expect(changedValue()).toBe('hello ```\n\n```')
+  })
+
+  it('Ctrl+Shift+C at start of empty document inserts code block', () => {
+    ta.value = ''
+    ta.selectionStart = ta.selectionEnd = 0
+    press('c', { ctrl: true, shift: true })
+    expect(changedValue()).toBe('```\n\n```')
+  })
 })

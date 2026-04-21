@@ -213,3 +213,30 @@ describe('tiptapDocToMarkdown — tables', () => {
     expect(tiptapDocToMarkdown(doc)).toContain('\\|')
   })
 })
+
+// ── Code block escape regression ──────────────────────────────────────────────
+
+describe('tiptapDocToMarkdown — code block escape safety', () => {
+  it('does not escape Markdown-special characters inside code blocks', () => {
+    // Content inside ```...``` must come through verbatim — no backslash escaping.
+    const doc = htmlToDoc(
+      '<pre><code class="language-js">if (a *b* && _c_) { return `x` }</code></pre>'
+    )
+    const md = tiptapDocToMarkdown(doc)
+    expect(md).toContain('if (a *b* && _c_) { return `x` }')
+    expect(md).not.toContain('\\*')
+    expect(md).not.toContain('\\_')
+    // backtick inside a fenced code block is safe — no escaping needed
+    expect(md).not.toContain('\\`')
+  })
+
+  it('serializes multiple lines inside a code block without modification', () => {
+    const doc = htmlToDoc(
+      '<pre><code class="language-ts">const x: string = "hello"\nreturn x</code></pre>'
+    )
+    const md = tiptapDocToMarkdown(doc)
+    expect(md).toContain('const x: string = "hello"')
+    expect(md).toContain('return x')
+    expect(md).not.toContain('\\"')
+  })
+})

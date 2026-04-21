@@ -1,0 +1,130 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { renderHook, act } from '@testing-library/react'
+
+// ── Stubs ─────────────────────────────────────────────────────────────────────
+// jsdom does not implement matchMedia — we provide a configurable stub here.
+let _prefersDark = false
+const matchMediaStub = vi.fn().mockImplementation((query: string) => ({
+  matches: query === '(prefers-color-scheme: dark)' ? _prefersDark : false,
+}))
+
+const localStorageStub = {
+  store: {} as Record<string, string>,
+  getItem: vi.fn((key: string) => localStorageStub.store[key] ?? null),
+  setItem: vi.fn((key: string, val: string) => {
+    localStorageStub.store[key] = val
+  }),
+  removeItem: vi.fn((key: string) => {
+    delete localStorageStub.store[key]
+  }),
+  clear: vi.fn(() => {
+    localStorageStub.store = {}
+  }),
+}
+
+Object.defineProperty(window, 'matchMedia', { writable: true, value: matchMediaStub })
+Object.defineProperty(window, 'localStorage', { writable: true, value: localStorageStub })
+
+// ── Tests ─────────────────────────────────────────────────────────────────────
+
+describe('useTheme', () => {
+  beforeEach(() => {
+    // Reset state before each test
+    localStorageStub.clear()
+    vi.clearAllMocks()
+    _prefersDark = false
+    document.documentElement.classList.remove('dark')
+  })
+
+  afterEach(() => {
+    document.documentElement.classList.remove('dark')
+  })
+
+  // Dynamically import after stubs are set so the module reads current values
+  async function importHook() {
+    // Bust Vitest module cache so getInitialTheme() re-runs with fresh stubs
+    const mod = await import('../src/hooks/useTheme.js?t=' + Date.now())
+    return mod.useTheme
+  }
+
+  it('reads "light" from localStorage and starts in light mode', async () => {
+    localStorageStub.store['theme'] = 'light'
+    const useTheme = await importHook()
+    const { result } = renderHook(() => useTheme())
+    expect(result.current.theme).toBe('light')
+    expect(document.documentElement.classList.contains('dark')).toBe(false)
+  })
+
+  it('reads "dark" from localStorage and starts in dark mode', async () => {
+    localStorageStub.store['theme'] = 'dark'
+    const useTheme = await importHook()
+    const { result } = renderHook(() => useTheme())
+    expect(result.current.theme).toBe('dark')
+    expect(document.documentElement.classList.contains('dark')).toBe(true)
+  })
+
+  it('falls back to matchMedia dark when localStorage is empty', async () => {
+    _prefersDark = true
+    const useTheme = await importHook()
+    const { result } = renderHook(() => useTheme())
+    expect(result.current.theme).toBe('dark')
+    expect(document.documentElement.classList.contains('dark')).toBe(true)
+  })
+
+  it('falls back to light when localStorage is empty and matchMedia is not dark', async () => {
+    _prefersDark = false
+    const useTheme = await importHook()
+    const { result } = renderHook(() => useTheme())
+    expect(result.current.theme).toBe('light')
+    expect(document.documentElement.classList.contains('dark')).toBe(false)
+  })
+
+  it('toggleTheme switches from light to dark', async () => {
+    localStorageStub.store['theme'] = 'light'
+    const useTheme = await importHook()
+    const { result } = renderHook(() => useTheme())
+
+    act(() => {
+      result.current.toggleTheme()
+    })
+
+    expect(result.current.theme).toBe('dark')
+    expect(document.documentElement.classList.contains('dark')).toBe(true)
+  })
+
+  it('toggleTheme switches from dark to light', async () => {
+    localStorageStub.store['theme'] = 'dark'
+    const useTheme = await importHook()
+    const { result } = renderHook(() => useTheme())
+
+    act(() => {
+      result.current.toggleTheme()
+    })
+
+    expect(result.current.theme).toBe('light')
+    expect(document.documentElement.classList.contains('dark')).toBe(false)
+  })
+
+  it('persists theme change to localStorage on toggle', async () => {
+    localStorageStub.store['theme'] = 'light'
+    const useTheme = await importHook()
+    const { result } = renderHook(() => useTheme())
+
+    act(() => {
+      result.current.toggleTheme()
+    })
+
+    expect(localStorageStub.setItem).toHaveBeenCalledWith('theme', 'dark')
+  })
+
+  it('handles localStorage.getItem throwing without crashing', async () => {
+    localStorageStub.getItem.mockImplementationOnce(() => {
+      throw new Error('storage disabled')
+    })
+    _prefersDark = false
+    const useTheme = await importHook()
+    // Should not throw; falls back to matchMedia
+    const { result } = renderHook(() => useTheme())
+    expect(result.current.theme).toBe('light')
+  })
+})
