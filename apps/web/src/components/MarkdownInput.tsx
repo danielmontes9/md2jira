@@ -70,9 +70,12 @@ export const MarkdownInput = memo(function MarkdownInput({
         onDrop={handleDrop}
       >
         <div className="flex flex-col gap-1 border-b border-neutral-200 px-4 py-2 dark:border-neutral-800 @[425px]:flex-row @[425px]:items-center @[425px]:justify-between">
-          <span className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
+          <label
+            htmlFor="markdown-input"
+            className="cursor-text text-sm font-medium text-neutral-500 dark:text-neutral-400"
+          >
             Markdown
-          </span>
+          </label>
           {!isDeepLinkActive && value && (
             <span
               title="Document too large for URL sharing"
