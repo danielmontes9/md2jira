@@ -75,7 +75,10 @@ export function useFileImportExport(
       if (!file) return
       readValidatedFile(
         file,
-        (text) => onChange(text),
+        (text, fileName) => {
+          onChange(text)
+          addToast(`Imported "${fileName}"`, 'success')
+        },
         (msg) => addToast(msg, 'error')
       )
     },
