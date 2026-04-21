@@ -6,7 +6,11 @@ import { ErrorBoundary } from '../src/components/ErrorBoundary.js'
 // Minimal stub for localStorage and matchMedia (jsdom lacks these)
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockReturnValue({ matches: false }),
+  value: vi.fn().mockReturnValue({
+    matches: false,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  }),
 })
 Object.defineProperty(window, 'localStorage', {
   value: { getItem: vi.fn(), setItem: vi.fn(), removeItem: vi.fn() },

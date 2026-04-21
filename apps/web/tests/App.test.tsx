@@ -6,7 +6,11 @@ import { PLACEHOLDER } from '../src/utils/markdown-url.js'
 // Minimal stubs required by App (jsdom lacks these browser APIs)
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockReturnValue({ matches: false }),
+  value: vi.fn().mockReturnValue({
+    matches: false,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  }),
 })
 Object.defineProperty(window, 'localStorage', {
   writable: true,

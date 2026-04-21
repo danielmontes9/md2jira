@@ -4,8 +4,18 @@ import { renderHook, act } from '@testing-library/react'
 // ── Stubs ─────────────────────────────────────────────────────────────────────
 // jsdom does not implement matchMedia — we provide a configurable stub here.
 let _prefersDark = false
+// Listeners registered via mql.addEventListener('change', fn) during a test.
+let _mqlListeners: Array<(e: Partial<MediaQueryListEvent>) => void> = []
 const matchMediaStub = vi.fn().mockImplementation((query: string) => ({
   matches: query === '(prefers-color-scheme: dark)' ? _prefersDark : false,
+  addEventListener: vi.fn((_type: string, listener: (e: Partial<MediaQueryListEvent>) => void) => {
+    _mqlListeners.push(listener)
+  }),
+  removeEventListener: vi.fn(
+    (_type: string, listener: (e: Partial<MediaQueryListEvent>) => void) => {
+      _mqlListeners = _mqlListeners.filter((l) => l !== listener)
+    }
+  ),
 }))
 
 const localStorageStub = {
@@ -33,6 +43,7 @@ describe('useTheme', () => {
     localStorageStub.clear()
     vi.clearAllMocks()
     _prefersDark = false
+    _mqlListeners = []
     document.documentElement.classList.remove('dark')
   })
 
@@ -125,6 +136,34 @@ describe('useTheme', () => {
     const useTheme = await importHook()
     // Should not throw; falls back to matchMedia
     const { result } = renderHook(() => useTheme())
+    expect(result.current.theme).toBe('light')
+  })
+
+  it('updates theme when OS dark-mode changes and no localStorage key is set', async () => {
+    _prefersDark = false
+    const useTheme = await importHook()
+    const { result } = renderHook(() => useTheme())
+    expect(result.current.theme).toBe('light')
+
+    // Simulate the OS switching to dark mode
+    act(() => {
+      _mqlListeners.forEach((fn) => fn({ matches: true }))
+    })
+
+    expect(result.current.theme).toBe('dark')
+  })
+
+  it('ignores OS dark-mode change when user has an explicit localStorage preference', async () => {
+    localStorageStub.store['theme'] = 'light'
+    const useTheme = await importHook()
+    const { result } = renderHook(() => useTheme())
+    expect(result.current.theme).toBe('light')
+
+    // Simulate OS switching to dark — should be ignored because user set 'light'
+    act(() => {
+      _mqlListeners.forEach((fn) => fn({ matches: true }))
+    })
+
     expect(result.current.theme).toBe('light')
   })
 })

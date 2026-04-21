@@ -258,4 +258,66 @@ describe('highlightWiki', () => {
     expect(result).toContain('wiki-macro')
     expect(result).toContain('wiki-bold')
   })
+
+  // ── Strikethrough -text- ─────────────────────────────────────────────────────
+
+  it('highlights -strikethrough- with wiki-strike span', () => {
+    const result = highlightWiki('some -strikethrough- text')
+    expect(result).toContain('<span class="wiki-strike">-strikethrough-</span>')
+  })
+
+  it('highlights -strike- at the start of a line', () => {
+    const result = highlightWiki('-deleted- word')
+    expect(result).toContain('<span class="wiki-strike">-deleted-</span>')
+  })
+
+  it('does not highlight hyphens inside words (no false positive on e-mail)', () => {
+    const result = highlightWiki('send an e-mail today')
+    expect(result).not.toContain('wiki-strike')
+  })
+
+  it('does not highlight hyphens inside dates (no false positive on 2024-04-20)', () => {
+    const result = highlightWiki('released on 2024-04-20')
+    expect(result).not.toContain('wiki-strike')
+  })
+
+  it('applies strikethrough highlighting inside table cells', () => {
+    const result = highlightWiki('| -old value- | new |')
+    expect(result).toContain('wiki-strike')
+    expect(result).toContain('wiki-td')
+  })
+
+  // ── Block macros ─────────────────────────────────────────────────────────────
+
+  it('highlights {info} block macro with wiki-block-macro span', () => {
+    const result = highlightWiki('{info}')
+    expect(result).toContain('<span class="wiki-block-macro">{info}</span>')
+  })
+
+  it('highlights {note} block macro with wiki-block-macro span', () => {
+    expect(highlightWiki('{note}')).toContain('wiki-block-macro')
+  })
+
+  it('highlights {warning} block macro with wiki-block-macro span', () => {
+    expect(highlightWiki('{warning}')).toContain('wiki-block-macro')
+  })
+
+  it('highlights {tip} block macro with wiki-block-macro span', () => {
+    expect(highlightWiki('{tip}')).toContain('wiki-block-macro')
+  })
+
+  it('highlights {quote} block macro with wiki-block-macro span', () => {
+    expect(highlightWiki('{quote}')).toContain('wiki-block-macro')
+  })
+
+  it('highlights {panel:title=My Panel} block macro with wiki-block-macro span', () => {
+    const result = highlightWiki('{panel:title=My Panel}')
+    expect(result).toContain('wiki-block-macro')
+  })
+
+  it('does not apply wiki-block-macro to {code} — that uses wiki-code-fence', () => {
+    const result = highlightWiki('{code}')
+    expect(result).toContain('wiki-code-fence')
+    expect(result).not.toContain('wiki-block-macro')
+  })
 })
