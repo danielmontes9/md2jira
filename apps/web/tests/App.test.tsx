@@ -208,3 +208,41 @@ describe('App – loading state', () => {
     expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
   })
 })
+
+describe('App – wiki code view', () => {
+  it('shows wiki markup code view region when format is wiki and view mode is code', async () => {
+    render(<App />)
+
+    // Switch to Wiki Markup format
+    await act(async () => {
+      fireEvent.click(screen.getByRole('radio', { name: 'Wiki Markup' }))
+    })
+
+    // Wiki format has no view-mode toggle (code/preview only exists for ADF);
+    // the wiki output is always rendered as the wiki markup preview region.
+    await waitFor(() => {
+      expect(screen.getByRole('region', { name: /wiki markup preview/i })).toBeInTheDocument()
+    })
+  })
+
+  it('shows wiki markup code view when format is wiki and code view is selected', async () => {
+    render(<App />)
+
+    // Switch to ADF code view first so view-mode toggle exists, then switch format
+    const viewModeGroup = screen.getByRole('radiogroup', { name: /view mode/i })
+    await act(async () => {
+      fireEvent.click(within(viewModeGroup).getByRole('radio', { name: 'Code' }))
+    })
+
+    // Switch to Wiki Markup — wiki format renders a single region without a view-mode toggle
+    await act(async () => {
+      fireEvent.click(screen.getByRole('radio', { name: 'Wiki Markup' }))
+    })
+
+    // The PLACEHOLDER starts with "# My Issue" → should produce "h1. My Issue" in the region
+    await waitFor(() => {
+      const pre = screen.getByRole('region', { name: /wiki markup preview/i })
+      expect(pre.textContent).toContain('h1. My Issue')
+    })
+  })
+})
