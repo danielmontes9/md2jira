@@ -181,10 +181,20 @@ function applyMarks(text: string, marks: readonly Mark[]): string {
   // No marks: escape Markdown-special characters so plain text like **foo**
   // doesn't become bold when the resulting Markdown is re-parsed.
   if (marks.length === 0) return escapeMd(text)
+
+  // Check whether there is a `code` mark — backtick spans must contain raw
+  // text (no other Markdown syntax inside), so we skip escapeMd for code.
+  const hasCode = marks.some((m) => m.type.name === 'code')
+
+  // For all non-code marks, escape the inner text first so that Markdown-
+  // special characters inside a formatted run (e.g. bold text containing an
+  // underscore) don't create unexpected nested formatting on round-trip.
+  const base = hasCode ? text : escapeMd(text)
+
   const sorted = [...marks].sort(
     (a, b) => (MARK_PRIORITY[b.type.name] ?? 50) - (MARK_PRIORITY[a.type.name] ?? 50)
   )
-  let result = text
+  let result = base
   for (const mark of sorted) {
     result = applyMark(mark, result)
   }

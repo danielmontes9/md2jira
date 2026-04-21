@@ -240,3 +240,36 @@ describe('tiptapDocToMarkdown — code block escape safety', () => {
     expect(md).not.toContain('\\"')
   })
 })
+
+// ── Mark escaping roundtrip ───────────────────────────────────────────────────
+
+describe('tiptapDocToMarkdown — special chars inside marks', () => {
+  it('escapes underscore inside bold text so it does not create bold+italic on round-trip', () => {
+    // Bold text that contains an underscore: **foo_bar** would re-parse as bold+italic.
+    // Expected: **foo\_bar**
+    const doc = htmlToDoc('<p><strong>foo_bar</strong></p>')
+    const md = tiptapDocToMarkdown(doc)
+    expect(md).toBe('**foo\\_bar**')
+  })
+
+  it('escapes asterisk inside italic text so it does not create unexpected bold on round-trip', () => {
+    const doc = htmlToDoc('<p><em>hello * world</em></p>')
+    const md = tiptapDocToMarkdown(doc)
+    expect(md).toBe('_hello \\* world_')
+  })
+
+  it('does NOT escape special chars inside inline code (raw content)', () => {
+    // Inside `...` backtick spans the text is raw — no backslash escaping.
+    const doc = htmlToDoc('<p><code>*raw* _text_</code></p>')
+    const md = tiptapDocToMarkdown(doc)
+    expect(md).toBe('`*raw* _text_`')
+    expect(md).not.toContain('\\*')
+    expect(md).not.toContain('\\_')
+  })
+
+  it('escapes backtick inside bold text', () => {
+    const doc = htmlToDoc('<p><strong>use `backtick`</strong></p>')
+    const md = tiptapDocToMarkdown(doc)
+    expect(md).toContain('\\`')
+  })
+})
