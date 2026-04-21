@@ -5,7 +5,11 @@ import { EditorToolbar } from '../src/components/jira-output/EditorToolbar.js'
 // Minimal matchMedia stub required by toolbar internals
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockReturnValue({ matches: false }),
+  value: vi.fn().mockReturnValue({
+    matches: false,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  }),
 })
 
 describe('EditorToolbar', () => {
