@@ -87,9 +87,14 @@ export function App() {
   const { html: previewHtml, workerError, retryWorker, isRendering } = useAdfHtmlWorker(adfDoc)
 
   // isPending drives the spinner in the output panel header.
-  // Wiki format: pending while deferred markdown conversion hasn't caught up.
-  // ADF format: also pending while the Web Worker is rendering the preview.
-  const isPending = markdown !== deferredMarkdown || (format === 'adf' && isRendering)
+  // Only show for large documents (> LARGE_DOC_THRESHOLD) where the 150 ms
+  // debounce introduces a real, perceptible delay. For small docs:
+  //   - `markdown !== deferredMarkdown` is true for only one render cycle
+  //     (useEffect is async) → would flash on every keystroke.
+  //   - `isRendering` from the ADF worker is true for the few ms between
+  //     posting a message and receiving the response → same flash problem.
+  // Capping on doc size ensures the spinner appears only when meaningful.
+  const isPending = markdown.length > LARGE_DOC_THRESHOLD && markdown !== deferredMarkdown
 
   return (
     <ToastProvider>
