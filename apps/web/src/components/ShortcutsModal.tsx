@@ -45,6 +45,7 @@ const GROUPS = [
     title: 'Editor',
     shortcuts: [
       { key: 'Tab', label: 'Indent (2 spaces)' },
+      { key: 'Shift+Tab', label: 'Dedent (remove 2 spaces)' },
       { key: '↵ Enter', label: 'Auto-continue list item' },
     ],
   },
