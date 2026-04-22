@@ -57,7 +57,7 @@ export function Toast({ message, type = 'info', onClose, duration = 7000 }: Toas
           setVisible(false)
           innerTimerRef.current = setTimeout(onClose, 200)
         }}
-        className="ml-1 shrink-0 opacity-60 transition-opacity hover:opacity-100"
+        className="ml-1 shrink-0 rounded opacity-60 transition-opacity hover:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
         aria-label="Dismiss"
       >
         <IconClose className="h-3.5 w-3.5" />

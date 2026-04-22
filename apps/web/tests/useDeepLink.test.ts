@@ -75,7 +75,7 @@ describe('useDeepLink', () => {
     act(() => {
       vi.advanceTimersByTime(500)
     })
-    const calledUrl = replaceStateSpy.mock.calls[0][2] as string
+    const calledUrl = replaceStateSpy.mock.calls[0]![2] as string
     const url = new URL(calledUrl)
     expect(url.searchParams.get('md')).toBe(encodeMarkdown(md))
   })
@@ -86,7 +86,7 @@ describe('useDeepLink', () => {
     act(() => {
       vi.advanceTimersByTime(500)
     })
-    const calledUrl = replaceStateSpy.mock.calls[0][2] as string
+    const calledUrl = replaceStateSpy.mock.calls[0]![2] as string
     const url = new URL(calledUrl)
     expect(url.searchParams.has('md')).toBe(false)
   })
@@ -96,7 +96,7 @@ describe('useDeepLink', () => {
     act(() => {
       vi.advanceTimersByTime(500)
     })
-    const calledUrl = replaceStateSpy.mock.calls[0][2] as string
+    const calledUrl = replaceStateSpy.mock.calls[0]![2] as string
     const url = new URL(calledUrl)
     expect(url.searchParams.get('fmt')).toBe('wiki')
   })
@@ -107,7 +107,7 @@ describe('useDeepLink', () => {
     act(() => {
       vi.advanceTimersByTime(500)
     })
-    const calledUrl = replaceStateSpy.mock.calls[0][2] as string
+    const calledUrl = replaceStateSpy.mock.calls[0]![2] as string
     const url = new URL(calledUrl)
     expect(url.searchParams.has('fmt')).toBe(false)
   })
@@ -121,7 +121,7 @@ describe('useDeepLink', () => {
       vi.advanceTimersByTime(500)
     })
     // replaceState IS called (to strip the old ?md= param)
-    const calledUrl = replaceStateSpy.mock.calls[0][2] as string
+    const calledUrl = replaceStateSpy.mock.calls[0]![2] as string
     const url = new URL(calledUrl)
     expect(url.searchParams.has('md')).toBe(false)
   })

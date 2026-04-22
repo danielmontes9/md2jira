@@ -20,10 +20,10 @@ export const DROP_CLS =
   'absolute left-0 top-full z-50 mt-1 min-w-max rounded-lg border border-neutral-200 bg-white shadow-lg dark:border-neutral-700 dark:bg-neutral-900'
 
 export const BTN_CLS =
-  'relative flex h-7 items-center gap-0.5 rounded px-1.5 text-xs text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800 select-none'
+  'relative flex h-7 items-center gap-0.5 rounded px-1.5 text-xs text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800 select-none focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500'
 
 export const DROP_ITEM_CLS =
-  'flex w-full items-center px-4 py-1.5 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800'
+  'flex w-full items-center px-4 py-1.5 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-blue-500'
 
 export const TEXT_STYLES: { label: string; tag: string; cls: string }[] = [
   { label: 'Normal text', tag: 'p', cls: 'text-sm' },

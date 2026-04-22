@@ -40,7 +40,7 @@ export const Header = memo(function Header({ theme, onToggleTheme }: HeaderProps
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Support the project — Buy me a coffee"
-            className="shrink-0 sm:order-1"
+            className="shrink-0 sm:order-1 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
           >
             {bmacError ? (
               <span className="inline-flex h-7 items-center rounded bg-yellow-400 px-3 text-xs font-medium text-yellow-900 sm:h-10 sm:px-4 sm:text-sm">
@@ -63,7 +63,7 @@ export const Header = memo(function Header({ theme, onToggleTheme }: HeaderProps
               href={GITHUB_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden items-center gap-1.5 rounded-full border border-neutral-200 px-3 py-1 text-xs text-neutral-500 transition-colors hover:border-yellow-400 hover:text-yellow-500 sm:flex dark:border-neutral-700 dark:text-neutral-400 dark:hover:border-yellow-500 dark:hover:text-yellow-400"
+              className="hidden items-center gap-1.5 rounded-full border border-neutral-200 px-3 py-1 text-xs text-neutral-500 transition-colors hover:border-yellow-400 hover:text-yellow-500 sm:flex dark:border-neutral-700 dark:text-neutral-400 dark:hover:border-yellow-500 dark:hover:text-yellow-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
               aria-label="Star on GitHub"
             >
               Star on GitHub
@@ -72,7 +72,7 @@ export const Header = memo(function Header({ theme, onToggleTheme }: HeaderProps
               href={GITHUB_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-md p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
+              className="rounded-md p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
               aria-label="View project on GitHub"
             >
               <IconGitHub className="h-5 w-5" />
@@ -80,7 +80,7 @@ export const Header = memo(function Header({ theme, onToggleTheme }: HeaderProps
             <button
               type="button"
               onClick={() => setInfoOpen(true)}
-              className="rounded-md p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
+              className="rounded-md p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
               aria-label="About this project"
               aria-expanded={infoOpen}
               aria-haspopup="dialog"
@@ -90,7 +90,7 @@ export const Header = memo(function Header({ theme, onToggleTheme }: HeaderProps
             <button
               type="button"
               onClick={onToggleTheme}
-              className="rounded-md p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
+              className="rounded-md p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
               aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
             >
               {theme === 'dark' ? <IconSun /> : <IconMoon />}

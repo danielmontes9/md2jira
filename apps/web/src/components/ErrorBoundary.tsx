@@ -91,7 +91,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <button
               type="button"
               onClick={this.handleRetry}
-              className="rounded-md border border-red-300 px-3 py-1 text-xs font-medium text-red-700 transition-colors hover:bg-red-50 dark:border-red-700 dark:text-red-300 dark:hover:bg-red-950"
+              className="rounded-md border border-red-300 px-3 py-1 text-xs font-medium text-red-700 transition-colors hover:bg-red-50 dark:border-red-700 dark:text-red-300 dark:hover:bg-red-950 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-red-500"
             >
               Retry ({ErrorBoundary.MAX_RETRIES - this.state.retryCount} remaining)
             </button>

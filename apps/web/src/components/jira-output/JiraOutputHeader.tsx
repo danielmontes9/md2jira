@@ -5,7 +5,7 @@ import { CopyEditGroup } from './CopyEditGroup.js'
 /** Returns the correct className for a toggle-group button. */
 function toggleBtnCls(active: boolean, side: 'left' | 'right'): string {
   const radius = side === 'left' ? 'rounded-l-md' : 'rounded-r-md'
-  const base = `flex-1 whitespace-nowrap ${radius} px-2 py-1 transition-colors @[460px]:flex-none`
+  const base = `flex-1 whitespace-nowrap ${radius} px-2 py-1 transition-colors @[460px]:flex-none focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500`
   return active
     ? `${base} bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-neutral-100`
     : `${base} text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200`
