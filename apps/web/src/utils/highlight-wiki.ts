@@ -22,9 +22,12 @@ export function highlightWiki(wiki: string): string {
 function highlightWikiLine(line: string): string {
   const esc = escapeHtml(line)
 
-  // Headings: h1. text → h6. text
+  // Headings: h1. text → h6. text — wrap the 'hX.' prefix and apply inline
+  // highlights to the title content so *bold* / _italic_ inside headings renders.
+  // All heading prefixes are exactly 3 chars ('h1.'–'h6.') followed by a space.
   if (/^h[1-6]\. /.test(line)) {
-    return esc.replace(/^(h[1-6]\.)/, '<span class="wiki-heading">$1</span>')
+    const content = applyInlineHighlights(esc.slice(4))
+    return '<span class="wiki-heading">' + esc.slice(0, 3) + '</span> ' + content
   }
 
   // Horizontal rule
@@ -78,14 +81,25 @@ function highlightWikiLine(line: string): string {
     return `<span class="wiki-block-macro">${esc}</span>`
   }
 
-  // Blockquote: bq. text
+  // Blockquote: bq. text — wrap 'bq.' prefix and apply inline highlights to
+  // the quoted content so formatting like *bold* and _italic_ is rendered.
+  // 'bq.' = 3 chars, 'bq. ' = 4 chars; these are not HTML-special so esc
+  // starts with the same bytes.
   if (/^bq\. /.test(line)) {
-    return esc.replace(/^(bq\.)/, '<span class="wiki-blockquote">$1</span>')
+    const content = applyInlineHighlights(esc.slice(4))
+    return '<span class="wiki-blockquote">bq.</span> ' + content
   }
 
-  // List items: * item (unordered) or # item (ordered), one or more prefix chars
+  // List items: * item (unordered) or # item (ordered), one or more prefix chars.
+  // Wrap the marker(s) in wiki-list-marker and apply inline highlights to the
+  // item content so *bold* / _italic_ in list text is rendered correctly.
   if (/^[*#]+ /.test(line)) {
-    return esc.replace(/^([*#]+)/, '<span class="wiki-list-marker">$1</span>')
+    // Non-null: we already confirmed the pattern matches, and */#/space are
+    // not HTML-special so esc starts with the same bytes as line.
+    const markerMatch = /^([*#]+) /.exec(esc)!
+    const prefix = markerMatch[1]!
+    const content = applyInlineHighlights(esc.slice(markerMatch[0].length))
+    return `<span class="wiki-list-marker">${prefix}</span> ` + content
   }
 
   // For remaining lines apply inline token highlighting

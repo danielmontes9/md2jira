@@ -149,6 +149,12 @@ describe('highlightWiki', () => {
     expect(result).toContain('<span class="wiki-blockquote">bq.</span>')
   })
 
+  it('applies inline highlights to content after bq. prefix', () => {
+    const result = highlightWiki('bq. *bold text*')
+    expect(result).toContain('<span class="wiki-blockquote">bq.</span>')
+    expect(result).toContain('<span class="wiki-bold">*bold text*</span>')
+  })
+
   it('highlights * unordered list marker with wiki-list-marker span', () => {
     const result = highlightWiki('* List item')
     expect(result).toContain('<span class="wiki-list-marker">*</span>')
@@ -164,6 +170,12 @@ describe('highlightWiki', () => {
     expect(result).toContain('<span class="wiki-list-marker">#</span>')
   })
 
+  it('applies inline highlights to content after list marker', () => {
+    const result = highlightWiki('* *bold* item')
+    expect(result).toContain('<span class="wiki-list-marker">*</span>')
+    expect(result).toContain('<span class="wiki-bold">*bold*</span>')
+  })
+
   it('inline code protects its content from bold/italic highlighting', () => {
     const result = highlightWiki('{{*not bold*}}')
     // The content should be inside wiki-inline-code, NOT wiki-bold
@@ -171,11 +183,10 @@ describe('highlightWiki', () => {
     expect(result).not.toContain('wiki-bold')
   })
 
-  it('does not apply inline highlights inside heading lines', () => {
-    // Heading lines return early and don't go through inline processing
+  it('applies inline highlights to content after heading prefix', () => {
     const result = highlightWiki('h1. *Title*')
-    expect(result).toContain('wiki-heading')
-    expect(result).not.toContain('wiki-bold')
+    expect(result).toContain('<span class="wiki-heading">h1.</span>')
+    expect(result).toContain('<span class="wiki-bold">*Title*</span>')
   })
 
   it('escapes HTML-special chars inside inline bold before wrapping span', () => {
