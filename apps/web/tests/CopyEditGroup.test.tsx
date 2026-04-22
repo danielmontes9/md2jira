@@ -103,7 +103,7 @@ describe('CopyEditGroup', () => {
     expect(screen.getByRole('button', { name: /view/i })).toHaveAttribute('aria-pressed', 'true')
   })
 
-  it('copy button has aria-live="polite" for screen-reader announcements', () => {
+  it('copy button has a descriptive aria-label for screen readers', () => {
     render(
       <CopyEditGroup
         copied={false}
@@ -114,10 +114,23 @@ describe('CopyEditGroup', () => {
         onToggleEdit={noop}
       />
     )
-    expect(screen.getByRole('button', { name: /copy for jira/i })).toHaveAttribute(
-      'aria-live',
-      'polite'
+    const btn = screen.getByRole('button', { name: /copy as rich text for jira cloud/i })
+    expect(btn).toBeInTheDocument()
+    expect(btn).not.toHaveAttribute('aria-live')
+  })
+
+  it('copy button aria-label changes to "Copied!" when copied is true', () => {
+    render(
+      <CopyEditGroup
+        copied={true}
+        editMode={false}
+        canEdit={false}
+        format="wiki"
+        onCopy={noop}
+        onToggleEdit={noop}
+      />
     )
+    expect(screen.getByRole('button', { name: /copied!/i })).toBeInTheDocument()
   })
 
   it('calls onCopy when copy button is clicked', async () => {
