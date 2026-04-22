@@ -18,7 +18,9 @@ describe('CopyEditGroup', () => {
         onToggleEdit={noop}
       />
     )
-    expect(screen.getByRole('button', { name: /copy for jira/i })).toBeInTheDocument()
+    const btn = screen.getByRole('button', { name: /copy as rich text for jira cloud/i })
+    expect(btn).toBeInTheDocument()
+    expect(btn).toHaveTextContent(/copy for jira/i)
   })
 
   it('renders "Copied!" when copied is true', () => {
@@ -145,7 +147,7 @@ describe('CopyEditGroup', () => {
         onToggleEdit={noop}
       />
     )
-    await userEvent.click(screen.getByRole('button', { name: /copy for jira/i }))
+    await userEvent.click(screen.getByRole('button', { name: /copy as rich text for jira cloud/i }))
     expect(onCopy).toHaveBeenCalledOnce()
   })
 
@@ -176,10 +178,9 @@ describe('CopyEditGroup', () => {
         onToggleEdit={noop}
       />
     )
-    expect(screen.getByRole('button', { name: /copy for jira/i })).toHaveAttribute(
-      'title',
-      'Copy as rich text for Jira Cloud'
-    )
+    expect(
+      screen.getByRole('button', { name: /copy as rich text for jira cloud/i })
+    ).toHaveAttribute('title', 'Copy as rich text for Jira Cloud')
   })
 
   it('copy button title reflects Wiki format', () => {
@@ -193,7 +194,7 @@ describe('CopyEditGroup', () => {
         onToggleEdit={noop}
       />
     )
-    expect(screen.getByRole('button', { name: /copy for jira/i })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: /copy wiki markup to clipboard/i })).toHaveAttribute(
       'title',
       'Copy Wiki Markup to clipboard'
     )

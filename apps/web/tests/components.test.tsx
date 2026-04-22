@@ -50,8 +50,9 @@ describe('App', () => {
 
   it('shows the Copy for Jira button', () => {
     render(<App />)
-    // At least one "Copy for Jira" button visible (mobile + desktop rendered but one hidden via CSS)
-    const btns = screen.getAllByRole('button', { name: /copy for jira/i })
+    // At least one copy button visible (mobile + desktop rendered but one hidden via CSS)
+    // The accessible name comes from aria-label, which for the default ADF format is:
+    const btns = screen.getAllByRole('button', { name: /copy as rich text for jira cloud/i })
     expect(btns.length).toBeGreaterThanOrEqual(1)
   })
 })
@@ -247,8 +248,9 @@ describe('Copy for Jira button', () => {
     })
 
     render(<App />)
-    const copyBtn = screen.getByRole('button', { name: /copy for jira/i })
-    fireEvent.click(copyBtn)
+    // Default format is ADF; aria-label takes precedence over text content
+    const copyBtns = screen.getAllByRole('button', { name: /copy as rich text for jira cloud/i })
+    fireEvent.click(copyBtns[0]!)
 
     // jsdom does not support ClipboardItem, so write() may fail and fall back to writeText().
     await waitFor(() => {
