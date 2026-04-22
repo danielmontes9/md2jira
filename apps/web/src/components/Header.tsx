@@ -82,6 +82,7 @@ export const Header = memo(function Header({ theme, onToggleTheme }: HeaderProps
               className="rounded-md p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
               aria-label="About this project"
               aria-expanded={infoOpen}
+              aria-haspopup="dialog"
             >
               <IconInfoCircle />
             </button>
