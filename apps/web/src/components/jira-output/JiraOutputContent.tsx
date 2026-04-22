@@ -69,7 +69,7 @@ export function JiraOutputContent({
     <pre
       role="region"
       aria-label="Wiki markup preview"
-      className={`jira-preview flex-1 overflow-auto whitespace-pre-wrap p-6 font-mono text-sm text-neutral-900 dark:text-neutral-100 ${isPending ? 'opacity-50' : ''}`}
+      className="jira-preview flex-1 overflow-auto whitespace-pre-wrap p-6 font-mono text-sm text-neutral-900 dark:text-neutral-100"
       // highlightWiki escapes HTML entities before injecting <span> tags — safe.
       // eslint-disable-next-line react/no-danger
       dangerouslySetInnerHTML={{ __html: highlightedWiki }}

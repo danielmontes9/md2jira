@@ -17,7 +17,7 @@ export function useAdfHtmlWorker(adfDoc: AdfDocument | null): {
   workerError: boolean
   retryWorker: () => void
 } {
-  const [state, setState] = useState({ html: '', workerError: false, isRendering: false })
+  const [state, setState] = useState({ html: '', workerError: false })
   const [retryCount, setRetryCount] = useState(0)
   const workerRef = useRef<Worker | null>(null)
   // Monotonically increasing request id — used to discard stale worker responses
@@ -25,12 +25,10 @@ export function useAdfHtmlWorker(adfDoc: AdfDocument | null): {
 
   useEffect(() => {
     if (!adfDoc) {
-      setState({ html: '', workerError: false, isRendering: false })
+      setState({ html: '', workerError: false })
       return
     }
     const id = ++workerReqRef.current
-    // Mark as rendering immediately so the caller can show a pending indicator.
-    setState((prev) => ({ ...prev, isRendering: true }))
 
     try {
       if (!workerRef.current) {
@@ -40,7 +38,7 @@ export function useAdfHtmlWorker(adfDoc: AdfDocument | null): {
         // Clear the preview and drop the stale worker if it throws an unhandled
         // error (e.g. malformed ADF payload from an external source).
         w.addEventListener('error', () => {
-          setState({ html: '', workerError: true, isRendering: false })
+          setState({ html: '', workerError: true })
           workerRef.current = null
         })
         workerRef.current = w
@@ -51,9 +49,9 @@ export function useAdfHtmlWorker(adfDoc: AdfDocument | null): {
         if (e.data.id === id) {
           clearTimeout(timeoutId)
           if (e.data.error) {
-            setState({ html: '', workerError: true, isRendering: false })
+            setState({ html: '', workerError: true })
           } else {
-            setState({ html: e.data.html, workerError: false, isRendering: false })
+            setState({ html: e.data.html, workerError: false })
           }
         }
       }
@@ -66,9 +64,9 @@ export function useAdfHtmlWorker(adfDoc: AdfDocument | null): {
         import('../components/jira-output/adf-renderer.js')
           .then(({ adfToHtml }) => {
             if (workerReqRef.current === id)
-              setState({ html: adfToHtml(adfDoc), workerError: false, isRendering: false })
+              setState({ html: adfToHtml(adfDoc), workerError: false })
           })
-          .catch(() => setState({ html: '', workerError: true, isRendering: false }))
+          .catch(() => setState({ html: '', workerError: true }))
       }, 5_000)
       worker.addEventListener('message', onMessage)
       worker.postMessage({ id, doc: adfDoc })
@@ -85,10 +83,10 @@ export function useAdfHtmlWorker(adfDoc: AdfDocument | null): {
       import('../components/jira-output/adf-renderer.js')
         .then(({ adfToHtml }) => {
           if (!cancelled && workerReqRef.current === id)
-            setState({ html: adfToHtml(adfDoc), workerError: false, isRendering: false })
+            setState({ html: adfToHtml(adfDoc), workerError: false })
         })
         .catch(() => {
-          if (!cancelled) setState({ html: '', workerError: true, isRendering: false })
+          if (!cancelled) setState({ html: '', workerError: true })
         })
       return () => {
         cancelled = true
@@ -103,7 +101,7 @@ export function useAdfHtmlWorker(adfDoc: AdfDocument | null): {
   const retryWorker = useCallback(() => {
     workerRef.current?.terminate()
     workerRef.current = null
-    setState({ html: '', workerError: false, isRendering: false })
+    setState({ html: '', workerError: false })
     setRetryCount((c) => c + 1)
   }, [])
 

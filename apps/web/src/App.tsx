@@ -88,11 +88,9 @@ export function App() {
 
   // isPending drives the spinner in the output panel header.
   // Only show for large documents (> LARGE_DOC_THRESHOLD) where the 150 ms
-  // debounce introduces a real, perceptible delay. For small docs:
-  //   - `markdown !== deferredMarkdown` is true for only one render cycle
-  //     (useEffect is async) → would flash on every keystroke.
-  //   - `isRendering` from the ADF worker is true for the few ms between
-  //     posting a message and receiving the response → same flash problem.
+  // debounce introduces a real, perceptible delay. For small docs,
+  // `markdown !== deferredMarkdown` is true for only one render cycle
+  // (useEffect is async) and would flash on every keystroke.
   // Capping on doc size ensures the spinner appears only when meaningful.
   const isPending = markdown.length > LARGE_DOC_THRESHOLD && markdown !== deferredMarkdown
 
