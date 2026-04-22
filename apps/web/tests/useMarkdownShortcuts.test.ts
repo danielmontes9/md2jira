@@ -117,11 +117,56 @@ describe('useMarkdownShortcuts', () => {
     expect(changedValue()).toBe('hello **world**')
   })
 
-  it('Ctrl+B wraps empty selection in **', () => {
+  it('Ctrl+B with no selection inserts **** and places cursor between delimiters', () => {
+    vi.useFakeTimers()
+    const spy = vi.spyOn(ta, 'setSelectionRange')
     ta.value = 'hi'
     ta.selectionStart = ta.selectionEnd = 2
     press('b', { ctrl: true })
     expect(changedValue()).toBe('hi****')
+    vi.runAllTimers()
+    // cursor must land at position 4 ('hi' + '**') — between the two ** pairs
+    expect(spy).toHaveBeenCalledWith(4, 4)
+    vi.useRealTimers()
+  })
+
+  it('Ctrl+I with no selection inserts __ and places cursor between delimiters', () => {
+    vi.useFakeTimers()
+    const spy = vi.spyOn(ta, 'setSelectionRange')
+    ta.value = 'hi'
+    ta.selectionStart = ta.selectionEnd = 2
+    press('i', { ctrl: true })
+    expect(changedValue()).toBe('hi__')
+    vi.runAllTimers()
+    // cursor must land at position 3 ('hi' + '_') — between the two _
+    expect(spy).toHaveBeenCalledWith(3, 3)
+    vi.useRealTimers()
+  })
+
+  it('Ctrl+Shift+K with no selection inserts backtick pair and places cursor between', () => {
+    vi.useFakeTimers()
+    const spy = vi.spyOn(ta, 'setSelectionRange')
+    ta.value = 'run '
+    ta.selectionStart = ta.selectionEnd = 4
+    press('k', { ctrl: true, shift: true })
+    expect(changedValue()).toBe('run ``')
+    vi.runAllTimers()
+    // cursor must land at position 5 ('run ' + '`') — between the two backticks
+    expect(spy).toHaveBeenCalledWith(5, 5)
+    vi.useRealTimers()
+  })
+
+  it('Ctrl+Shift+X with no selection inserts ~~~~ and places cursor between', () => {
+    vi.useFakeTimers()
+    const spy = vi.spyOn(ta, 'setSelectionRange')
+    ta.value = 'end'
+    ta.selectionStart = ta.selectionEnd = 3
+    press('x', { ctrl: true, shift: true })
+    expect(changedValue()).toBe('end~~~~')
+    vi.runAllTimers()
+    // cursor must land at position 5 ('end' + '~~') — between the two ~~ pairs
+    expect(spy).toHaveBeenCalledWith(5, 5)
+    vi.useRealTimers()
   })
 
   it('Ctrl+I wraps selection in _', () => {
@@ -132,20 +177,45 @@ describe('useMarkdownShortcuts', () => {
     expect(changedValue()).toBe('hello _world_')
   })
 
-  it('Ctrl+K wraps selection as [text]() and places cursor inside parens', () => {
+  it('Ctrl+K wraps selection as [text](url) with url placeholder pre-selected', () => {
     ta.value = 'click here for info'
     ta.selectionStart = 6
     ta.selectionEnd = 10
     press('k', { ctrl: true })
-    expect(changedValue()).toBe('click [here]() for info')
+    expect(changedValue()).toBe('click [here](url) for info')
   })
 
-  it('Ctrl+K with no selection inserts []() at cursor', () => {
+  it('Ctrl+K with selection selects the url placeholder', () => {
+    vi.useFakeTimers()
+    const spy = vi.spyOn(ta, 'setSelectionRange')
+    ta.value = 'click here for info'
+    ta.selectionStart = 6
+    ta.selectionEnd = 10
+    press('k', { ctrl: true })
+    vi.runAllTimers()
+    // '[here](url)' starts at 6; 'url' is at positions 13-16 (6 + 'here'.length + 3)
+    expect(spy).toHaveBeenCalledWith(13, 16)
+    vi.useRealTimers()
+  })
+
+  it('Ctrl+K with no selection inserts [](url) and selects url placeholder', () => {
     ta.value = 'see  for details'
     ta.selectionStart = ta.selectionEnd = 4
     press('k', { ctrl: true })
-    // value.slice(0, 4) = 'see ', ins = '[]()', value.slice(4) = ' for details'
-    expect(changedValue()).toBe('see []() for details')
+    // value.slice(0, 4) = 'see ', ins = '[](url)', value.slice(4) = ' for details'
+    expect(changedValue()).toBe('see [](url) for details')
+  })
+
+  it('Ctrl+K with no selection selects the url placeholder', () => {
+    vi.useFakeTimers()
+    const spy = vi.spyOn(ta, 'setSelectionRange')
+    ta.value = 'see  for details'
+    ta.selectionStart = ta.selectionEnd = 4
+    press('k', { ctrl: true })
+    vi.runAllTimers()
+    // '[](url)' starts at 4; 'url' is at positions 7-10 (4 + '' + 3)
+    expect(spy).toHaveBeenCalledWith(7, 10)
+    vi.useRealTimers()
   })
 
   it('Ctrl+Shift+K wraps selection in backtick', () => {

@@ -71,7 +71,11 @@ function wrapSelection(
   const selected = value.substring(selectionStart, selectionEnd)
   const ins = `${wrapper}${selected}${wrapper}`
   const newValue = value.slice(0, selectionStart) + ins + value.slice(selectionEnd)
-  applyChange(ta, newValue, selectionStart + ins.length, onChange)
+  // When nothing is selected, place the cursor between the two delimiters so
+  // the user can start typing immediately (e.g. Ctrl+B → **|** not ****|).
+  const newPos =
+    selectionStart === selectionEnd ? selectionStart + wrapper.length : selectionStart + ins.length
+  applyChange(ta, newValue, newPos, onChange)
 }
 
 const ctrlOrMeta = (e: KeyboardEvent<HTMLTextAreaElement>) => e.ctrlKey || e.metaKey
@@ -122,19 +126,20 @@ const SHORTCUT_TABLE: ShortcutEntry[] = [
     match: (e) => e.key === 'i' && ctrlOrMeta(e) && !e.shiftKey && !e.altKey,
     handle: (e, _ta, onChange) => wrapSelection(e, '_', onChange),
   },
-  // Ctrl+K → link — wraps selection as [text]() with cursor inside the parens
+  // Ctrl+K → link — wraps selection as [text](url) with the url placeholder pre-selected
+  // so the user can immediately type (or paste) the URL without repositioning the cursor.
   {
     match: (e) => e.key === 'k' && ctrlOrMeta(e) && !e.shiftKey && !e.altKey,
     handle: (e, ta, onChange) => {
       e.preventDefault()
       const { selectionStart, selectionEnd, value } = ta
       const selected = value.substring(selectionStart, selectionEnd)
-      const ins = `[${selected}]()`
+      const ins = `[${selected}](url)`
       const newValue = value.slice(0, selectionStart) + ins + value.slice(selectionEnd)
-      // Cursor goes inside the parens: skip '[' + selected + '](' = selected.length + 3 chars
-      const urlPos = selectionStart + selected.length + 3
+      // Select the "url" placeholder: '[' + selected + '](' = selected.length + 3 chars before it
+      const urlStart = selectionStart + selected.length + 3
       onChange(newValue)
-      requestAnimationFrame(() => ta.setSelectionRange(urlPos, urlPos))
+      requestAnimationFrame(() => ta.setSelectionRange(urlStart, urlStart + 3))
     },
   },
   // Ctrl+Shift+K → inline code
