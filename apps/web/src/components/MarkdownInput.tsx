@@ -104,6 +104,7 @@ export const MarkdownInput = memo(function MarkdownInput({
               onClick={() => setShowShortcuts(true)}
               className={TOOLBAR_BTN_CLS}
               aria-label="Show keyboard shortcuts"
+              aria-haspopup="dialog"
             >
               Shortcuts
             </button>

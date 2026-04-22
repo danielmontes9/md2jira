@@ -27,7 +27,13 @@ export const CopyEditGroup = memo(function CopyEditGroup({
     >
       <button
         onClick={onCopy}
-        aria-live="polite"
+        aria-label={
+          copied
+            ? 'Copied!'
+            : format === 'adf'
+              ? 'Copy as rich text for Jira Cloud'
+              : 'Copy Wiki Markup to clipboard'
+        }
         title={
           format === 'adf' ? 'Copy as rich text for Jira Cloud' : 'Copy Wiki Markup to clipboard'
         }
