@@ -62,17 +62,21 @@ export const JiraOutputHeader = memo(function JiraOutputHeader({
             className="flex flex-1 rounded-md border border-neutral-300 text-xs @[460px]:flex-none dark:border-neutral-700"
           >
             <button
+              type="button"
               onClick={() => onFormatChange('adf')}
               role="radio"
               aria-checked={format === 'adf'}
+              tabIndex={format === 'adf' ? 0 : -1}
               className={toggleBtnCls(format === 'adf', 'left')}
             >
               Jira Cloud
             </button>
             <button
+              type="button"
               onClick={() => onFormatChange('wiki')}
               role="radio"
               aria-checked={format === 'wiki'}
+              tabIndex={format === 'wiki' ? 0 : -1}
               className={toggleBtnCls(format === 'wiki', 'right')}
             >
               Wiki Markup
@@ -85,17 +89,21 @@ export const JiraOutputHeader = memo(function JiraOutputHeader({
               className="flex flex-1 rounded-md border border-neutral-300 text-xs @[460px]:flex-none dark:border-neutral-700"
             >
               <button
+                type="button"
                 onClick={() => onViewModeChange('preview')}
                 role="radio"
                 aria-checked={viewMode === 'preview'}
+                tabIndex={viewMode === 'preview' ? 0 : -1}
                 className={toggleBtnCls(viewMode === 'preview', 'left')}
               >
                 Preview
               </button>
               <button
+                type="button"
                 onClick={() => onViewModeChange('code')}
                 role="radio"
                 aria-checked={viewMode === 'code'}
+                tabIndex={viewMode === 'code' ? 0 : -1}
                 className={toggleBtnCls(viewMode === 'code', 'right')}
               >
                 Code

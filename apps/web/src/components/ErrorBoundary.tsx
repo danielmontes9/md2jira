@@ -89,6 +89,7 @@ export class ErrorBoundary extends Component<Props, State> {
           <span>Render error: {this.state.message}</span>
           {this.state.retryCount < ErrorBoundary.MAX_RETRIES ? (
             <button
+              type="button"
               onClick={this.handleRetry}
               className="rounded-md border border-red-300 px-3 py-1 text-xs font-medium text-red-700 transition-colors hover:bg-red-50 dark:border-red-700 dark:text-red-300 dark:hover:bg-red-950"
             >

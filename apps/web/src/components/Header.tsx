@@ -78,6 +78,7 @@ export const Header = memo(function Header({ theme, onToggleTheme }: HeaderProps
               <IconGitHub className="h-5 w-5" />
             </a>
             <button
+              type="button"
               onClick={() => setInfoOpen(true)}
               className="rounded-md p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
               aria-label="About this project"
@@ -87,6 +88,7 @@ export const Header = memo(function Header({ theme, onToggleTheme }: HeaderProps
               <IconInfoCircle />
             </button>
             <button
+              type="button"
               onClick={onToggleTheme}
               className="rounded-md p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
               aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}

@@ -63,6 +63,7 @@ export function ShortcutsModal({ onClose }: ShortcutsModalProps) {
             Keyboard Shortcuts
           </h2>
           <button
+            type="button"
             onClick={onClose}
             className="rounded-md p-1.5 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
             aria-label="Close shortcuts panel"

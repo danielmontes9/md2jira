@@ -87,6 +87,7 @@ export const MarkdownInput = memo(function MarkdownInput({
           )}
           <div className="flex items-center justify-center gap-1 @[375px]:justify-end">
             <button
+              type="button"
               onClick={handleImport}
               className={TOOLBAR_BTN_CLS}
               aria-label="Import Markdown file"
@@ -94,6 +95,7 @@ export const MarkdownInput = memo(function MarkdownInput({
               Import
             </button>
             <button
+              type="button"
               onClick={handleExport}
               className={TOOLBAR_BTN_CLS}
               aria-label="Export Markdown file"
@@ -101,6 +103,7 @@ export const MarkdownInput = memo(function MarkdownInput({
               Export
             </button>
             <button
+              type="button"
               onClick={() => setShowShortcuts(true)}
               className={TOOLBAR_BTN_CLS}
               aria-label="Show keyboard shortcuts"
@@ -109,6 +112,7 @@ export const MarkdownInput = memo(function MarkdownInput({
               Shortcuts
             </button>
             <button
+              type="button"
               onClick={handleCopyMd}
               className={TOOLBAR_BTN_CLS}
               aria-label="Copy Markdown to clipboard"

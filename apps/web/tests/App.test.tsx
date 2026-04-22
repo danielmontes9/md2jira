@@ -199,6 +199,30 @@ describe('App – URL deep-linking', () => {
     const textarea = screen.getByPlaceholderText('Paste your Markdown here...')
     expect(textarea).toHaveValue(PLACEHOLDER)
   })
+
+  it('starts in Wiki Markup format when ?fmt=wiki is in the URL', () => {
+    Object.defineProperty(window, 'location', {
+      writable: true,
+      value: { href: 'http://localhost/?fmt=wiki', search: '?fmt=wiki' },
+    })
+
+    render(<App />)
+    const wikiBtn = screen.getByRole('radio', { name: 'Wiki Markup' })
+    expect(wikiBtn).toHaveAttribute('aria-checked', 'true')
+    const adfBtn = screen.getByRole('radio', { name: 'Jira Cloud' })
+    expect(adfBtn).toHaveAttribute('aria-checked', 'false')
+  })
+
+  it('starts in Jira Cloud (ADF) format when ?fmt=adf is in the URL', () => {
+    Object.defineProperty(window, 'location', {
+      writable: true,
+      value: { href: 'http://localhost/?fmt=adf', search: '?fmt=adf' },
+    })
+
+    render(<App />)
+    const adfBtn = screen.getByRole('radio', { name: 'Jira Cloud' })
+    expect(adfBtn).toHaveAttribute('aria-checked', 'true')
+  })
 })
 
 describe('App – loading state', () => {

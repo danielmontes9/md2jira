@@ -88,6 +88,7 @@ export const EditorToolbar = memo(function EditorToolbar({
 
       {/* Code snippet */}
       <button
+        type="button"
         onMouseDown={(e) => {
           e.preventDefault()
           exec('toggleCodeBlock')
@@ -106,6 +107,7 @@ export const EditorToolbar = memo(function EditorToolbar({
 
       {/* Undo */}
       <button
+        type="button"
         onMouseDown={(e) => {
           e.preventDefault()
           exec('undo')
@@ -118,6 +120,7 @@ export const EditorToolbar = memo(function EditorToolbar({
 
       {/* Redo */}
       <button
+        type="button"
         onMouseDown={(e) => {
           e.preventDefault()
           exec('redo')

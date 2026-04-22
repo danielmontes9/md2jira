@@ -26,6 +26,7 @@ export const CopyEditGroup = memo(function CopyEditGroup({
       className={`flex rounded-md border border-neutral-300 text-xs dark:border-neutral-600 ${className ?? ''}`}
     >
       <button
+        type="button"
         onClick={onCopy}
         aria-label={
           copied
@@ -43,6 +44,7 @@ export const CopyEditGroup = memo(function CopyEditGroup({
       </button>
       {canEdit && (
         <button
+          type="button"
           onClick={onToggleEdit}
           title={editMode ? 'Switch to view mode' : 'Switch to edit mode'}
           aria-pressed={editMode}

@@ -52,6 +52,7 @@ export function Toast({ message, type = 'info', onClose, duration = 7000 }: Toas
       <span className="mt-px shrink-0">{icons[type]}</span>
       <span className="flex-1">{message}</span>
       <button
+        type="button"
         onClick={() => {
           setVisible(false)
           innerTimerRef.current = setTimeout(onClose, 200)
