@@ -97,6 +97,13 @@ export function App() {
   return (
     <ToastProvider>
       <div className="flex h-screen flex-col bg-white dark:bg-neutral-950">
+        {/* Skip link — visually hidden until focused, satisfies WCAG 2.4.1 */}
+        <a
+          href="#main-content"
+          className="sr-only focus-visible:not-sr-only focus-visible:absolute focus-visible:left-2 focus-visible:top-2 focus-visible:z-50 focus-visible:rounded focus-visible:bg-white focus-visible:px-4 focus-visible:py-2 focus-visible:text-sm focus-visible:text-neutral-900 focus-visible:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500 dark:focus-visible:bg-neutral-900 dark:focus-visible:text-neutral-100"
+        >
+          Skip to main content
+        </a>
         <Header theme={theme} onToggleTheme={toggleTheme} />
         {hasConversionError && (
           <div
@@ -123,7 +130,7 @@ export function App() {
             </button>
           </div>
         )}
-        <main className="flex flex-1 flex-col gap-4 overflow-auto p-4 sm:flex-row sm:overflow-hidden">
+        <main id="main-content" aria-label="Main content" className="flex flex-1 flex-col gap-4 overflow-auto p-4 sm:flex-row sm:overflow-hidden">
           <section aria-label="Markdown input" className="flex min-h-64 flex-1 flex-col sm:min-h-0">
             <ErrorBoundary>
               <MarkdownInput

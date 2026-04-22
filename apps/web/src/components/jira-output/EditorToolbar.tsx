@@ -94,6 +94,7 @@ export const EditorToolbar = memo(function EditorToolbar({
           exec('toggleCodeBlock')
         }}
         title="Code snippet"
+        aria-label="Code snippet"
         aria-pressed={activeBlock === 'pre'}
         className={`${BTN_CLS} ${activeBlock === 'pre' ? 'bg-neutral-100 dark:bg-neutral-800' : ''}`}
       >
@@ -113,6 +114,7 @@ export const EditorToolbar = memo(function EditorToolbar({
           exec('undo')
         }}
         title={`Undo (${MOD_KEY}+Z)`}
+        aria-label={`Undo (${MOD_KEY}+Z)`}
         className={BTN_CLS}
       >
         <IconUndo />
@@ -126,6 +128,7 @@ export const EditorToolbar = memo(function EditorToolbar({
           exec('redo')
         }}
         title={`Redo (${MOD_KEY}+Y)`}
+        aria-label={`Redo (${MOD_KEY}+Y)`}
         className={BTN_CLS}
       >
         <IconRedo />
