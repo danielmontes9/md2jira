@@ -30,15 +30,17 @@ export function ListsMenu({ exec, close, openKey, onOpen, activeFormats }: Lists
       openKey={openKey}
       onOpen={onOpen}
       onClose={close}
+      ariaLabel="Lists"
       trigger={
         <>
-          <IconListBullet />
+          <IconListBullet aria-hidden />
           <ChevronDown />
         </>
       }
     >
       <div className={`${DROP_CLS} min-w-53.75`}>
         <button
+          type="button"
           role="menuitemcheckbox"
           onMouseDown={(e) => {
             e.preventDefault()
@@ -52,6 +54,7 @@ export function ListsMenu({ exec, close, openKey, onOpen, activeFormats }: Lists
           <span className="text-xs text-neutral-400">{`${MOD_KEY}+Shift+8`}</span>
         </button>
         <button
+          type="button"
           role="menuitemcheckbox"
           onMouseDown={(e) => {
             e.preventDefault()
@@ -65,6 +68,7 @@ export function ListsMenu({ exec, close, openKey, onOpen, activeFormats }: Lists
           <span className="text-xs text-neutral-400">{`${MOD_KEY}+Shift+7`}</span>
         </button>
         <button
+          type="button"
           role="menuitemcheckbox"
           onMouseDown={(e) => {
             e.preventDefault()
@@ -98,8 +102,9 @@ export function ColorMenu({ exec, close, openKey, onOpen, activeColor }: ColorMe
       onOpen={onOpen}
       onClose={close}
       menuRole="listbox"
+      ariaLabel="Text color"
       trigger={
-        <span className="relative select-none font-bold leading-none" title="Text color">
+        <span className="relative select-none font-bold leading-none" aria-hidden>
           A
           <span className="absolute -bottom-0.5 left-0 right-0 h-0.5 rounded bg-blue-600" />
         </span>
@@ -109,6 +114,7 @@ export function ColorMenu({ exec, close, openKey, onOpen, activeColor }: ColorMe
         <div className="grid grid-cols-7 gap-1">
           {TEXT_COLORS.map((color) => (
             <button
+              type="button"
               key={color}
               role="option"
               onMouseDown={(e) => {
@@ -130,6 +136,7 @@ export function ColorMenu({ exec, close, openKey, onOpen, activeColor }: ColorMe
         </div>
         <div className="mt-2 border-t border-neutral-100 pt-2 dark:border-neutral-800">
           <button
+            type="button"
             role="option"
             onMouseDown={(e) => {
               e.preventDefault()
@@ -197,8 +204,9 @@ export function EmojiMenu({ exec, close, openKey, onOpen }: EmojiMenuProps) {
       onOpen={onOpen}
       onClose={close}
       menuRole="dialog"
+      ariaLabel="Emoji"
       trigger={
-        <span className="text-base leading-none" title="Emoji">
+        <span className="text-base leading-none" aria-hidden>
           ☺
         </span>
       }
@@ -220,6 +228,7 @@ export function EmojiMenu({ exec, close, openKey, onOpen }: EmojiMenuProps) {
             ) : (
               filteredEmojis.map((em) => (
                 <button
+                  type="button"
                   key={em}
                   onMouseDown={(e) => {
                     e.preventDefault()
@@ -243,6 +252,7 @@ export function EmojiMenu({ exec, close, openKey, onOpen }: EmojiMenuProps) {
               <div className="flex flex-wrap gap-0.5">
                 {emojis.map((em) => (
                   <button
+                    type="button"
                     key={em}
                     onMouseDown={(e) => {
                       e.preventDefault()
@@ -278,14 +288,16 @@ export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertM
       openKey={openKey}
       onOpen={onOpen}
       onClose={close}
+      ariaLabel="Insert elements"
       trigger={
-        <span className="font-bold rounded-full" title="Insert elements">
+        <span className="font-bold rounded-full" aria-hidden>
           +
         </span>
       }
     >
       <div className={`${DROP_CLS} min-w-66.25`}>
         <button
+          type="button"
           role="menuitem"
           onMouseDown={(e) => {
             e.preventDefault()
@@ -300,6 +312,7 @@ export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertM
           </div>
         </button>
         <button
+          type="button"
           role="menuitem"
           onMouseDown={(e) => {
             e.preventDefault()
@@ -316,6 +329,7 @@ export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertM
           </div>
         </button>
         <button
+          type="button"
           role="menuitem"
           onMouseDown={(e) => {
             e.preventDefault()
@@ -330,6 +344,7 @@ export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertM
           </div>
         </button>
         <button
+          type="button"
           role="menuitem"
           onMouseDown={(e) => {
             e.preventDefault()
@@ -344,6 +359,7 @@ export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertM
           </div>
         </button>
         <button
+          type="button"
           role="menuitem"
           onMouseDown={(e) => {
             e.preventDefault()
@@ -358,6 +374,7 @@ export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertM
           </div>
         </button>
         <button
+          type="button"
           role="menuitem"
           onMouseDown={(e) => {
             e.preventDefault()
@@ -372,6 +389,7 @@ export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertM
           </div>
         </button>
         <button
+          type="button"
           role="menuitem"
           onMouseDown={(e) => {
             e.preventDefault()

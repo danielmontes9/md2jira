@@ -75,6 +75,7 @@ export function ToolbarDropdown({
   trigger,
   children,
   menuRole = 'menu',
+  ariaLabel,
 }: {
   dropKey: DropKey
   openKey: DropKey | null
@@ -83,6 +84,7 @@ export function ToolbarDropdown({
   trigger: ReactNode
   children: ReactNode
   menuRole?: string
+  ariaLabel?: string
 }) {
   const isOpen = openKey === dropKey
   const menuRef = useRef<HTMLDivElement | null>(null)
@@ -142,6 +144,7 @@ export function ToolbarDropdown({
       }}
     >
       <button
+        type="button"
         ref={triggerRef}
         onMouseDown={(e) => {
           e.preventDefault()
@@ -160,6 +163,7 @@ export function ToolbarDropdown({
         }}
         aria-expanded={isOpen}
         aria-haspopup={menuRole as React.AriaAttributes['aria-haspopup']}
+        aria-label={ariaLabel}
         className={BTN_CLS}
       >
         {trigger}

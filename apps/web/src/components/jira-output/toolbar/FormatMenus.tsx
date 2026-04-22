@@ -26,9 +26,10 @@ export function TextStyleMenu({ exec, close, openKey, onOpen, activeBlock }: Tex
       openKey={openKey}
       onOpen={onOpen}
       onClose={close}
+      ariaLabel="Text styles"
       trigger={
         <>
-          <span className="font-mono font-bold" title="Text styles">
+          <span className="font-mono font-bold" aria-hidden>
             Tt
           </span>
           <ChevronDown />
@@ -40,6 +41,7 @@ export function TextStyleMenu({ exec, close, openKey, onOpen, activeBlock }: Tex
           const isActive = activeBlock === tag.toLowerCase()
           return (
             <button
+              type="button"
               key={tag}
               role="menuitemcheckbox"
               aria-checked={isActive}
@@ -75,9 +77,10 @@ export function FormatMenu({ exec, close, openKey, onOpen, activeFormats }: Form
       openKey={openKey}
       onOpen={onOpen}
       onClose={close}
+      ariaLabel="Format text"
       trigger={
         <>
-          <span className="font-bold" title="Format text">
+          <span className="font-bold" aria-hidden>
             B
           </span>
           <ChevronDown />
@@ -89,6 +92,7 @@ export function FormatMenu({ exec, close, openKey, onOpen, activeFormats }: Form
           const isActive = activeFormats.has(cmd)
           return (
             <button
+              type="button"
               key={label}
               role="menuitemcheckbox"
               aria-checked={isActive}
@@ -111,6 +115,7 @@ export function FormatMenu({ exec, close, openKey, onOpen, activeFormats }: Form
           )
         })}
         <button
+          type="button"
           role="menuitemcheckbox"
           aria-checked={activeFormats.has('code')}
           onMouseDown={(e) => {
