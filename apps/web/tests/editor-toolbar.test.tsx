@@ -40,21 +40,21 @@ describe('EditorToolbar', () => {
 
   it('calls exec("undo") when Undo button is pressed', () => {
     renderToolbar()
-    const undoBtn = screen.getByTitle(/undo/i)
+    const undoBtn = screen.getByRole('button', { name: /undo/i })
     fireEvent.mouseDown(undoBtn)
     expect(execMock).toHaveBeenCalledWith('undo')
   })
 
   it('calls exec("redo") when Redo button is pressed', () => {
     renderToolbar()
-    const redoBtn = screen.getByTitle(/redo/i)
+    const redoBtn = screen.getByRole('button', { name: /redo/i })
     fireEvent.mouseDown(redoBtn)
     expect(execMock).toHaveBeenCalledWith('redo')
   })
 
   it('calls exec("toggleCodeBlock") when Code Snippet button is pressed', () => {
     renderToolbar()
-    const codeBtn = screen.getByTitle('Code snippet')
+    const codeBtn = screen.getByRole('button', { name: 'Code snippet' })
     fireEvent.mouseDown(codeBtn)
     expect(execMock).toHaveBeenCalledWith('toggleCodeBlock')
   })
@@ -233,13 +233,13 @@ describe('EditorToolbar', () => {
 
   it('Code Snippet button has aria-pressed="true" when activeBlock is "pre"', () => {
     renderToolbar(new Set(), 'pre')
-    const codeBtn = screen.getByTitle('Code snippet')
+    const codeBtn = screen.getByRole('button', { name: 'Code snippet' })
     expect(codeBtn).toHaveAttribute('aria-pressed', 'true')
   })
 
   it('Code Snippet button has aria-pressed="false" when activeBlock is "p"', () => {
     renderToolbar(new Set(), 'p')
-    const codeBtn = screen.getByTitle('Code snippet')
+    const codeBtn = screen.getByRole('button', { name: 'Code snippet' })
     expect(codeBtn).toHaveAttribute('aria-pressed', 'false')
   })
 
