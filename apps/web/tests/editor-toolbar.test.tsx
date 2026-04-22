@@ -91,13 +91,13 @@ describe('EditorToolbar', () => {
 
   it('FormatMenu trigger has aria-haspopup="menu"', () => {
     renderToolbar()
-    const bBtn = screen.getByTitle('Format text').closest('button')
+    const bBtn = screen.getByRole('button', { name: 'Format text' })
     expect(bBtn).toHaveAttribute('aria-haspopup', 'menu')
   })
 
   it('FormatMenu opens on mousedown and shows Bold and Italic options', () => {
     renderToolbar()
-    const bBtn = screen.getByTitle('Format text').closest('button')!
+    const bBtn = screen.getByRole('button', { name: 'Format text' })
     expect(screen.queryByText('Bold')).not.toBeInTheDocument()
     fireEvent.mouseDown(bBtn)
     expect(screen.getByText('Bold')).toBeInTheDocument()
@@ -106,7 +106,7 @@ describe('EditorToolbar', () => {
 
   it('FormatMenu calls exec("bold") when Bold is selected', () => {
     renderToolbar()
-    const bBtn = screen.getByTitle('Format text').closest('button')!
+    const bBtn = screen.getByRole('button', { name: 'Format text' })
     fireEvent.mouseDown(bBtn)
     const boldItem = screen.getByText('Bold')
     fireEvent.mouseDown(boldItem)
@@ -124,13 +124,13 @@ describe('EditorToolbar', () => {
 
   it('ColorMenu trigger has aria-haspopup="listbox" (uses listbox role)', () => {
     renderToolbar()
-    const colorBtn = screen.getByTitle('Text color').closest('button')!
+    const colorBtn = screen.getByRole('button', { name: 'Text color' })
     expect(colorBtn).toHaveAttribute('aria-haspopup', 'listbox')
   })
 
   it('ColorMenu opens on mousedown and shows color swatches', () => {
     renderToolbar()
-    const colorBtn = screen.getByTitle('Text color').closest('button')!
+    const colorBtn = screen.getByRole('button', { name: 'Text color' })
     expect(screen.queryAllByRole('option')).toHaveLength(0)
     fireEvent.mouseDown(colorBtn)
     const options = screen.getAllByRole('option')
@@ -139,7 +139,7 @@ describe('EditorToolbar', () => {
 
   it('ColorMenu calls exec("foreColor", color) when a swatch is clicked', () => {
     renderToolbar()
-    const colorBtn = screen.getByTitle('Text color').closest('button')!
+    const colorBtn = screen.getByRole('button', { name: 'Text color' })
     fireEvent.mouseDown(colorBtn)
     const firstSwatch = screen.getAllByRole('option')[0]!
     const color = firstSwatch.getAttribute('title') ?? ''
@@ -149,7 +149,7 @@ describe('EditorToolbar', () => {
 
   it('ColorMenu "Remove color" calls exec("foreColor") with no argument to unset color', () => {
     renderToolbar()
-    const colorBtn = screen.getByTitle('Text color').closest('button')!
+    const colorBtn = screen.getByRole('button', { name: 'Text color' })
     fireEvent.mouseDown(colorBtn)
     const removeBtn = screen.getByText('Remove color')
     fireEvent.mouseDown(removeBtn)
@@ -172,14 +172,14 @@ describe('EditorToolbar', () => {
 
   it('EmojiMenu opens on mousedown and shows a search input', () => {
     renderToolbar()
-    const emojiBtn = screen.getByTitle('Emoji').closest('button')!
+    const emojiBtn = screen.getByRole('button', { name: 'Emoji' })
     fireEvent.mouseDown(emojiBtn)
     expect(screen.getByPlaceholderText(/Search by category/)).toBeInTheDocument()
   })
 
   it('EmojiMenu calls exec("insertText", emoji) when an emoji is clicked', async () => {
     renderToolbar()
-    const emojiBtn = screen.getByTitle('Emoji').closest('button')!
+    const emojiBtn = screen.getByRole('button', { name: 'Emoji' })
     fireEvent.mouseDown(emojiBtn)
     // Scope to the dialog so we don't accidentally pick the trigger button (☺)
     const dialog = screen.getByRole('dialog')
@@ -199,14 +199,14 @@ describe('EditorToolbar', () => {
 
   it('InsertMenu opens on mousedown and shows Table item', () => {
     renderToolbar()
-    const insertBtn = screen.getByTitle('Insert elements').closest('button')!
+    const insertBtn = screen.getByRole('button', { name: 'Insert elements' })
     fireEvent.mouseDown(insertBtn)
     expect(screen.getByText('Table')).toBeInTheDocument()
   })
 
   it('InsertMenu Table item calls exec("insertTable")', () => {
     renderToolbar()
-    const insertBtn = screen.getByTitle('Insert elements').closest('button')!
+    const insertBtn = screen.getByRole('button', { name: 'Insert elements' })
     fireEvent.mouseDown(insertBtn)
     const tableItem = screen.getByText('Table')
     fireEvent.mouseDown(tableItem)
@@ -215,7 +215,7 @@ describe('EditorToolbar', () => {
 
   it('InsertMenu Quote item calls exec("toggleBlockquote")', () => {
     renderToolbar()
-    const insertBtn = screen.getByTitle('Insert elements').closest('button')!
+    const insertBtn = screen.getByRole('button', { name: 'Insert elements' })
     fireEvent.mouseDown(insertBtn)
     const quoteItem = screen.getByText('Quote')
     fireEvent.mouseDown(quoteItem)
@@ -224,7 +224,7 @@ describe('EditorToolbar', () => {
 
   it('InsertMenu Divider item calls exec("insertHorizontalRule")', () => {
     renderToolbar()
-    const insertBtn = screen.getByTitle('Insert elements').closest('button')!
+    const insertBtn = screen.getByRole('button', { name: 'Insert elements' })
     fireEvent.mouseDown(insertBtn)
     const dividerItem = screen.getByText('Divider')
     fireEvent.mouseDown(dividerItem)
@@ -245,7 +245,7 @@ describe('EditorToolbar', () => {
 
   it('FormatMenu Bold item has aria-checked="true" when bold is in activeFormats', () => {
     renderToolbar(new Set(['bold']))
-    const bBtn = screen.getByTitle('Format text').closest('button')!
+    const bBtn = screen.getByRole('button', { name: 'Format text' })
     fireEvent.mouseDown(bBtn)
     const boldItem = screen.getByText('Bold').closest('button')!
     expect(boldItem).toHaveAttribute('aria-checked', 'true')
@@ -253,7 +253,7 @@ describe('EditorToolbar', () => {
 
   it('FormatMenu Bold item has aria-checked="false" when bold is not in activeFormats', () => {
     renderToolbar(new Set())
-    const bBtn = screen.getByTitle('Format text').closest('button')!
+    const bBtn = screen.getByRole('button', { name: 'Format text' })
     fireEvent.mouseDown(bBtn)
     const boldItem = screen.getByText('Bold').closest('button')!
     expect(boldItem).toHaveAttribute('aria-checked', 'false')
@@ -272,7 +272,7 @@ describe('EditorToolbar', () => {
 
   it('ColorMenu "Remove color" has aria-selected="true" when no color is active', () => {
     renderToolbar()
-    const colorBtn = screen.getByTitle('Text color').closest('button')!
+    const colorBtn = screen.getByRole('button', { name: 'Text color' })
     fireEvent.mouseDown(colorBtn)
     const removeBtn = screen.getByText('Remove color')
     expect(removeBtn).toHaveAttribute('aria-selected', 'true')
@@ -319,7 +319,7 @@ describe('EditorToolbar', () => {
 
   it('InsertMenu Mention item calls insertHtml with <p>@</p>', () => {
     renderToolbar()
-    const insertBtn = screen.getByTitle('Insert elements').closest('button')!
+    const insertBtn = screen.getByRole('button', { name: 'Insert elements' })
     fireEvent.mouseDown(insertBtn)
     const mentionItem = screen.getByText('Mention')
     fireEvent.mouseDown(mentionItem)
