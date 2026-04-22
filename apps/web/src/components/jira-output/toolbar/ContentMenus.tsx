@@ -179,7 +179,7 @@ export function EmojiMenu({ exec, close, openKey, onOpen }: EmojiMenuProps) {
   // Search by category name (case-insensitive). Falls back to exact emoji
   // character match so pasting an emoji into the field still finds it.
   const filteredEmojis = useMemo(() => {
-    if (!emojiSearch || !emojiData) return []
+    if (!deferredSearch || !emojiData) return []
     const q = deferredSearch.toLowerCase()
     const fromCategories: string[] = []
     for (const [cat, emojis] of Object.entries(emojiData)) {
@@ -188,7 +188,7 @@ export function EmojiMenu({ exec, close, openKey, onOpen }: EmojiMenuProps) {
     if (fromCategories.length > 0) return [...new Set(fromCategories)]
     // Exact emoji character fallback (user pasted an emoji into the field)
     return allEmojis.filter((em) => em === deferredSearch)
-  }, [emojiSearch, deferredSearch, emojiData, allEmojis])
+  }, [deferredSearch, emojiData, allEmojis])
 
   return (
     <ToolbarDropdown
@@ -213,7 +213,7 @@ export function EmojiMenu({ exec, close, openKey, onOpen }: EmojiMenuProps) {
           onMouseDown={(e) => e.stopPropagation()}
           className="mb-2 w-full rounded border border-neutral-200 px-2 py-1 text-xs outline-none focus:border-blue-400 dark:border-neutral-700 dark:bg-neutral-800"
         />
-        {emojiSearch ? (
+        {deferredSearch ? (
           <div className="flex flex-wrap gap-0.5">
             {filteredEmojis.length === 0 ? (
               <p className="w-full py-2 text-center text-xs text-neutral-400">No emojis found</p>
