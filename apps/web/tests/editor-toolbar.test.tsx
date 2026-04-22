@@ -316,4 +316,38 @@ describe('EditorToolbar', () => {
     expect(screen.queryByText('Heading 1')).not.toBeInTheDocument()
     expect(document.activeElement).toBe(ttBtn)
   })
+
+  it('InsertMenu Mention item calls insertHtml with <p>@</p>', () => {
+    renderToolbar()
+    const insertBtn = screen.getByTitle('Insert elements').closest('button')!
+    fireEvent.mouseDown(insertBtn)
+    const mentionItem = screen.getByText('Mention')
+    fireEvent.mouseDown(mentionItem)
+    expect(insertHtmlMock).toHaveBeenCalledWith('<p>@</p>')
+  })
+
+  it('TextStyleMenu ArrowDown moves focus to the next menu item', () => {
+    renderToolbar()
+    const ttBtn = screen.getByText('Tt').closest('button')!
+    fireEvent.mouseDown(ttBtn)
+    const menu = screen.getAllByRole('menu')[0]!
+    const items = Array.from(menu.querySelectorAll<HTMLElement>('button'))
+    expect(items.length).toBeGreaterThan(1)
+    // Focus the first item, then arrow down
+    items[0]!.focus()
+    fireEvent.keyDown(menu, { key: 'ArrowDown' })
+    expect(document.activeElement).toBe(items[1])
+  })
+
+  it('TextStyleMenu ArrowUp from the first item wraps to the last item', () => {
+    renderToolbar()
+    const ttBtn = screen.getByText('Tt').closest('button')!
+    fireEvent.mouseDown(ttBtn)
+    const menu = screen.getAllByRole('menu')[0]!
+    const items = Array.from(menu.querySelectorAll<HTMLElement>('button'))
+    // Focus the first item, then arrow up (should wrap to last)
+    items[0]!.focus()
+    fireEvent.keyDown(menu, { key: 'ArrowUp' })
+    expect(document.activeElement).toBe(items[items.length - 1])
+  })
 })

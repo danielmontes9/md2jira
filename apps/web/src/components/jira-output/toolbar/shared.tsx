@@ -119,7 +119,7 @@ export function ToolbarDropdown({
       e.preventDefault()
       const items = Array.from(
         menuRef.current.querySelectorAll<HTMLElement>(
-          'button:not([aria-disabled="true"]):not([aria-hidden="true"])'
+          'button:not([aria-disabled="true"]):not([aria-hidden="true"]), input[type="text"]'
         )
       )
       if (items.length === 0) return

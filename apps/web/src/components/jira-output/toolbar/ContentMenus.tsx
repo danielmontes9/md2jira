@@ -303,7 +303,7 @@ export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertM
           role="menuitem"
           onMouseDown={(e) => {
             e.preventDefault()
-            insertHtml('<p>@mention</p>')
+            insertHtml('<p>@</p>')
             close()
           }}
           className={DROP_ITEM_CLS}
@@ -311,7 +311,7 @@ export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertM
           <div className="text-left">
             <div>Mention</div>
             <div className="text-xs text-neutral-400">
-              Insert plain-text @mention (not a structured Jira mention)
+              Insert @mention — cursor lands after the @ symbol
             </div>
           </div>
         </button>
