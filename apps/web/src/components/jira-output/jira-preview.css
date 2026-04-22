@@ -413,3 +413,30 @@
 .dark .wiki-block-macro {
   color: #22d3ee;
 }
+
+/* ── Insert panel templates (Info panel, Decision) ── */
+.jira-preview [data-type='info-panel'] {
+  background: #deebff;
+  border-left: 4px solid #0052cc;
+  border-radius: 0 4px 4px 0;
+  padding: 8px 12px;
+  margin: 4px 0;
+}
+
+.dark .jira-preview [data-type='info-panel'] {
+  background: #172b4d;
+  border-left-color: #4c9aff;
+}
+
+.jira-preview [data-type='decision-panel'] {
+  background: #fffae6;
+  border-left: 4px solid #ff991f;
+  border-radius: 0 4px 4px 0;
+  padding: 8px 12px;
+  margin: 4px 0;
+}
+
+.dark .jira-preview [data-type='decision-panel'] {
+  background: #3d2800;
+  border-left-color: #ff991f;
+}

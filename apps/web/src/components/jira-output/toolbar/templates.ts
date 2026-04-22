@@ -5,8 +5,11 @@
  * and the strings are easily unit-testable.
  */
 
-export const INFO_PANEL_HTML =
-  '<div data-type="info-panel" style="background:#deebff;border-left:4px solid #0052cc;border-radius:4px;padding:8px 12px;margin:4px 0"><p>ℹ️ Info panel</p></div><p><br></p>'
+// Inline `style` attributes are stripped by DOMPurify when the HTML is
+// injected into the TipTap editor via insertHtml → sanitize().
+// Visual styling is applied via CSS rules in jira-preview.css using the
+// data-type attribute selector so it survives sanitization.
+export const INFO_PANEL_HTML = '<div data-type="info-panel"><p>ℹ️ Info panel</p></div><p><br></p>'
 
 export const DECISION_PANEL_HTML =
-  '<div data-type="decision-panel" style="background:#fffae6;border-left:4px solid #ff991f;border-radius:4px;padding:8px 12px;margin:4px 0"><p>📋 Decision: </p></div><p><br></p>'
+  '<div data-type="decision-panel"><p>📋 Decision: </p></div><p><br></p>'
