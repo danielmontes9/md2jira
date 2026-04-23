@@ -49,6 +49,7 @@ describe('getInitialMarkdown', () => {
     Object.defineProperty(window, 'location', {
       value: { search: '' },
       writable: true,
+      configurable: true,
     })
     expect(getInitialMarkdown('placeholder')).toBe('placeholder')
   })
@@ -59,6 +60,7 @@ describe('getInitialMarkdown', () => {
     Object.defineProperty(window, 'location', {
       value: { search: `?md=${encoded}` },
       writable: true,
+      configurable: true,
     })
     expect(getInitialMarkdown('placeholder')).toBe(md)
   })
@@ -67,6 +69,7 @@ describe('getInitialMarkdown', () => {
     Object.defineProperty(window, 'location', {
       value: { search: '?md=!!!invalid!!!' },
       writable: true,
+      configurable: true,
     })
     expect(getInitialMarkdown('placeholder')).toBe('placeholder')
   })

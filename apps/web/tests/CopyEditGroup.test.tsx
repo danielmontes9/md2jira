@@ -297,11 +297,16 @@ describe('JiraOutputHeader — format toggle', () => {
 
   it('live region announces "Converting…" when isPending is true', () => {
     render(<JiraOutputHeader format="adf" {...baseProps} isPending={true} />)
-    expect(screen.getByRole('status')).toHaveTextContent('Converting…')
+    // JiraOutputHeader renders CopyEditGroup which also has role="status" — use getAllByRole
+    // and assert that at least one live region contains the converting message.
+    const statuses = screen.getAllByRole('status')
+    expect(statuses.some((el) => el.textContent === 'Converting…')).toBe(true)
   })
 
   it('live region is empty when isPending is false', () => {
     render(<JiraOutputHeader format="adf" {...baseProps} isPending={false} />)
-    expect(screen.getByRole('status')).toHaveTextContent('')
+    // Both live regions should be empty when not pending and not copied.
+    const statuses = screen.getAllByRole('status')
+    statuses.forEach((el) => expect(el).toHaveTextContent(''))
   })
 })
