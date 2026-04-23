@@ -13,22 +13,34 @@ createRoot(rootElement).render(
   </StrictMode>
 )
 
-// Report Core Web Vitals to the browser console in development only.
-// Replace the console.debug call with your analytics function (e.g. gtag)
-// if you want production metrics, and remove the DEV guard.
-if (import.meta.env.DEV) {
-  import('web-vitals')
-    .then(({ onCLS, onINP, onLCP, onFCP, onTTFB }) => {
-      const report = (metric: import('web-vitals').Metric) => {
+// Report Core Web Vitals in all environments.
+// In development: logs to console.
+// In production: POSTs to VITE_VITALS_URL via sendBeacon if the env var is set.
+// Set VITE_VITALS_URL to your analytics endpoint (e.g. /api/vitals or a Plausible URL).
+import('web-vitals')
+  .then(({ onCLS, onINP, onLCP, onFCP, onTTFB }) => {
+    const vitalsUrl = import.meta.env.VITE_VITALS_URL as string | undefined
+
+    const report = (metric: import('web-vitals').Metric) => {
+      if (import.meta.env.DEV) {
         console.debug('[web-vitals]', metric.name, metric.value, metric)
       }
-      onCLS(report)
-      onINP(report)
-      onLCP(report)
-      onFCP(report)
-      onTTFB(report)
-    })
-    .catch(() => {
-      // web-vitals is optional — silently ignore load failures (e.g. ad blockers)
-    })
-}
+      if (vitalsUrl && typeof navigator.sendBeacon === 'function') {
+        navigator.sendBeacon(
+          vitalsUrl,
+          new Blob([JSON.stringify({ name: metric.name, value: metric.value, id: metric.id })], {
+            type: 'application/json',
+          })
+        )
+      }
+    }
+
+    onCLS(report)
+    onINP(report)
+    onLCP(report)
+    onFCP(report)
+    onTTFB(report)
+  })
+  .catch(() => {
+    // web-vitals is optional — silently ignore load failures (e.g. ad blockers)
+  })

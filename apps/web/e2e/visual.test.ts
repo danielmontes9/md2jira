@@ -60,3 +60,14 @@ test('WYSIWYG edit mode with formatting toolbar', async ({ page }) => {
   await page.getByRole('toolbar', { name: 'Text formatting' }).waitFor()
   await expect(page).toHaveScreenshot('wysiwyg-edit-mode.png')
 })
+
+test('offline banner', async ({ page }) => {
+  await page.goto('/')
+  await page.getByLabel('Markdown input').waitFor()
+  // Simulate losing network connectivity
+  await page.context().setOffline(true)
+  await page.evaluate(() => window.dispatchEvent(new Event('offline')))
+  await page.waitForSelector('[role="status"]')
+  await expect(page).toHaveScreenshot('offline-banner.png')
+  await page.context().setOffline(false)
+})

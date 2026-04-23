@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactElement } from 'react'
 import { IconAlertCircle, IconCheck, IconClose, IconInfoCircle } from './icons.js'
 
-export type ToastType = 'error' | 'success' | 'info'
+export type ToastType = 'error' | 'success' | 'info' | 'warning'
 
 interface ToastProps {
   message: string
@@ -16,12 +16,15 @@ const styles: Record<ToastType, string> = {
   success:
     'border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200',
   info: 'border-neutral-200 bg-white text-neutral-800 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200',
+  warning:
+    'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200',
 }
 
 const icons: Record<ToastType, ReactElement> = {
   error: <IconAlertCircle />,
   success: <IconCheck />,
   info: <IconInfoCircle />,
+  warning: <IconAlertCircle />,
 }
 
 export function Toast({ message, type = 'info', onClose, duration = 7000 }: ToastProps) {

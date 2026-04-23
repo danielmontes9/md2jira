@@ -52,6 +52,18 @@ describe('Toast', () => {
     const alert = screen.getByRole('alert')
     expect(alert.className).toContain('green')
   })
+
+  it('renders correct style for warning type', () => {
+    render(<Toast message="Warning" type="warning" onClose={vi.fn()} />)
+    const alert = screen.getByRole('alert')
+    expect(alert.className).toContain('amber')
+  })
+
+  it('renders correct style for info type (default)', () => {
+    render(<Toast message="Info" type="info" onClose={vi.fn()} />)
+    const alert = screen.getByRole('alert')
+    expect(alert.className).toContain('neutral')
+  })
 })
 
 describe('ToastContainer', () => {

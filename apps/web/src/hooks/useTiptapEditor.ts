@@ -19,7 +19,7 @@ import {
   getActiveFormats,
   EMPTY_FORMATS,
 } from '../utils/tiptap-commands.js'
-import { tiptapDocToMarkdown } from '../utils/tiptap-to-markdown.js'
+import { tiptapDocToMarkdown, hasColorMarks } from '../utils/tiptap-to-markdown.js'
 
 // Extend TableCell and TableHeader to carry a text-alignment attribute.
 // This lets the tiptap-to-markdown serializer output the correct Markdown
@@ -65,6 +65,12 @@ interface UseTiptapEditorOptions {
   debounceMs?: number
   /** When false, the TipTap editor is not created (saves resources). @default true */
   shouldCreate?: boolean
+  /**
+   * Called at most once per editing session when the serializer detects color
+   * marks that will be silently stripped by the Jira conversion pipeline.
+   * Reset when all color marks are removed from the document.
+   */
+  onColorWarning?: () => void
 }
 
 export interface TiptapEditorState {
@@ -87,9 +93,17 @@ export function useTiptapEditor({
   onMarkdownChange,
   debounceMs = 300,
   shouldCreate = true,
+  onColorWarning,
 }: UseTiptapEditorOptions): TiptapEditorState {
   const onMarkdownChangeRef = useRef(onMarkdownChange)
   onMarkdownChangeRef.current = onMarkdownChange
+
+  const onColorWarningRef = useRef(onColorWarning)
+  onColorWarningRef.current = onColorWarning
+  // Tracks whether the color warning has been shown for the current editing session.
+  // Resets to false when all color marks are removed so the warning fires again
+  // if the user re-applies color after clearing it.
+  const colorWarnedRef = useRef(false)
 
   // Flag to prevent infinite update loop: when we set editor content from
   // external previewHtml, the onUpdate callback fires — we must ignore it.
@@ -143,7 +157,20 @@ export function useTiptapEditor({
       updateTimeoutRef.current = setTimeout(() => {
         if (!onMarkdownChangeRef.current) return
         try {
-          const md = tiptapDocToMarkdown(ed.state.doc)
+          const doc = ed.state.doc
+
+          // Warn once when the user introduces color marks that will be
+          // stripped by the Jira conversion pipeline (no Jira color syntax).
+          const docHasColor = hasColorMarks(doc)
+          if (docHasColor && !colorWarnedRef.current) {
+            colorWarnedRef.current = true
+            onColorWarningRef.current?.()
+          } else if (!docHasColor) {
+            // Reset so the warning fires again if color is re-applied later.
+            colorWarnedRef.current = false
+          }
+
+          const md = tiptapDocToMarkdown(doc)
           isExternalUpdateRef.current = true
           onMarkdownChangeRef.current(md)
           queueMicrotask(() => {

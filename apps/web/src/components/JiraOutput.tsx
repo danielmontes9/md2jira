@@ -1,6 +1,7 @@
-import { useState, memo, Suspense, useEffect } from 'react'
+import { useState, memo, Suspense, useCallback, useEffect } from 'react'
 import { useTiptapEditor } from '../hooks/useTiptapEditor.js'
 import { useJiraCopy } from '../hooks/useJiraCopy.js'
+import { useToast } from '../context/ToastContext.js'
 import { JiraOutputHeader } from './jira-output/JiraOutputHeader.js'
 import { JiraOutputContent } from './jira-output/JiraOutputContent.js'
 import { lazyNamed } from '../utils/lazy-named.js'
@@ -28,6 +29,11 @@ export const JiraOutput = memo(function JiraOutput({
 }: JiraOutputProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('preview')
   const [editMode, setEditMode] = useState(false)
+  const addToast = useToast()
+
+  const onColorWarning = useCallback(() => {
+    addToast('Color formatting is not supported in Jira output and will be removed.', 'warning')
+  }, [addToast])
 
   // Reset view mode to 'preview' when switching away from ADF (wiki has no distinct code view)
   useEffect(() => {
@@ -41,6 +47,7 @@ export const JiraOutput = memo(function JiraOutput({
     previewHtml,
     onMarkdownChange,
     shouldCreate,
+    onColorWarning,
   })
 
   const { copied, handleCopy } = useJiraCopy(value, format, editor)

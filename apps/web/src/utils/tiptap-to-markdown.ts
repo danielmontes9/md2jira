@@ -15,6 +15,25 @@ export function tiptapDocToMarkdown(doc: Node): string {
   return serializeNode(doc, { listDepth: 0, listType: null }).trim()
 }
 
+/**
+ * Returns true if the document contains any textStyle marks with a non-empty
+ * color attribute. Used to surface a warning toast before the color is
+ * silently stripped by the Markdown → Jira conversion pipeline.
+ */
+export function hasColorMarks(doc: Node): boolean {
+  let found = false
+  doc.descendants((node) => {
+    if (found) return false // short-circuit once detected
+    for (const mark of node.marks) {
+      if (mark.type.name === 'textStyle' && (mark.attrs as { color?: string }).color) {
+        found = true
+        return false
+      }
+    }
+  })
+  return found
+}
+
 // ─── Context ─────────────────────────────────────────────────────────────────
 
 interface Ctx {

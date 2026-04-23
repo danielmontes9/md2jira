@@ -22,7 +22,7 @@ import TableHeader from '@tiptap/extension-table-header'
 import TableCell from '@tiptap/extension-table-cell'
 import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
-import { tiptapDocToMarkdown } from '../src/utils/tiptap-to-markdown.js'
+import { tiptapDocToMarkdown, hasColorMarks } from '../src/utils/tiptap-to-markdown.js'
 
 /** Extension set that mirrors useTiptapEditor so the PM schema is identical. */
 const EXTENSIONS = [
@@ -411,5 +411,35 @@ describe('tiptapDocToMarkdown — table column alignment', () => {
         '</tbody></table>'
     )
     expect(tiptapDocToMarkdown(doc)).toContain('| :---: | ---: | --- |')
+  })
+})
+
+// ── hasColorMarks ─────────────────────────────────────────────────────────────
+
+describe('hasColorMarks', () => {
+  it('returns false for a plain paragraph without any color', () => {
+    expect(hasColorMarks(htmlToDoc('<p>Plain text</p>'))).toBe(false)
+  })
+
+  it('returns false for bold/italic text with no color mark', () => {
+    expect(hasColorMarks(htmlToDoc('<p><strong>bold</strong> <em>italic</em></p>'))).toBe(false)
+  })
+
+  it('returns true when text has a textStyle color mark', () => {
+    expect(
+      hasColorMarks(htmlToDoc('<p><span style="color: #ff0000">red text</span></p>'))
+    ).toBe(true)
+  })
+
+  it('returns true when color appears only in part of the paragraph', () => {
+    expect(
+      hasColorMarks(
+        htmlToDoc('<p>normal <span style="color: #0000ff">blue</span> normal</p>')
+      )
+    ).toBe(true)
+  })
+
+  it('returns false for an empty document', () => {
+    expect(hasColorMarks(htmlToDoc(''))).toBe(false)
   })
 })
