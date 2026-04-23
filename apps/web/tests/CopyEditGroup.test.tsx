@@ -294,4 +294,14 @@ describe('JiraOutputHeader — format toggle', () => {
     render(<JiraOutputHeader format="wiki" {...baseProps} />)
     expect(screen.queryByRole('radiogroup', { name: /view mode/i })).not.toBeInTheDocument()
   })
+
+  it('live region announces "Converting…" when isPending is true', () => {
+    render(<JiraOutputHeader format="adf" {...baseProps} isPending={true} />)
+    expect(screen.getByRole('status')).toHaveTextContent('Converting…')
+  })
+
+  it('live region is empty when isPending is false', () => {
+    render(<JiraOutputHeader format="adf" {...baseProps} isPending={false} />)
+    expect(screen.getByRole('status')).toHaveTextContent('')
+  })
 })

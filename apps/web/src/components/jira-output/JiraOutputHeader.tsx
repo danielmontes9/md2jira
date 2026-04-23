@@ -51,9 +51,14 @@ export const JiraOutputHeader = memo(function JiraOutputHeader({
           {isPending && (
             <span
               className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-600 dark:border-neutral-600 dark:border-t-neutral-300"
-              aria-label="Converting..."
+              aria-hidden="true"
             />
           )}
+          {/* Visually hidden live region — announces conversion status to screen readers
+              without polluting the visible label. role="status" implies aria-live="polite". */}
+          <span role="status" aria-live="polite" className="sr-only">
+            {isPending ? 'Converting…' : ''}
+          </span>
         </span>
         <div className="flex items-center gap-2">
           <div
