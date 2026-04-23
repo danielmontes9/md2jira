@@ -9,9 +9,8 @@ import { useState, useEffect } from 'react'
  * action). This hook surfaces that event so the UI can prompt the user.
  *
  * Returns:
- *   - 
-eedsUpdate: true when a new SW is waiting.
- *   - pplyUpdate: call this to tell the SW to take control immediately
+ *   - needsUpdate: true when a new SW is waiting.
+ *   - applyUpdate: call this to tell the SW to take control immediately
  *     (posts SKIP_WAITING), then reloads the page.
  */
 export function usePwaUpdate(): { needsUpdate: boolean; applyUpdate: () => void } {
@@ -21,29 +20,30 @@ export function usePwaUpdate(): { needsUpdate: boolean; applyUpdate: () => void 
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return
 
-    const handleUpdate = (reg: ServiceWorkerRegistration) => {
-      if (reg.waiting) {
+    navigator.serviceWorker.getRegistration().then((reg) => {
+      if (!reg) return
+
+      // Case 1: a SW is already waiting from a previous background update.
+      if (reg.waiting && navigator.serviceWorker.controller) {
         setWaitingWorker(reg.waiting)
         setNeedsUpdate(true)
+        return
       }
-    }
 
-    // Check immediately for an already-waiting SW (e.g. page was refreshed
-    // after a new version was downloaded during a previous session).
-    navigator.serviceWorker.getRegistration().then((reg) => {
-      if (reg) handleUpdate(reg)
-    })
-
-    // Listen for future update events on the current registration.
-    const onControllerChange = () => {
-      navigator.serviceWorker.getRegistration().then((reg) => {
-        if (reg) handleUpdate(reg)
+      // Case 2: a new SW starts downloading while this tab is open.
+      // 'updatefound' fires when reg.installing is set; we then watch for
+      // 'statechange' until the installing SW reaches 'installed' (waiting).
+      reg.addEventListener('updatefound', () => {
+        const installing = reg.installing
+        if (!installing) return
+        installing.addEventListener('statechange', () => {
+          if (installing.state === 'installed' && navigator.serviceWorker.controller) {
+            setWaitingWorker(installing)
+            setNeedsUpdate(true)
+          }
+        })
       })
-    }
-    navigator.serviceWorker.addEventListener('controllerchange', onControllerChange)
-    return () => {
-      navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange)
-    }
+    })
   }, [])
 
   const applyUpdate = () => {
