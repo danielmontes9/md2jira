@@ -57,6 +57,11 @@ export const CopyEditGroup = memo(function CopyEditGroup({
           {editMode ? 'View' : 'Edit'}
         </button>
       )}
+      {/* Visually hidden live region — announces copy confirmation to screen readers
+          without relying on AT re-reading a changed aria-label on a focused button. */}
+      <span role="status" aria-live="polite" className="sr-only">
+        {copied ? 'Copied to clipboard' : ''}
+      </span>
     </div>
   )
 })

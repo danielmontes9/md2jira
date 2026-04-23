@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 
 // ── Stubs ─────────────────────────────────────────────────────────────────────
@@ -32,8 +32,16 @@ const localStorageStub = {
   }),
 }
 
-Object.defineProperty(window, 'matchMedia', { writable: true, value: matchMediaStub })
-Object.defineProperty(window, 'localStorage', { writable: true, value: localStorageStub })
+// Install stubs via vi.stubGlobal so vitest restores originals after this file runs,
+// preventing cross-file global pollution in shared worker pools.
+beforeAll(() => {
+  vi.stubGlobal('matchMedia', matchMediaStub)
+  vi.stubGlobal('localStorage', localStorageStub)
+})
+
+afterAll(() => {
+  vi.unstubAllGlobals()
+})
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 

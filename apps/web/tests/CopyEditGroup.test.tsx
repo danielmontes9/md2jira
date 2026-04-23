@@ -199,6 +199,34 @@ describe('CopyEditGroup', () => {
       'Copy Wiki Markup to clipboard'
     )
   })
+
+  it('aria-live region is empty when not copied', () => {
+    render(
+      <CopyEditGroup
+        copied={false}
+        editMode={false}
+        canEdit={false}
+        format="adf"
+        onCopy={noop}
+        onToggleEdit={noop}
+      />
+    )
+    expect(screen.getByRole('status')).toHaveTextContent('')
+  })
+
+  it('aria-live region announces "Copied to clipboard" when copied is true', () => {
+    render(
+      <CopyEditGroup
+        copied={true}
+        editMode={false}
+        canEdit={false}
+        format="adf"
+        onCopy={noop}
+        onToggleEdit={noop}
+      />
+    )
+    expect(screen.getByRole('status')).toHaveTextContent('Copied to clipboard')
+  })
 })
 
 describe('JiraOutputHeader — format toggle', () => {

@@ -1,17 +1,24 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { Header } from '../src/components/Header.js'
 import { ShortcutsModal } from '../src/components/ShortcutsModal.js'
 import { InfoModal } from '../src/components/InfoModal.js'
 
-// jsdom stubs
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: vi.fn().mockReturnValue({
-    matches: false,
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-  }),
+// Use vi.stubGlobal so vitest restores originals after this file's tests run,
+// preventing cross-file global pollution in shared worker pools.
+beforeAll(() => {
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn().mockReturnValue({
+      matches: false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    })
+  )
+})
+
+afterAll(() => {
+  vi.unstubAllGlobals()
 })
 
 describe('Header', () => {
