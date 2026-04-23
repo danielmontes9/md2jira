@@ -11,7 +11,9 @@
     "lint": "eslint src",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:e2e:visual": "playwright test --project=visual",
+    "test:e2e:update-snapshots": "playwright test --project=visual --update-snapshots"
   },
   "dependencies": {
     "@tiptap/extension-color": "^3.22.4",
