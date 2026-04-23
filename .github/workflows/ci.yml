@@ -84,8 +84,9 @@ jobs:
     name: E2E · Playwright
     runs-on: ubuntu-latest
     needs: ci
-    # Only run E2E on main — skip on PRs to keep feedback fast.
-    if: github.ref == 'refs/heads/main'
+    # Run on every push and PR.
+    # PRs: Chromium only — fast feedback (~1–2 min).
+    # main: all three browsers — full cross-browser coverage.
 
     steps:
       - name: Checkout
@@ -109,10 +110,20 @@ jobs:
         run: pnpm --filter md2jira-core build
 
       - name: Install Playwright browsers
-        run: pnpm --filter web exec playwright install --with-deps chromium firefox webkit
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            pnpm --filter web exec playwright install --with-deps chromium firefox webkit
+          else
+            pnpm --filter web exec playwright install --with-deps chromium
+          fi
 
       - name: Run E2E tests
-        run: pnpm --filter web test:e2e
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            pnpm --filter web test:e2e
+          else
+            pnpm --filter web test:e2e --project=chromium
+          fi
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
