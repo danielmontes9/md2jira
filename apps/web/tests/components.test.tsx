@@ -198,6 +198,56 @@ describe('Markdown → output conversion', () => {
   })
 })
 
+describe('Copy link button', () => {
+  beforeEach(() => {
+    vi.stubGlobal('requestIdleCallback', (cb: IdleRequestCallback) =>
+      cb({ didTimeout: false, timeRemaining: () => 50 })
+    )
+    Object.defineProperty(window, 'location', {
+      writable: true,
+      value: { href: 'http://localhost/?md=SGVsbG8' },
+    })
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('shows Copy link button when deep-link is active and content exists', async () => {
+    const clipboardSpy = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', {
+      writable: true,
+      value: { writeText: clipboardSpy },
+    })
+
+    render(<App />)
+    const textarea = screen.getByPlaceholderText('Paste your Markdown here...')
+    fireEvent.change(textarea, { target: { value: '# Hello' } })
+
+    const copyLinkBtns = screen.queryAllByRole('button', { name: /copy shareable link/i })
+    expect(copyLinkBtns.length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('calls clipboard.writeText with current URL when Copy link is clicked', async () => {
+    const clipboardSpy = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', {
+      writable: true,
+      value: { writeText: clipboardSpy },
+    })
+
+    render(<App />)
+    const textarea = screen.getByPlaceholderText('Paste your Markdown here...')
+    fireEvent.change(textarea, { target: { value: '# Hello' } })
+
+    const btn = screen.getAllByRole('button', { name: /copy shareable link/i })[0]!
+    fireEvent.click(btn)
+
+    await waitFor(() => {
+      expect(clipboardSpy).toHaveBeenCalledWith('http://localhost/?md=SGVsbG8')
+    })
+  })
+})
+
 describe('URL deep-linking', () => {
   let originalLocation: Location
 

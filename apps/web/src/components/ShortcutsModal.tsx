@@ -52,8 +52,8 @@ const GROUPS = [
   {
     title: 'Output format',
     shortcuts: [
-      { key: 'Alt+A', label: 'Switch to Jira Cloud (ADF)' },
-      { key: 'Alt+W', label: 'Switch to Wiki Markup' },
+      { key: 'Alt+Shift+A', label: 'Switch to Jira Cloud (ADF)' },
+      { key: 'Alt+Shift+W', label: 'Switch to Wiki Markup' },
     ],
   },
 ]
