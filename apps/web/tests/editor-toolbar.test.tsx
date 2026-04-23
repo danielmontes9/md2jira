@@ -1,15 +1,21 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest'
 import { render, screen, fireEvent, within, waitFor } from '@testing-library/react'
 import { EditorToolbar } from '../src/components/jira-output/EditorToolbar.js'
 
-// Minimal matchMedia stub required by toolbar internals
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: vi.fn().mockReturnValue({
-    matches: false,
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-  }),
+// Use vi.stubGlobal so vitest restores originals after this file's tests run.
+beforeAll(() => {
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn().mockReturnValue({
+      matches: false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    })
+  )
+})
+
+afterAll(() => {
+  vi.unstubAllGlobals()
 })
 
 describe('EditorToolbar', () => {

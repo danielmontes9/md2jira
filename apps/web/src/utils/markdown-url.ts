@@ -34,6 +34,10 @@ export function decodeMarkdown(encoded: string): string {
  * Default Markdown shown on first load and in tests.
  * Lives here (rather than App.tsx) so it is accessible to utilities and tests
  * without importing the root component.
+ *
+ * Note: the `console.log("hello")` below is intentional — it is the *content*
+ * of a fenced code block that demonstrates code-block conversion, not a
+ * debug statement left by accident.
  */
 export const PLACEHOLDER = `# My Issue
 

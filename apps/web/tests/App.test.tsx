@@ -1,26 +1,27 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest'
 import { render, screen, fireEvent, waitFor, act, within } from '@testing-library/react'
 import { App } from '../src/App.js'
 import { PLACEHOLDER } from '../src/utils/markdown-url.js'
 
-// Minimal stubs required by App (jsdom lacks these browser APIs)
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: vi.fn().mockReturnValue({
-    matches: false,
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-  }),
-})
-Object.defineProperty(window, 'localStorage', {
-  writable: true,
-  value: { getItem: vi.fn(), setItem: vi.fn(), removeItem: vi.fn() },
+// Use vi.stubGlobal so vitest restores originals after this file's tests run,
+// preventing cross-file global pollution in shared worker pools.
+beforeAll(() => {
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn().mockReturnValue({
+      matches: false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    })
+  )
+  vi.stubGlobal('localStorage', { getItem: vi.fn(), setItem: vi.fn(), removeItem: vi.fn() })
+  vi.stubGlobal('requestIdleCallback', (cb: IdleRequestCallback) =>
+    cb({ didTimeout: false, timeRemaining: () => 50 })
+  )
 })
 
-// Stub requestIdleCallback — jsdom doesn't implement it; synchronous fallback is fine in tests
-Object.defineProperty(window, 'requestIdleCallback', {
-  writable: true,
-  value: (cb: IdleRequestCallback) => cb({ didTimeout: false, timeRemaining: () => 50 }),
+afterAll(() => {
+  vi.unstubAllGlobals()
 })
 
 // Encode helper matching the base64url scheme used in App.tsx

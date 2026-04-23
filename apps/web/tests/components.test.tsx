@@ -1,19 +1,24 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { App } from '../src/App.js'
 import { ErrorBoundary } from '../src/components/ErrorBoundary.js'
 
-// Minimal stub for localStorage and matchMedia (jsdom lacks these)
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: vi.fn().mockReturnValue({
-    matches: false,
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-  }),
+// Use vi.stubGlobal so vitest restores originals after this file's tests run,
+// preventing cross-file global pollution in shared worker pools.
+beforeAll(() => {
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn().mockReturnValue({
+      matches: false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    })
+  )
+  vi.stubGlobal('localStorage', { getItem: vi.fn(), setItem: vi.fn(), removeItem: vi.fn() })
 })
-Object.defineProperty(window, 'localStorage', {
-  value: { getItem: vi.fn(), setItem: vi.fn(), removeItem: vi.fn() },
+
+afterAll(() => {
+  vi.unstubAllGlobals()
 })
 
 describe('App', () => {

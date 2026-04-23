@@ -78,6 +78,7 @@ export const MarkdownInput = memo(function MarkdownInput({
           </label>
           {!isDeepLinkActive && value && (
             <span
+              id="deep-link-indicator"
               title="Document too large for URL sharing"
               aria-label="URL sharing unavailable — document exceeds size limit"
               className="text-amber-500 dark:text-amber-400"
@@ -134,6 +135,7 @@ export const MarkdownInput = memo(function MarkdownInput({
           <textarea
             id="markdown-input"
             aria-label="Markdown input"
+            aria-describedby="deep-link-indicator"
             name="markdown-input"
             ref={textareaRef}
             className="flex-1 resize-none bg-transparent p-4 font-mono text-sm leading-6 text-neutral-900 outline-none placeholder:text-neutral-400 dark:text-neutral-100 dark:placeholder:text-neutral-600"

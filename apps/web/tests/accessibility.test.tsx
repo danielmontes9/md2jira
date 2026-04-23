@@ -1,24 +1,32 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest'
 import { render } from '@testing-library/react'
 import { axe } from 'vitest-axe'
 import { App } from '../src/App.js'
 
-// Minimal browser API stubs required by App (same as App.test.tsx)
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: vi.fn().mockReturnValue({
-    matches: false,
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-  }),
+// Use vi.stubGlobal (instead of Object.defineProperty at module level) so vitest
+// can restore the originals after this file's tests run, preventing cross-file
+// global pollution in shared worker pools.
+beforeAll(() => {
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn().mockReturnValue({
+      matches: false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    })
+  )
+  vi.stubGlobal('localStorage', {
+    getItem: vi.fn(),
+    setItem: vi.fn(),
+    removeItem: vi.fn(),
+  })
+  vi.stubGlobal('requestIdleCallback', (cb: IdleRequestCallback) =>
+    cb({ didTimeout: false, timeRemaining: () => 50 })
+  )
 })
-Object.defineProperty(window, 'localStorage', {
-  writable: true,
-  value: { getItem: vi.fn(), setItem: vi.fn(), removeItem: vi.fn() },
-})
-Object.defineProperty(window, 'requestIdleCallback', {
-  writable: true,
-  value: (cb: IdleRequestCallback) => cb({ didTimeout: false, timeRemaining: () => 50 }),
+
+afterAll(() => {
+  vi.unstubAllGlobals()
 })
 
 describe('Automated accessibility (axe-core)', () => {
