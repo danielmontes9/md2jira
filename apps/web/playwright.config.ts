@@ -24,6 +24,10 @@ import { defineConfig, devices } from '@playwright/test'
 export default defineConfig({
   testDir: './e2e',
   snapshotDir: './e2e/__snapshots__',
+  // Store snapshots as <snapshotDir>/<arg> (e.g. __snapshots__/default-state.png).
+  // Omitting {platform} and {projectName} ensures Linux-generated baselines match
+  // in CI regardless of the runner's reported platform string.
+  snapshotPathTemplate: '{snapshotDir}/{arg}',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,

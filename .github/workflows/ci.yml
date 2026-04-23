@@ -125,6 +125,10 @@ jobs:
             pnpm --filter web test:e2e --project=chromium
           fi
 
+      - name: Visual regression (runs only when baselines are committed)
+        if: hashFiles('apps/web/e2e/__snapshots__/*.png') != ''
+        run: pnpm --filter web test:e2e:visual
+
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}

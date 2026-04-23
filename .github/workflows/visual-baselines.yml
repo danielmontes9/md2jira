@@ -1,0 +1,76 @@
+name: Update Visual Regression Baselines
+
+on:
+  # Trigger manually from the Actions tab — click "Run workflow" and choose a branch.
+  workflow_dispatch:
+
+  # Auto-trigger when visual test definitions or source components change on main.
+  # This ensures baselines stay in sync with intentional UI updates without
+  # requiring a manual dispatch every time.
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web/e2e/visual.test.ts'
+      - 'apps/web/src/components/**'
+      - 'apps/web/src/hooks/**'
+      - 'apps/web/src/App.tsx'
+      - 'apps/web/src/index.css'
+
+permissions:
+  contents: write   # required to push the generated PNG files back to the branch
+
+jobs:
+  update-baselines:
+    name: Generate & commit visual baselines (Chromium / Ubuntu)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # A personal access token is required to push commits that trigger
+          # subsequent CI workflows. Without it, pushes from GITHUB_TOKEN are
+          # silently ignored by the Actions runner.
+          # Create a fine-grained PAT with "Contents: Read and Write" scope and
+          # store it as the repository secret ACTIONS_PAT.
+          # Falls back to GITHUB_TOKEN if the secret is absent (push will still
+          # work, but downstream CI won't trigger).
+          token: ${{ secrets.ACTIONS_PAT || secrets.GITHUB_TOKEN }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build core
+        run: pnpm --filter md2jira-core build
+
+      - name: Install Playwright (Chromium only)
+        run: pnpm --filter web exec playwright install --with-deps chromium
+
+      - name: Generate / update visual baselines
+        # --update-snapshots writes new PNGs and overwrites any that have changed.
+        # The project=visual flag ensures only visual.test.ts runs.
+        run: pnpm --filter web test:e2e:update-snapshots
+
+      - name: Commit baselines if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add apps/web/e2e/__snapshots__/
+          # Exit gracefully if nothing changed (idempotent on repeated triggers).
+          if git diff --staged --quiet; then
+            echo "No baseline changes detected — nothing to commit."
+          else
+            git commit -m "test(web): update visual regression baselines [skip ci]"
+            git push
+          fi
