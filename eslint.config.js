@@ -1,6 +1,8 @@
 import js from '@eslint/js'
 import tsParser from '@typescript-eslint/parser'
 import tsPlugin from '@typescript-eslint/eslint-plugin'
+import reactPlugin from 'eslint-plugin-react'
+import reactHooksPlugin from 'eslint-plugin-react-hooks'
 import globals from 'globals'
 
 export default [
@@ -31,6 +33,23 @@ export default [
       globals: {
         ...globals.browser,
       },
+    },
+  },
+  {
+    files: ['apps/web/src/**/*.ts', 'apps/web/src/**/*.tsx'],
+    plugins: {
+      react: reactPlugin,
+      'react-hooks': reactHooksPlugin,
+    },
+    rules: {
+      ...reactPlugin.configs.recommended.rules,
+      ...reactHooksPlugin.configs.recommended.rules,
+      'react/react-in-jsx-scope': 'off', // React 18 — no import needed
+      'react/prop-types': 'off', // TypeScript handles prop validation
+      'react/no-danger': 'error',
+    },
+    settings: {
+      react: { version: 'detect' },
     },
   },
   {
