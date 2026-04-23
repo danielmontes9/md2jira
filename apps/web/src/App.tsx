@@ -62,8 +62,30 @@ export function App() {
     }
   }, [format])
 
-  // Debounced URL deep-linking: update ?md= and ?fmt= params 500ms after changes.
+  // Debounced URL deep-linking: update ?md= and ?fmt= params after changes.
+  // Adaptive debounce: 300 ms for small docs, 800 ms for large docs.
   const { isDeepLinkActive } = useDeepLink(markdown, format)
+
+  // Global keyboard shortcuts for switching output format.
+  // Alt+A → Jira Cloud (ADF), Alt+W → Wiki Markup.
+  useEffect(() => {
+    const ac = new AbortController()
+    document.addEventListener(
+      'keydown',
+      (e: KeyboardEvent) => {
+        if (!e.altKey) return
+        if (e.key === 'a' || e.key === 'A') {
+          e.preventDefault()
+          setFormat('adf')
+        } else if (e.key === 'w' || e.key === 'W') {
+          e.preventDefault()
+          setFormat('wiki')
+        }
+      },
+      { signal: ac.signal }
+    )
+    return () => ac.abort()
+  }, [])
 
   const { jiraOutput, adfDoc, hasConversionError } = useMemo<{
     jiraOutput: string

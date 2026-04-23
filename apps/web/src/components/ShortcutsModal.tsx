@@ -49,6 +49,13 @@ const GROUPS = [
       { key: '↵ Enter', label: 'Auto-continue list item' },
     ],
   },
+  {
+    title: 'Output format',
+    shortcuts: [
+      { key: 'Alt+A', label: 'Switch to Jira Cloud (ADF)' },
+      { key: 'Alt+W', label: 'Switch to Wiki Markup' },
+    ],
+  },
 ]
 
 export function ShortcutsModal({ onClose }: ShortcutsModalProps) {

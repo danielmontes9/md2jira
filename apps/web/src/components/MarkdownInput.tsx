@@ -1,10 +1,10 @@
-import { useRef, useCallback, useMemo, useState, Suspense, memo } from 'react'
+import { useRef, useCallback, useMemo, useState, useEffect, Suspense, memo } from 'react'
 import { useMarkdownShortcuts } from '../hooks/useMarkdownShortcuts.js'
 import { useClipboardEvents } from '../hooks/useClipboardEvents.js'
 import { useFileImportExport } from '../hooks/useFileImportExport.js'
 import { useToast } from '../context/ToastContext.js'
 import { lazyNamed } from '../utils/lazy-named.js'
-import { IconLinkOff } from './icons.js'
+import { IconLinkOff, IconLink } from './icons.js'
 
 const ShortcutsModalLazy = lazyNamed(() => import('./ShortcutsModal.js'), 'ShortcutsModal')
 
@@ -26,7 +26,29 @@ export const MarkdownInput = memo(function MarkdownInput({
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const gutterRef = useRef<HTMLDivElement>(null)
   const [showShortcuts, setShowShortcuts] = useState(false)
+  const [copiedLink, setCopiedLink] = useState(false)
+  const copiedLinkTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const addToast = useToast()
+
+  // Cleanup the reset timer on unmount.
+  useEffect(() => {
+    return () => {
+      if (copiedLinkTimerRef.current !== null) clearTimeout(copiedLinkTimerRef.current)
+    }
+  }, [])
+
+  const handleCopyLink = useCallback(() => {
+    navigator.clipboard
+      .writeText(window.location.href)
+      .then(() => {
+        setCopiedLink(true)
+        if (copiedLinkTimerRef.current !== null) clearTimeout(copiedLinkTimerRef.current)
+        copiedLinkTimerRef.current = setTimeout(() => setCopiedLink(false), 2_000)
+      })
+      .catch(() => {
+        addToast('Could not copy link to clipboard.', 'error')
+      })
+  }, [addToast])
 
   const { copiedMd, handleCopyMd } = useClipboardEvents(value, textareaRef, addToast, onChange)
   const {
@@ -76,7 +98,18 @@ export const MarkdownInput = memo(function MarkdownInput({
           >
             Markdown
           </label>
-          {!isDeepLinkActive && value && (
+          {isDeepLinkActive && value ? (
+            <button
+              type="button"
+              onClick={handleCopyLink}
+              className={`${TOOLBAR_BTN_CLS} flex items-center gap-1`}
+              aria-label="Copy shareable link to clipboard"
+              title="Copy link to this document"
+            >
+              <IconLink className="h-3.5 w-3.5" />
+              {copiedLink ? 'Copied!' : 'Copy link'}
+            </button>
+          ) : !isDeepLinkActive && value ? (
             <span
               id="deep-link-indicator"
               title="Document too large for URL sharing"
@@ -85,7 +118,7 @@ export const MarkdownInput = memo(function MarkdownInput({
             >
               <IconLinkOff className="h-3.5 w-3.5" />
             </span>
-          )}
+          ) : null}
           <div className="flex items-center justify-center gap-1 @[375px]:justify-end">
             <button
               type="button"

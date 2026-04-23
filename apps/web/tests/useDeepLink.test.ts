@@ -135,12 +135,15 @@ describe('useDeepLink', () => {
   })
 
   it('does not set ?md= when markdown exceeds URL_MD_MAX_ENCODED', () => {
-    const longMd = '中'.repeat(300)
+    // 300 Chinese chars encode to ~2700 chars via encodeURIComponent before
+    // base64, which exceeds URL_MD_MAX_ENCODED (2000). Doc length (300) is
+    // below LARGE_DOC_THRESHOLD so the 300 ms debounce applies.
+    const longMd = '\u4e2d'.repeat(300)
     // Start with an existing ?md= param so there is a URL change to make
     setLocation('http://localhost/?md=previousvalue')
     renderHook(() => useDeepLink(longMd, 'adf'))
     act(() => {
-      vi.advanceTimersByTime(800)
+      vi.advanceTimersByTime(300)
     })
     // replaceState IS called (to strip the old ?md= param)
     const calledUrl = replaceStateSpy.mock.calls[0]![2] as string
