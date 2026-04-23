@@ -61,7 +61,7 @@ describe('EditorToolbar', () => {
 
   it('does not render a disabled Image button (images are out of scope)', () => {
     renderToolbar()
-    expect(screen.queryByTitle(/add image/i)).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /add image/i })).not.toBeInTheDocument()
   })
 
   it('TextStyleMenu trigger has aria-haspopup="menu"', () => {

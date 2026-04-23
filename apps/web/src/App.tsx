@@ -121,16 +121,29 @@ export function App() {
           >
             <IconAlertOcticon className="h-4 w-4 shrink-0" />
             Preview rendering failed — the ADF output could not be displayed.
-            <button
-              type="button"
-              onClick={retryWorker}
-              className="ml-auto rounded px-2 py-0.5 text-xs font-medium underline hover:no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
-            >
-              Retry
-            </button>
+            <div className="ml-auto flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setFormat('wiki')}
+                className="rounded px-2 py-0.5 text-xs font-medium underline hover:no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
+              >
+                Switch to Wiki Markup
+              </button>
+              <button
+                type="button"
+                onClick={retryWorker}
+                className="rounded px-2 py-0.5 text-xs font-medium underline hover:no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
+              >
+                Retry
+              </button>
+            </div>
           </div>
         )}
-        <main id="main-content" aria-label="Main content" className="flex flex-1 flex-col gap-4 overflow-auto p-4 sm:flex-row sm:overflow-hidden">
+        <main
+          id="main-content"
+          aria-label="Main content"
+          className="flex flex-1 flex-col gap-4 overflow-auto p-4 sm:flex-row sm:overflow-hidden"
+        >
           <section aria-label="Markdown input" className="flex min-h-64 flex-1 flex-col sm:min-h-0">
             <ErrorBoundary>
               <MarkdownInput

@@ -127,6 +127,13 @@ export function useTiptapEditor({
     extensions,
     content: sanitize(previewHtml),
     editable: false,
+    editorProps: {
+      attributes: {
+        // aria-label must live on the ProseMirror div (role="textbox") itself,
+        // not on the EditorContent wrapper, to satisfy axe aria-input-field-name.
+        'aria-label': 'Jira content editor',
+      },
+    },
     onUpdate: ({ editor: ed }) => {
       if (isExternalUpdateRef.current) return
       const cb = onMarkdownChangeRef.current

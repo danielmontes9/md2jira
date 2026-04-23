@@ -225,6 +225,30 @@ describe('App – URL deep-linking', () => {
   })
 })
 
+describe('App – accessibility', () => {
+  it('renders a skip link that targets the main content landmark', () => {
+    render(<App />)
+    const skipLink = screen.getByRole('link', { name: /skip to main content/i })
+    expect(skipLink).toBeInTheDocument()
+    expect(skipLink).toHaveAttribute('href', '#main-content')
+  })
+
+  it('main landmark exists and matches the skip-link target', () => {
+    render(<App />)
+    const main = document.getElementById('main-content')
+    expect(main).not.toBeNull()
+    expect(main!.tagName).toBe('MAIN')
+  })
+
+  it('skip link is the first focusable element in the page', () => {
+    render(<App />)
+    const skipLink = screen.getByRole('link', { name: /skip to main content/i })
+    // The skip link must appear before any other interactive element in the DOM
+    const allInteractive = document.querySelectorAll('a, button, input, [tabindex]')
+    expect(allInteractive[0]).toBe(skipLink)
+  })
+})
+
 describe('App – loading state', () => {
   it('does not show a loading spinner when input and deferred value are in sync', () => {
     render(<App />)
