@@ -2,11 +2,23 @@ import { useEffect, useMemo, useRef } from 'react'
 import { encodeMarkdown, URL_MD_MAX_ENCODED } from '../utils/markdown-url.js'
 import type { OutputFormat } from '../types.js'
 
+/** Debounce applied to small documents (< LARGE_DOC_THRESHOLD chars). */
+const DEBOUNCE_SMALL_MS = 300
+/** Debounce applied to large documents — encoding is more expensive and the
+ * user is less likely to share mid-typing, so we wait a bit longer. */
+const DEBOUNCE_LARGE_MS = 800
+/** Char count above which we switch to the longer debounce. */
+const LARGE_DOC_THRESHOLD = 5_000
+
 /**
- * Debounced URL deep-linking: updates the `?md=` and `?fmt=` query params 500 ms
- * after the user stops typing/changing format. Uses `requestIdleCallback` (with
- * `setTimeout` fallback) so the URL update never interferes with rendering or
- * typing responsiveness.
+ * Debounced URL deep-linking: updates the `?md=` and `?fmt=` query params after
+ * the user stops typing/changing format. The debounce adapts to document size:
+ *   - Small docs (< 5 000 chars): 300 ms — fast enough for live sharing.
+ *   - Large docs (≥ 5 000 chars): 800 ms — encoding is more expensive;
+ *     the user is unlikely to share mid-keystroke for large content.
+ *
+ * Uses `requestIdleCallback` (with `setTimeout` fallback) so the URL update
+ * never interferes with rendering or typing responsiveness.
  *
  * Returns `isDeepLinkActive`: true when the current Markdown fits within the
  * URL limit and the ?md= param is being maintained. False when the document is
@@ -27,6 +39,9 @@ export function useDeepLink(markdown: string, format: OutputFormat): { isDeepLin
 
   useEffect(() => {
     let idleCallbackId: number | undefined
+
+    const debounceMs =
+      markdown.length >= LARGE_DOC_THRESHOLD ? DEBOUNCE_LARGE_MS : DEBOUNCE_SMALL_MS
 
     const handle = setTimeout(() => {
       const updateUrl = () => {
@@ -60,7 +75,7 @@ export function useDeepLink(markdown: string, format: OutputFormat): { isDeepLin
       } else {
         updateUrl()
       }
-    }, 500)
+    }, debounceMs)
 
     return () => {
       clearTimeout(handle)

@@ -11,6 +11,7 @@ import { IconAlertOcticon } from './components/icons.js'
 import { useTheme } from './hooks/useTheme.js'
 import { useDeepLink } from './hooks/useDeepLink.js'
 import { useAdfHtmlWorker } from './hooks/useAdfHtmlWorker.js'
+import { useOfflineStatus } from './hooks/useTheme.js'
 import { getInitialMarkdown, PLACEHOLDER } from './utils/markdown-url.js'
 
 /** Below this character count, convert() runs on every keystroke. */
@@ -35,6 +36,7 @@ export function App() {
   const [markdown, setMarkdown] = useState(() => getInitialMarkdown(PLACEHOLDER))
   const [format, setFormat] = useState<OutputFormat>(getInitialFormat)
   const { theme, toggleTheme } = useTheme()
+  const isOffline = useOfflineStatus()
 
   // useDeferredValue keeps the textarea fully responsive by deferring
   // the expensive convert() / convertToAdf() calls until the browser is idle.
@@ -105,6 +107,34 @@ export function App() {
           Skip to main content
         </a>
         <Header theme={theme} onToggleTheme={toggleTheme} />
+        {isOffline && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="flex items-center gap-2 border-b border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-300"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4 shrink-0"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <line x1="1" y1="1" x2="23" y2="23" />
+              <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55" />
+              <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39" />
+              <path d="M10.71 5.05A16 16 0 0 1 22.56 9" />
+              <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88" />
+              <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
+              <line x1="12" y1="20" x2="12.01" y2="20" />
+            </svg>
+            You’re offline — the app is running from cache. Conversions still work.
+          </div>
+        )}
         {hasConversionError && (
           <div
             role="alert"

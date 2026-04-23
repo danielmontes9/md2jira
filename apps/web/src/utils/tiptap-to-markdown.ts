@@ -232,6 +232,46 @@ function applyMark(mark: Mark, text: string): string {
 
 // ─── Table serializer ─────────────────────────────────────────────────────────
 
+/**
+ * Serializes the inline content of a single table cell.
+ *
+ * Cells may contain multiple block children (paragraphs, headings). Each
+ * block is serialized as inline text and joined with a `<br>` tag so the
+ * content stays on one Markdown table row. Hard-break nodes inside a block
+ * are also converted to `<br>` rather than the `  \n` sequence that would
+ * break the table pipe structure.
+ */
+function serializeTableCell(cellNode: Node): string {
+  const parts: string[] = []
+  cellNode.forEach((child) => {
+    if (child.isText) {
+      parts.push(applyMarks(child.text ?? '', child.marks))
+      return
+    }
+    // Inline leaf nodes inside a cell (e.g. hardBreak)
+    if (child.type.name === 'hardBreak') {
+      parts.push('<br>')
+      return
+    }
+    // Block nodes (paragraph, heading, etc.) — serialize their inline children
+    // and join multiple blocks with <br> to keep everything on one table line.
+    let blockText = ''
+    child.forEach((inline) => {
+      if (inline.type.name === 'hardBreak') {
+        blockText += '<br>'
+      } else if (inline.isText) {
+        blockText += applyMarks(inline.text ?? '', inline.marks)
+      } else {
+        // Nested inline container (e.g. link wrapping text)
+        blockText += serializeInline(inline)
+      }
+    })
+    if (blockText) parts.push(blockText)
+  })
+  // Escape pipe characters that would break the table syntax, then join blocks.
+  return parts.join('<br>').replace(/\|/g, '\\|')
+}
+
 function serializeTable(table: Node): string {
   if (table.childCount === 0) return ''
 
@@ -248,13 +288,7 @@ function serializeTable(table: Node): string {
         const al = (cellNode.attrs as { alignment?: string | null }).alignment ?? null
         colAlignments[colIdx] = al as 'left' | 'center' | 'right' | null
       }
-      // Collect inline content from each paragraph inside the cell
-      let cellContent = ''
-      cellNode.forEach((child) => {
-        cellContent += serializeInline(child)
-      })
-      // Escape pipe characters that would break the table syntax
-      cells.push(cellContent.trim().replace(/\|/g, '\\|'))
+      cells.push(serializeTableCell(cellNode).trim())
     })
     rows.push(cells)
   })

@@ -212,6 +212,46 @@ describe('tiptapDocToMarkdown — tables', () => {
     )
     expect(tiptapDocToMarkdown(doc)).toContain('\\|')
   })
+
+  it('joins multiple paragraphs inside a cell with <br>', () => {
+    const doc = htmlToDoc(
+      '<table><tbody>' +
+        '<tr><th><p>Notes</p></th></tr>' +
+        '<tr><td><p>Line one</p><p>Line two</p></td></tr>' +
+        '</tbody></table>'
+    )
+    const md = tiptapDocToMarkdown(doc)
+    expect(md).toContain('Line one<br>Line two')
+    // Must remain on a single Markdown table row (no unescaped newline)
+    const lines = md.split('\n').filter((l) => l.startsWith('|'))
+    expect(lines).toHaveLength(3) // header | separator | body
+  })
+
+  it('preserves inline formatting inside table cells', () => {
+    const doc = htmlToDoc(
+      '<table><tbody>' +
+        '<tr><th><p>Col</p></th></tr>' +
+        '<tr><td><p><strong>bold</strong> and <em>italic</em></p></td></tr>' +
+        '</tbody></table>'
+    )
+    const md = tiptapDocToMarkdown(doc)
+    expect(md).toContain('**bold**')
+    expect(md).toContain('_italic_')
+  })
+
+  it('pads rows with fewer cells than the header row', () => {
+    const doc = htmlToDoc(
+      '<table><tbody>' +
+        '<tr><th><p>A</p></th><th><p>B</p></th><th><p>C</p></th></tr>' +
+        '<tr><td><p>1</p></td></tr>' +
+        '</tbody></table>'
+    )
+    const md = tiptapDocToMarkdown(doc)
+    // Body row must be padded to 3 columns
+    const bodyLine = md.split('\n').find((l) => l.includes('| 1 |'))
+    expect(bodyLine).toBeDefined()
+    expect(bodyLine!.match(/\|/g)?.length).toBe(4) // 3 cells = 4 pipes
+  })
 })
 
 // ── Code block escape regression ──────────────────────────────────────────────

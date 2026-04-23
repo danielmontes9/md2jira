@@ -53,18 +53,40 @@ describe('useDeepLink', () => {
     expect(result.current.isDeepLinkActive).toBe(false)
   })
 
-  it('does not call replaceState before the 500ms debounce fires', () => {
+  it('does not call replaceState before the 300ms debounce fires (small doc)', () => {
     renderHook(() => useDeepLink('# Hello', 'adf'))
     act(() => {
-      vi.advanceTimersByTime(499)
+      vi.advanceTimersByTime(299)
     })
     expect(replaceStateSpy).not.toHaveBeenCalled()
   })
 
-  it('calls replaceState after the 500ms debounce', () => {
+  it('calls replaceState after the 300ms debounce (small doc)', () => {
     renderHook(() => useDeepLink('# Hello', 'adf'))
     act(() => {
-      vi.advanceTimersByTime(500)
+      vi.advanceTimersByTime(300)
+    })
+    expect(replaceStateSpy).toHaveBeenCalledOnce()
+  })
+
+  it('uses 800ms debounce for large documents (>= 5000 chars)', () => {
+    const largeMd = 'a'.repeat(5_000)
+    renderHook(() => useDeepLink(largeMd, 'adf'))
+    act(() => {
+      vi.advanceTimersByTime(799)
+    })
+    expect(replaceStateSpy).not.toHaveBeenCalled()
+    act(() => {
+      vi.advanceTimersByTime(1)
+    })
+    expect(replaceStateSpy).toHaveBeenCalledOnce()
+  })
+
+  it('uses 300ms debounce for docs just below the large-doc threshold (4999 chars)', () => {
+    const md = 'a'.repeat(4_999)
+    renderHook(() => useDeepLink(md, 'adf'))
+    act(() => {
+      vi.advanceTimersByTime(300)
     })
     expect(replaceStateSpy).toHaveBeenCalledOnce()
   })
@@ -73,7 +95,7 @@ describe('useDeepLink', () => {
     const md = '# Hello'
     renderHook(() => useDeepLink(md, 'adf'))
     act(() => {
-      vi.advanceTimersByTime(500)
+      vi.advanceTimersByTime(300)
     })
     const calledUrl = replaceStateSpy.mock.calls[0]![2] as string
     const url = new URL(calledUrl)
@@ -84,7 +106,7 @@ describe('useDeepLink', () => {
     setLocation('http://localhost/?md=abc123')
     renderHook(() => useDeepLink('', 'adf'))
     act(() => {
-      vi.advanceTimersByTime(500)
+      vi.advanceTimersByTime(300)
     })
     const calledUrl = replaceStateSpy.mock.calls[0]![2] as string
     const url = new URL(calledUrl)
@@ -94,7 +116,7 @@ describe('useDeepLink', () => {
   it('adds ?fmt=wiki for wiki format', () => {
     renderHook(() => useDeepLink('# Hello', 'wiki'))
     act(() => {
-      vi.advanceTimersByTime(500)
+      vi.advanceTimersByTime(300)
     })
     const calledUrl = replaceStateSpy.mock.calls[0]![2] as string
     const url = new URL(calledUrl)
@@ -105,7 +127,7 @@ describe('useDeepLink', () => {
     setLocation('http://localhost/?fmt=wiki')
     renderHook(() => useDeepLink('# Hello', 'adf'))
     act(() => {
-      vi.advanceTimersByTime(500)
+      vi.advanceTimersByTime(300)
     })
     const calledUrl = replaceStateSpy.mock.calls[0]![2] as string
     const url = new URL(calledUrl)
@@ -118,7 +140,7 @@ describe('useDeepLink', () => {
     setLocation('http://localhost/?md=previousvalue')
     renderHook(() => useDeepLink(longMd, 'adf'))
     act(() => {
-      vi.advanceTimersByTime(500)
+      vi.advanceTimersByTime(800)
     })
     // replaceState IS called (to strip the old ?md= param)
     const calledUrl = replaceStateSpy.mock.calls[0]![2] as string
@@ -133,7 +155,7 @@ describe('useDeepLink', () => {
     })
     unmount()
     act(() => {
-      vi.advanceTimersByTime(300)
+      vi.advanceTimersByTime(100)
     })
     expect(replaceStateSpy).not.toHaveBeenCalled()
   })
@@ -145,7 +167,7 @@ describe('useDeepLink', () => {
     setLocation(`http://localhost/?md=${encoded}`)
     renderHook(() => useDeepLink(md, 'adf'))
     act(() => {
-      vi.advanceTimersByTime(500)
+      vi.advanceTimersByTime(300)
     })
     expect(replaceStateSpy).not.toHaveBeenCalled()
   })
