@@ -40,6 +40,39 @@ test('export button is visible and labelled', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Export Markdown file' })).toBeVisible()
 })
 
+test('h1 heading contains the app name', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('md2jira')
+})
+
+test('Markdown textarea is visible and accepts input', async ({ page }) => {
+  await page.goto('/')
+  const textarea = page.getByLabel('Markdown input')
+  await expect(textarea).toBeVisible()
+  await textarea.fill('# Hello E2E')
+  await expect(textarea).toHaveValue(/Hello E2E/)
+})
+
+test('output format radiogroup is present', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.getByRole('radiogroup', { name: /output format/i })).toBeVisible()
+})
+
+test('Copy for Jira button is visible on load', async ({ page }) => {
+  await page.goto('/')
+  await expect(
+    page.getByRole('button', { name: /copy as rich text for jira cloud/i }).first()
+  ).toBeVisible()
+})
+
+test('skip link is the first focusable element and becomes visible on Tab', async ({ page }) => {
+  await page.goto('/')
+  const skipLink = page.getByRole('link', { name: /skip to main content/i })
+  await page.keyboard.press('Tab')
+  await expect(skipLink).toBeFocused()
+  await expect(skipLink).toBeVisible()
+})
+
 test('format toggle switches between Jira Cloud and Wiki Markup', async ({ page }) => {
   await page.goto('/')
 

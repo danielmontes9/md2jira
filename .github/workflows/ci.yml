@@ -41,8 +41,11 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
-      - name: Test
-        run: pnpm test:all
+      - name: Test (core + web with coverage thresholds)
+        run: pnpm test:coverage
+
+      - name: Test CLI
+        run: pnpm --filter md2jira-cli test
 
       - name: Build web (for bundle-size check)
         run: pnpm --filter web build

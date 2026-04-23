@@ -21,6 +21,19 @@ test('home page has no WCAG 2.1 A/AA violations', async ({ page }) => {
   expect(results.violations).toEqual([])
 })
 
+test('Wiki Markup mode has no WCAG 2.1 A/AA violations', async ({ page }) => {
+  await page.goto('/')
+  await page.getByLabel('Markdown input').waitFor()
+  await page.getByRole('radio', { name: 'Wiki Markup' }).click()
+
+  const results = await new AxeBuilder({ page })
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+    .disableRules(['color-contrast'])
+    .analyze()
+
+  expect(results.violations).toEqual([])
+})
+
 test('dark mode has no WCAG 2.1 A/AA violations', async ({ page }) => {
   await page.goto('/')
   await page.getByLabel('Markdown input').waitFor()
