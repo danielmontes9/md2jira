@@ -46,7 +46,6 @@ export function JiraOutputContent({
         aria-label={format === 'adf' ? 'ADF JSON code' : 'Wiki markup code'}
         className="flex-1 overflow-auto whitespace-pre-wrap p-4 font-mono text-sm text-neutral-900 dark:text-neutral-100"
         // highlightJson/highlightWiki escape HTML before injecting <span> tags — safe.
-        // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{ __html: format === 'adf' ? highlightedJson : highlightedWiki }}
       />
     )
@@ -71,7 +70,6 @@ export function JiraOutputContent({
       aria-label="Wiki markup preview"
       className="jira-preview flex-1 overflow-auto whitespace-pre-wrap p-6 font-mono text-sm text-neutral-900 dark:text-neutral-100"
       // highlightWiki escapes HTML entities before injecting <span> tags — safe.
-      // eslint-disable-next-line react/no-danger
       dangerouslySetInnerHTML={{ __html: highlightedWiki }}
     />
   )

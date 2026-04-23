@@ -159,9 +159,11 @@ function applyInlineHighlights(esc: string): string {
   )
 
   // 7. Restore link placeholders
+  // eslint-disable-next-line no-control-regex
   result = result.replace(/\x02(\d+)\x02/g, (_, idx: string) => linkSegments[Number(idx)] ?? '')
 
   // 8. Restore inline code placeholders
+  // eslint-disable-next-line no-control-regex
   result = result.replace(/\x01(\d+)\x01/g, (_, idx: string) => codeSegments[Number(idx)] ?? '')
 
   return result

@@ -86,7 +86,6 @@ export function useClipboardEvents(
     // from the DOM element (always current) so stale-closure for `value` is not
     // possible. Adding `value` or `onChange` would re-register listeners on every
     // keystroke, creating a performance anti-pattern.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [textareaRef])
 
   // Clipboard button: write markdown with a <pre> HTML blob so Jira's

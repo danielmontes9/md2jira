@@ -26,7 +26,7 @@ export default [
     },
   },
   {
-    files: ['apps/web/**/*.ts', 'apps/web/**/*.tsx'],
+    files: ['apps/web/**/*.ts', 'apps/web/**/*.tsx', 'apps/web/public/**/*.js'],
     languageOptions: {
       globals: {
         ...globals.browser,

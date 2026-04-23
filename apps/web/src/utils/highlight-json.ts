@@ -21,7 +21,7 @@ export function highlightJson(json: string): string {
 
   return escaped.replace(
     // Matches: quoted strings (keys end with :), booleans, null, numbers
-    /(&quot;(?:\\u[a-fA-F0-9]{4}|\\[^u]|[^\\&])*&quot;(\s*:)?|\b(?:true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
+    /(&quot;(?:\\u[a-fA-F0-9]{4}|\\[^u]|[^\\&])*&quot;(\s*:)?|\b(?:true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g,
     (match) => {
       let cls: string
       if (match.startsWith('&quot;')) {
