@@ -455,3 +455,123 @@ describe('App – resize panel keyboard (WCAG 4.1.2)', () => {
     expect(parseInt(sep.getAttribute('aria-valuenow')!, 10)).toBe(20)
   })
 })
+
+describe('App – global keyboard shortcuts (Alt+Shift+A/W)', () => {
+  it('Alt+Shift+A switches format to Jira Cloud (ADF)', async () => {
+    render(<App />)
+
+    // Start in Wiki Markup so the shortcut has something to change
+    await act(async () => {
+      fireEvent.click(screen.getByRole('radio', { name: 'Wiki Markup' }))
+    })
+    await waitFor(() => {
+      expect(screen.getByRole('radio', { name: 'Wiki Markup' })).toHaveAttribute(
+        'aria-checked',
+        'true'
+      )
+    })
+
+    act(() => {
+      fireEvent.keyDown(document, { key: 'A', altKey: true, shiftKey: true })
+    })
+
+    await waitFor(() => {
+      expect(screen.getByRole('radio', { name: 'Jira Cloud' })).toHaveAttribute(
+        'aria-checked',
+        'true'
+      )
+    })
+  })
+
+  it('Alt+Shift+W switches format to Wiki Markup', async () => {
+    render(<App />)
+
+    // App starts in ADF — shortcut switches to wiki
+    act(() => {
+      fireEvent.keyDown(document, { key: 'W', altKey: true, shiftKey: true })
+    })
+
+    await waitFor(() => {
+      expect(screen.getByRole('radio', { name: 'Wiki Markup' })).toHaveAttribute(
+        'aria-checked',
+        'true'
+      )
+    })
+  })
+
+  it('unrelated key combos do not switch format', async () => {
+    render(<App />)
+
+    // Alt-only A (no Shift) must not trigger
+    act(() => {
+      fireEvent.keyDown(document, { key: 'A', altKey: true, shiftKey: false })
+    })
+    expect(screen.getByRole('radio', { name: 'Jira Cloud' })).toHaveAttribute(
+      'aria-checked',
+      'true'
+    )
+
+    // Ctrl+A must not trigger either
+    act(() => {
+      fireEvent.keyDown(document, { key: 'A', ctrlKey: true })
+    })
+    expect(screen.getByRole('radio', { name: 'Jira Cloud' })).toHaveAttribute(
+      'aria-checked',
+      'true'
+    )
+  })
+})
+
+describe('App – large document isPending spinner', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('shows Converting\u2026 live region when markdown exceeds 10 000 chars and debounce is pending', async () => {
+    render(<App />)
+
+    // Switch to Wiki Markup so the ADF worker does not interfere
+    act(() => {
+      fireEvent.click(screen.getByRole('radio', { name: 'Wiki Markup' }))
+    })
+
+    const textarea = screen.getByPlaceholderText('Paste your Markdown here...')
+    const bigText = 'a '.repeat(5_500) // 11 000 chars — above LARGE_DOC_THRESHOLD
+
+    // Change the textarea — the 150 ms debounce is started but has not fired yet
+    // (fake timers prevent it from firing automatically).
+    act(() => {
+      fireEvent.change(textarea, { target: { value: bigText } })
+    })
+
+    // The JiraOutputHeader live region should now announce "Converting…"
+    expect(screen.getByText('Converting\u2026')).toBeInTheDocument()
+  })
+
+  it('clears Converting\u2026 after the debounce fires', async () => {
+    render(<App />)
+
+    act(() => {
+      fireEvent.click(screen.getByRole('radio', { name: 'Wiki Markup' }))
+    })
+
+    const textarea = screen.getByPlaceholderText('Paste your Markdown here...')
+    const bigText = 'a '.repeat(5_500)
+
+    act(() => {
+      fireEvent.change(textarea, { target: { value: bigText } })
+    })
+
+    // Advance past the 150 ms debounce — debouncedMarkdown catches up
+    await act(async () => {
+      vi.advanceTimersByTime(200)
+    })
+
+    // isPending is now false — live region reverts to empty
+    expect(screen.queryByText('Converting\u2026')).not.toBeInTheDocument()
+  })
+})

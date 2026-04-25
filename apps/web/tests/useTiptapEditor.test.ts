@@ -64,6 +64,32 @@ describe('useTiptapEditor', () => {
     expect(cb).not.toHaveBeenCalled()
   })
 
+  it('returns null editor when shouldCreate is false', () => {
+    const { result } = renderHook(() =>
+      useTiptapEditor({
+        previewHtml: '<p>Hello</p>',
+        onMarkdownChange: undefined,
+        shouldCreate: false,
+      })
+    )
+    // TipTap useEditor returns null when shouldCreate=false — saves resources in wiki mode
+    expect(result.current.editor).toBeNull()
+  })
+
+  it('exec does not throw when shouldCreate is false (editor is null)', () => {
+    const { result } = renderHook(() =>
+      useTiptapEditor({
+        previewHtml: '<p>Hello</p>',
+        onMarkdownChange: undefined,
+        shouldCreate: false,
+      })
+    )
+    expect(() => {
+      act(() => result.current.exec('bold'))
+      act(() => result.current.insertHtml('<b>safe</b>'))
+    }).not.toThrow()
+  })
+
   it('exec supports all documented command names without throwing', () => {
     const { result } = renderHook(() => useTiptapEditor(baseOpts))
     const commands: [string, string?][] = [
