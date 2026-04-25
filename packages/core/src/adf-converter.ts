@@ -85,7 +85,7 @@ function convertChildrenToAdf(children: PhrasingContent[], baseUrl?: string): Ad
 function transformHeadingToAdf(node: Heading, baseUrl?: string): AdfBlockNode {
   return {
     type: 'heading',
-    attrs: { level: Math.min(node.depth, 6) },
+    attrs: { level: Math.min(node.depth, 6) as 1 | 2 | 3 | 4 | 5 | 6 },
     content: convertChildrenToAdf(node.children, baseUrl),
   }
 }

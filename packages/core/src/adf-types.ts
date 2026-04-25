@@ -27,7 +27,7 @@ export type AdfInlineNode = AdfTextNode | AdfHardBreakNode
 
 export interface AdfHeadingNode {
   type: 'heading'
-  attrs: { level: number }
+  attrs: { level: 1 | 2 | 3 | 4 | 5 | 6 }
   content: AdfInlineNode[]
 }
 
