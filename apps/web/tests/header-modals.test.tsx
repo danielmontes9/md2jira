@@ -126,9 +126,7 @@ describe('ShortcutsModal', () => {
 describe('InfoModal — content', () => {
   it('renders the Open-source subtitle', () => {
     render(<InfoModal onClose={vi.fn()} />)
-    expect(
-      screen.getByText(/open-source markdown.*jira converter/i)
-    ).toBeInTheDocument()
+    expect(screen.getByText(/open-source markdown.*jira converter/i)).toBeInTheDocument()
   })
 
   it('describes Jira Wiki Markup and ADF in the body', () => {

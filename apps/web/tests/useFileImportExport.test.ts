@@ -166,7 +166,9 @@ describe('useFileImportExport', () => {
       preventDefault: vi.fn(),
       dataTransfer: { dropEffect: '' },
     } as unknown as DragEvent<HTMLElement>
-    act(() => { result.current.handleDragOver(enterEvent) })
+    act(() => {
+      result.current.handleDragOver(enterEvent)
+    })
     expect(result.current.isDragging).toBe(true)
 
     // Leave — relatedTarget is null (outside the drop zone entirely)
@@ -175,7 +177,9 @@ describe('useFileImportExport', () => {
       relatedTarget: null,
       currentTarget: { contains: () => false },
     } as unknown as DragEvent<HTMLElement>
-    act(() => { result.current.handleDragLeave(leaveEvent) })
+    act(() => {
+      result.current.handleDragLeave(leaveEvent)
+    })
     expect(result.current.isDragging).toBe(false)
   })
 
@@ -185,7 +189,9 @@ describe('useFileImportExport', () => {
       preventDefault: vi.fn(),
       dataTransfer: { dropEffect: '' },
     } as unknown as DragEvent<HTMLElement>
-    act(() => { result.current.handleDragOver(enterEvent) })
+    act(() => {
+      result.current.handleDragOver(enterEvent)
+    })
     expect(result.current.isDragging).toBe(true)
 
     // relatedTarget IS a Node inside the drop zone — must NOT clear isDragging
@@ -197,7 +203,9 @@ describe('useFileImportExport', () => {
       relatedTarget: childNode,
       currentTarget: containerNode,
     } as unknown as DragEvent<HTMLElement>
-    act(() => { result.current.handleDragLeave(leaveEvent) })
+    act(() => {
+      result.current.handleDragLeave(leaveEvent)
+    })
     // isDragging must remain true because we moved into a child element
     expect(result.current.isDragging).toBe(true)
   })
@@ -210,7 +218,9 @@ describe('useFileImportExport', () => {
       preventDefault: vi.fn(),
       dataTransfer: { files: [mockFile] },
     } as unknown as DragEvent<HTMLElement>
-    act(() => { result.current.handleDrop(dropEvent) })
+    act(() => {
+      result.current.handleDrop(dropEvent)
+    })
     await act(async () => {
       await new Promise<void>((resolve) => setTimeout(resolve, 50))
     })
@@ -226,7 +236,9 @@ describe('useFileImportExport', () => {
       preventDefault: vi.fn(),
       dataTransfer: { files: [mockFile] },
     } as unknown as DragEvent<HTMLElement>
-    act(() => { result.current.handleDrop(dropEvent) })
+    act(() => {
+      result.current.handleDrop(dropEvent)
+    })
     expect(mockAddToast).toHaveBeenCalledWith(expect.stringContaining('.png'), 'error')
     expect(mockOnChange).not.toHaveBeenCalled()
   })
@@ -237,7 +249,9 @@ describe('useFileImportExport', () => {
       preventDefault: vi.fn(),
       dataTransfer: { files: [] },
     } as unknown as DragEvent<HTMLElement>
-    act(() => { result.current.handleDrop(dropEvent) })
+    act(() => {
+      result.current.handleDrop(dropEvent)
+    })
     expect(mockAddToast).not.toHaveBeenCalled()
     expect(mockOnChange).not.toHaveBeenCalled()
   })
