@@ -1,4 +1,4 @@
-import { useState, useMemo, useDeferredValue, useEffect, useRef, useCallback } from 'react'
+import { useState, useMemo, useDeferredValue, useEffect, useCallback } from 'react'
 import { convert, convertToAdf } from 'md2jira-core'
 import type { AdfDocument } from 'md2jira-core'
 import { Header } from './components/Header.js'
@@ -14,6 +14,7 @@ import { useAdfHtmlWorker } from './hooks/useAdfHtmlWorker.js'
 import { useOfflineStatus } from './hooks/useOfflineStatus.js'
 import { usePwaUpdate } from './hooks/usePwaUpdate.js'
 import { getInitialMarkdown, PLACEHOLDER } from './utils/markdown-url.js'
+import { usePanelSplit, SPLIT_MIN, SPLIT_MAX } from './hooks/usePanelSplit.js'
 
 /** Below this character count, convert() runs on every keystroke. */
 const LARGE_DOC_THRESHOLD = 10_000
@@ -21,8 +22,8 @@ const LARGE_DOC_THRESHOLD = 10_000
 const LARGE_DOC_DEBOUNCE_MS = 150
 
 /** Reads the initial output format from the ?fmt= URL param, then localStorage, then 'adf'. */
-function getInitialFormat(): OutputFormat {
-  const urlFmt = new URLSearchParams(window.location.search).get('fmt')
+function getInitialFormat(search = window.location.search): OutputFormat {
+  const urlFmt = new URLSearchParams(search).get('fmt')
   if (urlFmt === 'wiki' || urlFmt === 'adf') return urlFmt
   try {
     const stored = localStorage.getItem('output-format')
@@ -36,32 +37,15 @@ function getInitialFormat(): OutputFormat {
 export function App() {
   const [markdown, setMarkdown] = useState(() => getInitialMarkdown(PLACEHOLDER))
   const [format, setFormat] = useState<OutputFormat>(getInitialFormat)
+  const handleFormatChange = useCallback((fmt: OutputFormat) => setFormat(fmt), [])
   const { theme, toggleTheme } = useTheme()
   const isOffline = useOfflineStatus()
   const { needsUpdate, applyUpdate } = usePwaUpdate()
 
   /** Active panel shown on mobile (below the sm: breakpoint). Desktop always shows both. */
   const [activePanel, setActivePanel] = useState<'input' | 'output'>('input')
-  /** Percentage of the main area assigned to the input panel on desktop (20–80). */
-  const [split, setSplit] = useState(50)
-  const mainRef = useRef<HTMLElement>(null)
-  const isDragging = useRef(false)
-
-  const handleDragStart = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    e.currentTarget.setPointerCapture(e.pointerId)
-    isDragging.current = true
-  }, [])
-
-  const handleDragMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    if (!isDragging.current || !mainRef.current) return
-    const rect = mainRef.current.getBoundingClientRect()
-    const newSplit = Math.max(20, Math.min(80, ((e.clientX - rect.left) / rect.width) * 100))
-    setSplit(newSplit)
-  }, [])
-
-  const handleDragEnd = useCallback(() => {
-    isDragging.current = false
-  }, [])
+  const { split, setSplit, mainRef, handleDragStart, handleDragMove, handleDragEnd } =
+    usePanelSplit('panel-split')
 
   // useDeferredValue keeps the textarea fully responsive by deferring
   // the expensive convert() / convertToAdf() calls until the browser is idle.
@@ -316,10 +300,10 @@ export function App() {
             onKeyDown={(e) => {
               if (e.key === 'ArrowLeft') {
                 e.preventDefault()
-                setSplit((s) => Math.max(20, s - 1))
+                setSplit((s) => Math.max(SPLIT_MIN, s - 1))
               } else if (e.key === 'ArrowRight') {
                 e.preventDefault()
-                setSplit((s) => Math.min(80, s + 1))
+                setSplit((s) => Math.min(SPLIT_MAX, s + 1))
               }
             }}
           >
@@ -336,7 +320,7 @@ export function App() {
               <JiraOutput
                 value={jiraOutput}
                 format={format}
-                onFormatChange={setFormat}
+                onFormatChange={handleFormatChange}
                 previewHtml={previewHtml}
                 isPending={isPending}
                 onMarkdownChange={setMarkdown}

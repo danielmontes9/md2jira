@@ -120,6 +120,15 @@ export const MarkdownInput = memo(function MarkdownInput({
             </span>
           ) : null}
           <div className="flex items-center justify-center gap-1 @[375px]:justify-end">
+            {value.length > 0 && (
+              <span
+                aria-label={`${value.length.toLocaleString()} characters`}
+                title={`${value.length.toLocaleString()} characters`}
+                className="hidden text-xs tabular-nums text-neutral-400 select-none @[375px]:inline dark:text-neutral-500"
+              >
+                {value.length.toLocaleString()}
+              </span>
+            )}
             <button
               type="button"
               onClick={handleImport}
