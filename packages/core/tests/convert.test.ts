@@ -520,6 +520,12 @@ describe('convert — ConvertOptions.disableTransforms', () => {
     expect(convert('---\n\nText', { disableTransforms: ['thematicBreak'] })).toBe('Text')
   })
 
+  it('downgrades GFM Alert panel to plain bq. when panel is disabled', () => {
+    const result = convert('> [!NOTE]\n> content', { disableTransforms: ['panel'] })
+    expect(result).not.toContain('{note}')
+    expect(result).toContain('bq.')
+  })
+
   it('can disable multiple transforms at once', () => {
     expect(
       convert('# Title\n\n> quote\n\nText', { disableTransforms: ['heading', 'blockquote'] })

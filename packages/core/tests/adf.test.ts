@@ -594,6 +594,12 @@ describe('convertToAdf — ConvertOptions.disableTransforms', () => {
     expect(result.content[0]).toMatchObject({ type: 'paragraph' })
   })
 
+  it('downgrades GFM Alert panel to blockquote node when panel is disabled', () => {
+    const result = convertToAdf('> [!NOTE]\n> content', { disableTransforms: ['panel'] })
+    expect(result.content).toHaveLength(1)
+    expect(result.content[0]).toMatchObject({ type: 'blockquote' })
+  })
+
   it('can disable multiple transforms at once', () => {
     const result = convertToAdf('# Title\n\n> quote\n\nText', {
       disableTransforms: ['heading', 'blockquote'],
