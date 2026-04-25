@@ -70,6 +70,10 @@ describe('useDeepLink', () => {
   })
 
   it('uses 800ms debounce for large documents (>= 5000 chars)', () => {
+    // Content of 5000+ chars encodes to > URL_MD_MAX_ENCODED, so the hook
+    // deletes ?md= from the URL. Starting from a URL that has ?md= ensures
+    // the URL changes and replaceState is called — letting us assert timing.
+    setLocation('http://localhost/?md=previousValue')
     const largeMd = 'a'.repeat(5_000)
     renderHook(() => useDeepLink(largeMd, 'adf'))
     act(() => {
@@ -83,6 +87,9 @@ describe('useDeepLink', () => {
   })
 
   it('uses 300ms debounce for docs just below the large-doc threshold (4999 chars)', () => {
+    // 4999 chars < LARGE_DOC_THRESHOLD (5000) → 300ms debounce.
+    // Same URL trick as the 800ms test above to make replaceState observable.
+    setLocation('http://localhost/?md=previousValue')
     const md = 'a'.repeat(4_999)
     renderHook(() => useDeepLink(md, 'adf'))
     act(() => {

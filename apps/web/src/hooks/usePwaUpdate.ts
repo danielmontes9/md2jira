@@ -18,7 +18,9 @@ export function usePwaUpdate(): { needsUpdate: boolean; applyUpdate: () => void 
   const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null)
 
   useEffect(() => {
-    if (!('serviceWorker' in navigator)) return
+    // Guard against browsers where serviceWorker is not supported or is
+    // explicitly undefined (e.g. stubbed in tests with { serviceWorker: undefined }).
+    if (!navigator.serviceWorker) return
 
     navigator.serviceWorker.getRegistration().then((reg) => {
       if (!reg) return

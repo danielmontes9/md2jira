@@ -209,14 +209,15 @@ describe('Copy link button', () => {
     })
   })
 
-  afterEach(() => {
-    vi.unstubAllGlobals()
-  })
+  // Do NOT call vi.unstubAllGlobals() here — doing so would remove the
+  // top-level beforeAll matchMedia stub and break subsequent describe blocks.
+  // The top-level afterAll handles global cleanup at the end of the file.
 
   it('shows Copy link button when deep-link is active and content exists', async () => {
     const clipboardSpy = vi.fn().mockResolvedValue(undefined)
     Object.defineProperty(navigator, 'clipboard', {
       writable: true,
+      configurable: true,
       value: { writeText: clipboardSpy },
     })
 
@@ -232,6 +233,7 @@ describe('Copy link button', () => {
     const clipboardSpy = vi.fn().mockResolvedValue(undefined)
     Object.defineProperty(navigator, 'clipboard', {
       writable: true,
+      configurable: true,
       value: { writeText: clipboardSpy },
     })
 
