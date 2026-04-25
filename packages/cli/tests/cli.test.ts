@@ -299,4 +299,51 @@ describe('--disable flag', () => {
     expect(stdout).not.toMatch(/^\* /m)
     expect(stdout).toContain('Paragraph')
   })
+
+  it('suppresses heading in ADF output (--format adf)', async () => {
+    const md = '# Title\n\nParagraph\n'
+    const { stdout, exitCode } = await run(['--disable', 'heading', '--format', 'adf'], {
+      stdin: md,
+    })
+    expect(exitCode).toBe(0)
+    const doc = JSON.parse(stdout)
+    const types = doc.content.map((n: { type: string }) => n.type)
+    expect(types).not.toContain('heading')
+    expect(types).toContain('paragraph')
+  })
+
+  it('combines --disable and --base-url together', async () => {
+    const md = '# Title\n\n[page](/wiki/home)\n'
+    const { stdout, exitCode } = await run(
+      ['--disable', 'heading', '--base-url', 'https://company.atlassian.net'],
+      { stdin: md }
+    )
+    expect(exitCode).toBe(0)
+    expect(stdout).not.toContain('h1.')
+    expect(stdout).toContain('[page|https://company.atlassian.net/wiki/home]')
+  })
+})
+
+describe('-o / --output edge cases', () => {
+  it('uses -f as short alias for --format', async () => {
+    const { stdout, exitCode } = await run(['-f', 'adf'], { stdin: '# Title\n' })
+    expect(exitCode).toBe(0)
+    expect(JSON.parse(stdout).type).toBe('doc')
+  })
+
+  it('converts a file with --format from file argument', async () => {
+    const { stdout, exitCode } = await run([resolve(FIXTURES_DIR, 'sample.md'), '--format', 'adf'])
+    expect(exitCode).toBe(0)
+    const doc = JSON.parse(stdout)
+    expect(doc.type).toBe('doc')
+    const types = doc.content.map((n: { type: string }) => n.type)
+    expect(types).toContain('heading')
+  })
+
+  it('exits with code 1 when output directory does not exist', async () => {
+    const badPath = resolve(FIXTURES_DIR, 'nonexistent-dir', 'out.jira')
+    const { stderr, exitCode } = await run([resolve(FIXTURES_DIR, 'sample.md'), '-o', badPath])
+    expect(exitCode).toBe(1)
+    expect(stderr).toMatch(/ENOENT|no such file/i)
+  })
 })

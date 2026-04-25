@@ -77,12 +77,54 @@ h1. Bug: login fails on Safari
 
 ## Options
 
-| Argument / Option     | Description                                   |
-| --------------------- | --------------------------------------------- |
-| `[input]`             | Input Markdown file. Omit to read from stdin. |
-| `-o, --output <file>` | Write output to a file instead of stdout.     |
-| `-V, --version`       | Print version number.                         |
-| `-h, --help`          | Display help.                                 |
+| Argument / Option        | Description                                                                                |
+| ------------------------ | ------------------------------------------------------------------------------------------ |
+| `[input]`                | Input Markdown file. Omit to read from stdin.                                              |
+| `-o, --output <file>`    | Write output to a file instead of stdout.                                                  |
+| `-f, --format <format>`  | Output format: `wiki` (default) or `adf` (Atlassian Document Format JSON).                 |
+| `--base-url <url>`       | Absolute base URL prepended to relative links (e.g. `https://company.atlassian.net/wiki`). |
+| `--disable <transforms>` | Suppress one or more transforms. Comma-separated or repeat the flag. See values below.     |
+| `-V, --version`          | Print version number.                                                                      |
+| `-h, --help`             | Display help.                                                                              |
+
+### `--disable` values
+
+`heading` · `list` · `code` · `blockquote` · `table` · `thematicBreak` · `panel`
+
+### Examples
+
+**Output ADF JSON:**
+
+```bash
+md2jira input.md --format adf
+cat input.md | md2jira -f adf > output.json
+```
+
+**Resolve relative links against a Confluence base URL:**
+
+```bash
+md2jira input.md --base-url https://company.atlassian.net/wiki
+```
+
+**Suppress heading and list transforms:**
+
+```bash
+# Comma-separated
+md2jira input.md --disable heading,list
+
+# Repeated flag
+md2jira input.md --disable heading --disable list
+```
+
+**Combine options:**
+
+```bash
+md2jira input.md \
+  --base-url https://company.atlassian.net/wiki \
+  --disable panel \
+  --format adf \
+  -o output.json
+```
 
 ## Related
 
