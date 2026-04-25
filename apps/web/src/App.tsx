@@ -15,6 +15,7 @@ import { useOfflineStatus } from './hooks/useOfflineStatus.js'
 import { usePwaUpdate } from './hooks/usePwaUpdate.js'
 import { getInitialMarkdown, PLACEHOLDER } from './utils/markdown-url.js'
 import { usePanelSplit, SPLIT_MIN, SPLIT_MAX } from './hooks/usePanelSplit.js'
+import { reportError } from './utils/report-error.js'
 
 /** Below this character count, convert() runs on every keystroke. */
 const LARGE_DOC_THRESHOLD = 10_000
@@ -276,7 +277,7 @@ export function App() {
             }`}
           >
             <ErrorBoundary
-              onError={(err) => console.warn('[md2jira] MarkdownInput render error:', err.message)}
+              onError={(err, info) => reportError(err, info.componentStack ?? undefined)}
             >
               <MarkdownInput
                 value={markdown}
@@ -319,7 +320,7 @@ export function App() {
             }`}
           >
             <ErrorBoundary
-              onError={(err) => console.warn('[md2jira] JiraOutput render error:', err.message)}
+              onError={(err, info) => reportError(err, info.componentStack ?? undefined)}
             >
               <JiraOutput
                 value={jiraOutput}
