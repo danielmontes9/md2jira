@@ -22,7 +22,11 @@ import TableHeader from '@tiptap/extension-table-header'
 import TableCell from '@tiptap/extension-table-cell'
 import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
-import { tiptapDocToMarkdown, hasColorMarks, hasUnderlineMarks } from '../src/utils/tiptap-to-markdown.js'
+import {
+  tiptapDocToMarkdown,
+  hasColorMarks,
+  hasUnderlineMarks,
+} from '../src/utils/tiptap-to-markdown.js'
 
 /** Extension set that mirrors useTiptapEditor so the PM schema is identical. */
 const EXTENSIONS = [
@@ -450,9 +454,7 @@ describe('hasUnderlineMarks', () => {
   })
 
   it('returns false for bold and italic text with no underline mark', () => {
-    expect(
-      hasUnderlineMarks(htmlToDoc('<p><strong>bold</strong> <em>italic</em></p>')),
-    ).toBe(false)
+    expect(hasUnderlineMarks(htmlToDoc('<p><strong>bold</strong> <em>italic</em></p>'))).toBe(false)
   })
 
   it('returns true when text has an underline mark', () => {
@@ -460,9 +462,7 @@ describe('hasUnderlineMarks', () => {
   })
 
   it('returns true when underline appears only in part of the paragraph', () => {
-    expect(
-      hasUnderlineMarks(htmlToDoc('<p>normal <u>underlined</u> normal</p>')),
-    ).toBe(true)
+    expect(hasUnderlineMarks(htmlToDoc('<p>normal <u>underlined</u> normal</p>'))).toBe(true)
   })
 
   it('returns false for an empty document', () => {
@@ -470,8 +470,73 @@ describe('hasUnderlineMarks', () => {
   })
 
   it('returns false when only a textStyle color mark is present (no underline)', () => {
-    expect(
-      hasUnderlineMarks(htmlToDoc('<p><span style="color: red">colored</span></p>')),
-    ).toBe(false)
+    expect(hasUnderlineMarks(htmlToDoc('<p><span style="color: red">colored</span></p>'))).toBe(
+      false
+    )
+  })
+})
+
+// ── applyMark — CSS injection guard (textStyle color) ────────────────────────
+// The applyMark 'textStyle' branch validates the color string with a
+// safe-characters regex before injecting it into `<span style="color:...">`.
+// These tests construct ProseMirror documents directly via the schema so that
+// arbitrary color strings (including malicious ones) can be placed in mark
+// attrs without going through HTML/CSS parsing, which would normalise them.
+
+function buildDocWithColor(color: string) {
+  const editor = new Editor({ extensions: EXTENSIONS, content: '' })
+  const schema = editor.state.schema
+  const textStyleMark = schema.marks['textStyle']!
+  const coloredText = schema.text('hello', [textStyleMark.create({ color })])
+  const para = schema.nodes['paragraph']!.create(null, coloredText)
+  const doc = schema.nodes['doc']!.create(null, para)
+  editor.destroy()
+  return doc
+}
+
+describe('applyMark — CSS injection guard (textStyle color)', () => {
+  it('renders a valid hex color as a <span style="color:..."> element', () => {
+    const md = tiptapDocToMarkdown(buildDocWithColor('#ff0000'))
+    expect(md).toContain('<span style="color:#ff0000">')
+    expect(md).toContain('hello')
+  })
+
+  it('renders a valid rgb() color as a <span style="color:..."> element', () => {
+    const md = tiptapDocToMarkdown(buildDocWithColor('rgb(255, 0, 0)'))
+    expect(md).toContain('<span style="color:rgb(255, 0, 0)">')
+  })
+
+  it('renders a named CSS color as a <span style="color:..."> element', () => {
+    const md = tiptapDocToMarkdown(buildDocWithColor('red'))
+    expect(md).toContain('<span style="color:red">')
+  })
+
+  it('strips script-tag injection in color — OWASP A03 CSS injection prevention', () => {
+    // "</style><script>" contains "<", "/" and ">" which are outside the safe charset.
+    const md = tiptapDocToMarkdown(buildDocWithColor('</style><script>alert(1)</script>'))
+    expect(md).not.toContain('<span')
+    expect(md).not.toContain('<script>')
+    expect(md).toBe('hello')
+  })
+
+  it('strips semicolon-separated property injection in color', () => {
+    // "red; background: url(x)" — ";" and ":" are outside the safe charset.
+    const md = tiptapDocToMarkdown(buildDocWithColor('red; background: url(x)'))
+    expect(md).not.toContain('<span')
+    expect(md).toBe('hello')
+  })
+
+  it('strips newline injection in color', () => {
+    // A newline character is outside the safe charset.
+    const md = tiptapDocToMarkdown(buildDocWithColor('red\nContent-Type: text/html'))
+    expect(md).not.toContain('<span')
+    expect(md).toBe('hello')
+  })
+
+  it('returns plain text when color is empty string', () => {
+    // Empty color → early "if (!color) return text" guard in applyMark.
+    const md = tiptapDocToMarkdown(buildDocWithColor(''))
+    expect(md).not.toContain('<span')
+    expect(md).toBe('hello')
   })
 })

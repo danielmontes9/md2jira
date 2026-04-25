@@ -201,4 +201,115 @@ describe('useTiptapEditor', () => {
       expect(onColorWarning).not.toHaveBeenCalled()
     })
   })
+
+  describe('onUnderlineWarning', () => {
+    it('calls onUnderlineWarning once when underlined content is set', async () => {
+      const onUnderlineWarning = vi.fn()
+      const onMarkdownChange = vi.fn()
+
+      const { result } = renderHook(() =>
+        useTiptapEditor({
+          previewHtml: '<p>Hello</p>',
+          onMarkdownChange,
+          onUnderlineWarning,
+          debounceMs: 50,
+        })
+      )
+
+      await act(async () => {})
+      await waitFor(() => expect(result.current.editor).not.toBeNull())
+
+      act(() => {
+        result.current.editor!.commands.setContent('<p><u>underlined text</u></p>')
+      })
+
+      await waitFor(() => expect(onUnderlineWarning).toHaveBeenCalledTimes(1), { timeout: 2000 })
+    })
+
+    it('fires onUnderlineWarning only once per editing session despite multiple underline edits', async () => {
+      const onUnderlineWarning = vi.fn()
+      const onMarkdownChange = vi.fn()
+
+      const { result } = renderHook(() =>
+        useTiptapEditor({
+          previewHtml: '<p>Hello</p>',
+          onMarkdownChange,
+          onUnderlineWarning,
+          debounceMs: 50,
+        })
+      )
+
+      await act(async () => {})
+      await waitFor(() => expect(result.current.editor).not.toBeNull())
+
+      act(() => {
+        result.current.editor!.commands.setContent('<p><u>first underline</u></p>')
+      })
+      await waitFor(() => expect(onUnderlineWarning).toHaveBeenCalledTimes(1), { timeout: 2000 })
+
+      act(() => {
+        result.current.editor!.commands.setContent('<p><u>second underline</u></p>')
+      })
+      await waitFor(() => expect(onMarkdownChange).toHaveBeenCalledTimes(2), { timeout: 2000 })
+      expect(onUnderlineWarning).toHaveBeenCalledTimes(1)
+    })
+
+    it('does not call onUnderlineWarning for content without underline marks', async () => {
+      const onUnderlineWarning = vi.fn()
+      const onMarkdownChange = vi.fn()
+
+      const { result } = renderHook(() =>
+        useTiptapEditor({
+          previewHtml: '<p>Hello</p>',
+          onMarkdownChange,
+          onUnderlineWarning,
+          debounceMs: 50,
+        })
+      )
+
+      await act(async () => {})
+      await waitFor(() => expect(result.current.editor).not.toBeNull())
+
+      act(() => {
+        result.current.editor!.commands.setContent('<p><strong>just bold text</strong></p>')
+      })
+      await waitFor(() => expect(onMarkdownChange).toHaveBeenCalled(), { timeout: 2000 })
+      expect(onUnderlineWarning).not.toHaveBeenCalled()
+    })
+
+    it('resets so onUnderlineWarning fires again after underline is removed then re-applied', async () => {
+      const onUnderlineWarning = vi.fn()
+      const onMarkdownChange = vi.fn()
+
+      const { result } = renderHook(() =>
+        useTiptapEditor({
+          previewHtml: '<p>Hello</p>',
+          onMarkdownChange,
+          onUnderlineWarning,
+          debounceMs: 50,
+        })
+      )
+
+      await act(async () => {})
+      await waitFor(() => expect(result.current.editor).not.toBeNull())
+
+      // First underline → warning fires
+      act(() => {
+        result.current.editor!.commands.setContent('<p><u>underlined</u></p>')
+      })
+      await waitFor(() => expect(onUnderlineWarning).toHaveBeenCalledTimes(1), { timeout: 2000 })
+
+      // Remove underline → ref resets
+      act(() => {
+        result.current.editor!.commands.setContent('<p>plain text</p>')
+      })
+      await waitFor(() => expect(onMarkdownChange).toHaveBeenCalledTimes(2), { timeout: 2000 })
+
+      // Re-apply underline → warning should fire again (second time)
+      act(() => {
+        result.current.editor!.commands.setContent('<p><u>underlined again</u></p>')
+      })
+      await waitFor(() => expect(onUnderlineWarning).toHaveBeenCalledTimes(2), { timeout: 2000 })
+    })
+  })
 })
