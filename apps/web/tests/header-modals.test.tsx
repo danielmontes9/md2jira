@@ -107,4 +107,43 @@ describe('ShortcutsModal', () => {
     expect(screen.getByText('Italic')).toBeInTheDocument()
     expect(screen.getByText('Move line up')).toBeInTheDocument()
   })
+
+  it('displays the Output format group with format-switch shortcuts', () => {
+    render(<ShortcutsModal onClose={vi.fn()} />)
+    expect(screen.getByText('Output format')).toBeInTheDocument()
+    expect(screen.getByText('Switch to Jira Cloud (ADF)')).toBeInTheDocument()
+    expect(screen.getByText('Switch to Wiki Markup')).toBeInTheDocument()
+  })
+
+  it('shows Formatting-group shortcut labels', () => {
+    render(<ShortcutsModal onClose={vi.fn()} />)
+    expect(screen.getByText('Insert link')).toBeInTheDocument()
+    expect(screen.getByText('Inline code')).toBeInTheDocument()
+    expect(screen.getByText('Strikethrough')).toBeInTheDocument()
+  })
+})
+
+describe('InfoModal — content', () => {
+  it('renders the Open-source subtitle', () => {
+    render(<InfoModal onClose={vi.fn()} />)
+    expect(
+      screen.getByText(/open-source markdown.*jira converter/i)
+    ).toBeInTheDocument()
+  })
+
+  it('describes Jira Wiki Markup and ADF in the body', () => {
+    render(<InfoModal onClose={vi.fn()} />)
+    expect(screen.getByText(/Jira Wiki Markup/)).toBeInTheDocument()
+    expect(screen.getByText(/Atlassian Document Format/)).toBeInTheDocument()
+  })
+
+  it('lists the md2jira-core package', () => {
+    render(<InfoModal onClose={vi.fn()} />)
+    expect(screen.getByText('md2jira-core')).toBeInTheDocument()
+  })
+
+  it('lists the md2jira-cli package', () => {
+    render(<InfoModal onClose={vi.fn()} />)
+    expect(screen.getByText('md2jira-cli')).toBeInTheDocument()
+  })
 })

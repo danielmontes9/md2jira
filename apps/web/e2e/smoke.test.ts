@@ -274,3 +274,50 @@ test('resize handle responds to keyboard navigation', async ({ page }) => {
   await page.keyboard.press('ArrowLeft')
   await expect(handle).toHaveAttribute('aria-valuenow', '50')
 })
+
+// ─── Keyboard shortcuts for format switching ──────────────────────────────────
+
+test('Alt+Shift+W keyboard shortcut switches output to Wiki Markup', async ({ page }) => {
+  await page.goto('/')
+
+  // Default state: Jira Cloud is active
+  await expect(page.getByRole('button', { name: 'Jira Cloud' })).toHaveAttribute(
+    'aria-pressed',
+    'true'
+  )
+
+  // Press Alt+Shift+W to switch to Wiki Markup
+  await page.keyboard.press('Alt+Shift+W')
+
+  await expect(page.getByRole('button', { name: 'Wiki Markup' })).toHaveAttribute(
+    'aria-pressed',
+    'true'
+  )
+  await expect(page.getByRole('button', { name: 'Jira Cloud' })).toHaveAttribute(
+    'aria-pressed',
+    'false'
+  )
+})
+
+test('Alt+Shift+A keyboard shortcut switches output to Jira Cloud (ADF)', async ({ page }) => {
+  await page.goto('/')
+
+  // Start in Wiki Markup mode
+  await page.getByRole('button', { name: 'Wiki Markup' }).click()
+  await expect(page.getByRole('button', { name: 'Wiki Markup' })).toHaveAttribute(
+    'aria-pressed',
+    'true'
+  )
+
+  // Press Alt+Shift+A to switch back to Jira Cloud
+  await page.keyboard.press('Alt+Shift+A')
+
+  await expect(page.getByRole('button', { name: 'Jira Cloud' })).toHaveAttribute(
+    'aria-pressed',
+    'true'
+  )
+  await expect(page.getByRole('button', { name: 'Wiki Markup' })).toHaveAttribute(
+    'aria-pressed',
+    'false'
+  )
+})

@@ -89,4 +89,36 @@ describe('useTiptapEditor — edit roundtrip', () => {
     // Short wait — no callback provided, should not throw
     await new Promise((r) => setTimeout(r, 150))
   })
+
+  it('serializes a table to GFM Markdown pipe syntax on roundtrip', async () => {
+    const cb = vi.fn()
+    const { result } = renderHook(() =>
+      useTiptapEditor({
+        previewHtml: '<p>initial</p>',
+        onMarkdownChange: cb,
+        debounceMs: 50,
+      })
+    )
+
+    await waitFor(() => expect(result.current.editor).not.toBeNull())
+
+    // Set table content directly on the editor (not via previewHtml prop, so
+    // isExternalUpdateRef stays false and onUpdate fires normally).
+    act(() => {
+      result.current.editor!.commands.setContent(
+        '<table><tbody>' +
+          '<tr><th><p>Name</p></th><th><p>Role</p></th></tr>' +
+          '<tr><td><p>Alice</p></td><td><p>Engineer</p></td></tr>' +
+          '</tbody></table>'
+      )
+    })
+
+    await waitFor(() => expect(cb).toHaveBeenCalled(), { timeout: 3000 })
+
+    const [md] = cb.mock.calls[0] as [string]
+    // The PM serializer must emit GFM pipe-table syntax
+    expect(md).toContain('| Name | Role |')
+    expect(md).toContain('| --- | --- |')
+    expect(md).toContain('| Alice | Engineer |')
+  })
 })
