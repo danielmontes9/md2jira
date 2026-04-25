@@ -338,9 +338,7 @@ describe('EditorToolbar', () => {
     fireEvent.mouseDown(insertBtn)
     const infoPanelItem = screen.getByText('Info panel')
     fireEvent.mouseDown(infoPanelItem)
-    expect(insertHtmlMock).toHaveBeenCalledWith(
-      expect.stringContaining('data-type="info-panel"')
-    )
+    expect(insertHtmlMock).toHaveBeenCalledWith(expect.stringContaining('data-type="info-panel"'))
   })
 
   it('InsertMenu Decision item calls insertHtml with DECISION_PANEL_HTML', () => {
