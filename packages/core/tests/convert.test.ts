@@ -525,6 +525,28 @@ describe('convert — ConvertOptions.disableTransforms', () => {
   })
 })
 
+describe('convert — GFM Alert panels (complex bodies)', () => {
+  it('converts panel with a code block body', () => {
+    const md = '> [!NOTE]\n>\n> ```js\nconst x = 1\n```'
+    const result = convert(md)
+    expect(result).toContain('{note}')
+    expect(result).toContain('{code:language=js}')
+    expect(result).toContain('const x = 1')
+  })
+
+  it('converts panel with a list body', () => {
+    const md = '> [!TIP]\n> - step one\n> - step two'
+    const result = convert(md)
+    expect(result).toContain('{tip}')
+    expect(result).toContain('* step one')
+    expect(result).toContain('* step two')
+  })
+
+  it('converts empty panel body (marker only) to empty macro block', () => {
+    expect(convert('> [!NOTE]')).toBe('{note}\n\n{note}')
+  })
+})
+
 describe('full-document integration', () => {
   it('converts a document exercising all supported element types', () => {
     const md = [

@@ -146,6 +146,64 @@ describe('transformPanel — wiki markup', () => {
     const node = bq([para([text('[!NOTE]\n'), { type: 'strong', children: [text('bold')] }])])
     expect(transformPanel(node, 'NOTE')).toBe('{note}\n*bold*\n{note}')
   })
+
+  it('renders code block inside panel body', () => {
+    const code = { type: 'code' as const, lang: 'js', meta: null, value: 'const x = 1' }
+    const node = bq([para([text('[!NOTE]')]), code])
+    expect(transformPanel(node, 'NOTE')).toBe(
+      '{note}\n{code:language=js}\nconst x = 1\n{code}\n{note}'
+    )
+  })
+
+  it('renders list inside panel body', () => {
+    const list = {
+      type: 'list' as const,
+      ordered: false,
+      start: null,
+      spread: false,
+      children: [
+        {
+          type: 'listItem' as const,
+          checked: null,
+          spread: false,
+          children: [para([text('item one')])],
+        },
+        {
+          type: 'listItem' as const,
+          checked: null,
+          spread: false,
+          children: [para([text('item two')])],
+        },
+      ],
+    }
+    const node = bq([para([text('[!NOTE]')]), list])
+    expect(transformPanel(node, 'NOTE')).toBe('{note}\n* item one\n* item two\n{note}')
+  })
+
+  it('renders both list and code block inside a multi-block panel', () => {
+    const list = {
+      type: 'list' as const,
+      ordered: false,
+      start: null,
+      spread: false,
+      children: [
+        {
+          type: 'listItem' as const,
+          checked: null,
+          spread: false,
+          children: [para([text('step')])],
+        },
+      ],
+    }
+    const code = { type: 'code' as const, lang: null, meta: null, value: 'npm install' }
+    const node = bq([para([text('[!TIP]')]), list, code])
+    expect(transformPanel(node, 'TIP')).toBe('{tip}\n* step\n\n{code}\nnpm install\n{code}\n{tip}')
+  })
+
+  it('converts empty panel body (only marker) to empty macro block', () => {
+    const node = bq([para([text('[!NOTE]')])])
+    expect(transformPanel(node, 'NOTE')).toBe('{note}\n\n{note}')
+  })
 })
 
 describe('convert — GFM Alert panels (integration)', () => {

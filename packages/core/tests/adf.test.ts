@@ -439,6 +439,54 @@ describe('convertToAdf — GFM Alert panels', () => {
     const result = convertToAdf('> regular quote')
     expect(result.content[0]).toMatchObject({ type: 'blockquote' })
   })
+
+  it('converts panel with empty body (marker only) to panel with empty paragraph', () => {
+    const result = convertToAdf('> [!NOTE]')
+    expect(result.content[0]).toMatchObject({
+      type: 'panel',
+      attrs: { panelType: 'note' },
+      content: [{ type: 'paragraph', content: [] }],
+    })
+  })
+
+  it('converts panel with code block child', () => {
+    const result = convertToAdf('> [!NOTE]\n>\n> ```js\nconst x = 1\n```')
+    const panel = result.content[0] as { type: string; content: { type: string }[] }
+    expect(panel.type).toBe('panel')
+    const hasCode = panel.content.some((n) => n.type === 'codeBlock')
+    expect(hasCode).toBe(true)
+  })
+
+  it('converts panel with list child', () => {
+    const result = convertToAdf('> [!TIP]\n> - item one\n> - item two')
+    const panel = result.content[0] as { type: string; content: { type: string }[] }
+    expect(panel.type).toBe('panel')
+    const hasList = panel.content.some((n) => n.type === 'bulletList')
+    expect(hasList).toBe(true)
+  })
+})
+
+describe('convertToAdf — taskList inside blockquote', () => {
+  it('renders task list inside blockquote as taskList ADF node', () => {
+    const md = '> - [x] Done\n> - [ ] Todo'
+    const result = convertToAdf(md)
+    const bq = result.content[0] as { type: string; content: { type: string }[] }
+    expect(bq.type).toBe('blockquote')
+    const hasTaskList = bq.content.some((n) => n.type === 'taskList')
+    expect(hasTaskList).toBe(true)
+  })
+
+  it('task items inside blockquote have correct state', () => {
+    const md = '> - [x] Done\n> - [ ] Todo'
+    const result = convertToAdf(md)
+    const bq = result.content[0] as {
+      type: string
+      content: { type: string; content: { attrs: { state: string } }[] }[]
+    }
+    const taskList = bq.content.find((n) => n.type === 'taskList')!
+    expect(taskList.content[0]!.attrs.state).toBe('DONE')
+    expect(taskList.content[1]!.attrs.state).toBe('TODO')
+  })
 })
 
 describe('convertToAdf — ConvertOptions.baseUrl', () => {
