@@ -77,4 +77,30 @@ describe('usePanelSplit', () => {
     })
     expect(result.current.split).toBe(50)
   })
+
+  it('setSplit clamps values below SPLIT_MIN to SPLIT_MIN', () => {
+    const { result } = renderHook(() => usePanelSplit('test-split'))
+    act(() => {
+      result.current.setSplit(5)
+    })
+    expect(result.current.split).toBe(SPLIT_MIN)
+    expect(localStorage.getItem('test-split')).toBe(String(SPLIT_MIN))
+  })
+
+  it('setSplit clamps values above SPLIT_MAX to SPLIT_MAX', () => {
+    const { result } = renderHook(() => usePanelSplit('test-split'))
+    act(() => {
+      result.current.setSplit(95)
+    })
+    expect(result.current.split).toBe(SPLIT_MAX)
+    expect(localStorage.getItem('test-split')).toBe(String(SPLIT_MAX))
+  })
+
+  it('setSplit clamps functional updates that exceed SPLIT_MAX', () => {
+    const { result } = renderHook(() => usePanelSplit('test-split', 79))
+    act(() => {
+      result.current.setSplit((prev) => prev + 10) // 79 + 10 = 89 → clamped to 80
+    })
+    expect(result.current.split).toBe(SPLIT_MAX)
+  })
 })

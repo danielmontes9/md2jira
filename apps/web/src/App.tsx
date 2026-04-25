@@ -324,6 +324,8 @@ export function App() {
                 previewHtml={previewHtml}
                 isPending={isPending}
                 onMarkdownChange={setMarkdown}
+                workerError={workerError}
+                retryWorker={retryWorker}
               />
             </ErrorBoundary>
           </section>

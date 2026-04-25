@@ -36,7 +36,8 @@ export function usePanelSplit(storageKey: string, initial = 50) {
   const setSplit = useCallback(
     (value: SetStateAction<number>) => {
       setSplitRaw((prev) => {
-        const next = typeof value === 'function' ? value(prev) : value
+        const raw = typeof value === 'function' ? value(prev) : value
+        const next = Math.max(SPLIT_MIN, Math.min(SPLIT_MAX, raw))
         try {
           localStorage.setItem(storageKey, String(next))
         } catch {

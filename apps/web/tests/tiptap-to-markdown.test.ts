@@ -22,7 +22,7 @@ import TableHeader from '@tiptap/extension-table-header'
 import TableCell from '@tiptap/extension-table-cell'
 import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
-import { tiptapDocToMarkdown, hasColorMarks } from '../src/utils/tiptap-to-markdown.js'
+import { tiptapDocToMarkdown, hasColorMarks, hasUnderlineMarks } from '../src/utils/tiptap-to-markdown.js'
 
 /** Extension set that mirrors useTiptapEditor so the PM schema is identical. */
 const EXTENSIONS = [
@@ -439,5 +439,39 @@ describe('hasColorMarks', () => {
 
   it('returns false for an empty document', () => {
     expect(hasColorMarks(htmlToDoc(''))).toBe(false)
+  })
+})
+
+// ── hasUnderlineMarks ────────────────────────────────────────────────────────────
+
+describe('hasUnderlineMarks', () => {
+  it('returns false for a plain paragraph without any underline', () => {
+    expect(hasUnderlineMarks(htmlToDoc('<p>Plain text</p>'))).toBe(false)
+  })
+
+  it('returns false for bold and italic text with no underline mark', () => {
+    expect(
+      hasUnderlineMarks(htmlToDoc('<p><strong>bold</strong> <em>italic</em></p>')),
+    ).toBe(false)
+  })
+
+  it('returns true when text has an underline mark', () => {
+    expect(hasUnderlineMarks(htmlToDoc('<p><u>underlined</u></p>'))).toBe(true)
+  })
+
+  it('returns true when underline appears only in part of the paragraph', () => {
+    expect(
+      hasUnderlineMarks(htmlToDoc('<p>normal <u>underlined</u> normal</p>')),
+    ).toBe(true)
+  })
+
+  it('returns false for an empty document', () => {
+    expect(hasUnderlineMarks(htmlToDoc(''))).toBe(false)
+  })
+
+  it('returns false when only a textStyle color mark is present (no underline)', () => {
+    expect(
+      hasUnderlineMarks(htmlToDoc('<p><span style="color: red">colored</span></p>')),
+    ).toBe(false)
   })
 })

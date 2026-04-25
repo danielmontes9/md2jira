@@ -19,7 +19,7 @@ import {
   getActiveFormats,
   EMPTY_FORMATS,
 } from '../utils/tiptap-commands.js'
-import { tiptapDocToMarkdown, hasColorMarks } from '../utils/tiptap-to-markdown.js'
+import { tiptapDocToMarkdown, hasColorMarks, hasUnderlineMarks } from '../utils/tiptap-to-markdown.js'
 
 // Extend TableCell and TableHeader to carry a text-alignment attribute.
 // This lets the tiptap-to-markdown serializer output the correct Markdown
@@ -71,6 +71,12 @@ interface UseTiptapEditorOptions {
    * Reset when all color marks are removed from the document.
    */
   onColorWarning?: () => void
+  /**
+   * Called at most once per editing session when the serializer detects
+   * underline marks. Markdown has no underline syntax, so underline formatting
+   * will be lost in the Jira output. Reset when all underline marks are removed.
+   */
+  onUnderlineWarning?: () => void
 }
 
 export interface TiptapEditorState {
@@ -94,6 +100,7 @@ export function useTiptapEditor({
   debounceMs = 300,
   shouldCreate = true,
   onColorWarning,
+  onUnderlineWarning,
 }: UseTiptapEditorOptions): TiptapEditorState {
   const onMarkdownChangeRef = useRef(onMarkdownChange)
   onMarkdownChangeRef.current = onMarkdownChange
@@ -104,6 +111,10 @@ export function useTiptapEditor({
   // Resets to false when all color marks are removed so the warning fires again
   // if the user re-applies color after clearing it.
   const colorWarnedRef = useRef(false)
+
+  const onUnderlineWarningRef = useRef(onUnderlineWarning)
+  onUnderlineWarningRef.current = onUnderlineWarning
+  const underlineWarnedRef = useRef(false)
 
   // Flag to prevent infinite update loop: when we set editor content from
   // external previewHtml, the onUpdate callback fires — we must ignore it.
@@ -168,6 +179,16 @@ export function useTiptapEditor({
           } else if (!docHasColor) {
             // Reset so the warning fires again if color is re-applied later.
             colorWarnedRef.current = false
+          }
+
+          // Warn once when the user introduces underline marks. Markdown has no
+          // underline syntax so underline formatting will be lost in Jira output.
+          const docHasUnderline = hasUnderlineMarks(doc)
+          if (docHasUnderline && !underlineWarnedRef.current) {
+            underlineWarnedRef.current = true
+            onUnderlineWarningRef.current?.()
+          } else if (!docHasUnderline) {
+            underlineWarnedRef.current = false
           }
 
           const md = tiptapDocToMarkdown(doc)

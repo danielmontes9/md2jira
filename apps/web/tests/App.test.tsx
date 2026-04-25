@@ -295,3 +295,71 @@ describe('App – wiki code view', () => {
     })
   })
 })
+
+describe('getInitialFormat via App', () => {
+  const originalLocation = window.location
+
+  beforeEach(() => {
+    Object.defineProperty(window, 'location', {
+      writable: true,
+      value: { href: 'http://localhost/', search: '' },
+    })
+  })
+
+  afterEach(() => {
+    Object.defineProperty(window, 'location', {
+      writable: true,
+      value: originalLocation,
+    })
+    ;(localStorage.getItem as ReturnType<typeof vi.fn>).mockReset()
+  })
+
+  it('falls back to ADF when ?fmt= param has an unrecognised value', () => {
+    Object.defineProperty(window, 'location', {
+      writable: true,
+      value: { href: 'http://localhost/?fmt=html', search: '?fmt=html' },
+    })
+    render(<App />)
+    expect(screen.getByRole('radio', { name: 'Jira Cloud' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    )
+  })
+
+  it('reads wiki format from localStorage when no ?fmt= param is present', () => {
+    ;(localStorage.getItem as ReturnType<typeof vi.fn>).mockImplementation((key: string) =>
+      key === 'output-format' ? 'wiki' : null,
+    )
+    render(<App />)
+    expect(screen.getByRole('radio', { name: 'Wiki Markup' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    )
+  })
+
+  it('falls back to ADF when localStorage has an invalid format value', () => {
+    ;(localStorage.getItem as ReturnType<typeof vi.fn>).mockImplementation((key: string) =>
+      key === 'output-format' ? 'html' : null,
+    )
+    render(<App />)
+    expect(screen.getByRole('radio', { name: 'Jira Cloud' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    )
+  })
+
+  it('URL ?fmt= param takes precedence over localStorage', () => {
+    Object.defineProperty(window, 'location', {
+      writable: true,
+      value: { href: 'http://localhost/?fmt=adf', search: '?fmt=adf' },
+    })
+    ;(localStorage.getItem as ReturnType<typeof vi.fn>).mockImplementation((key: string) =>
+      key === 'output-format' ? 'wiki' : null,
+    )
+    render(<App />)
+    expect(screen.getByRole('radio', { name: 'Jira Cloud' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    )
+  })
+})

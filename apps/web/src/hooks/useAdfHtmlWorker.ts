@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import type { AdfDocument } from 'md2jira-core'
 
+/** Maximum number of consecutive render failures before retryWorker becomes a no-op. */
+const MAX_RETRIES = 3
+
 /**
  * Renders an ADF document to HTML using an off-thread Web Worker.
  *
@@ -19,8 +22,6 @@ export function useAdfHtmlWorker(adfDoc: AdfDocument | null): {
 } {
   const [state, setState] = useState({ html: '', workerError: false })
   const [retryCount, setRetryCount] = useState(0)
-  /** Stop retrying after this many attempts to prevent infinite loops on persistent failures. */
-  const MAX_RETRIES = 3
   const workerRef = useRef<Worker | null>(null)
   // Monotonically increasing request id — used to discard stale worker responses
   const workerReqRef = useRef(0)
@@ -107,7 +108,7 @@ export function useAdfHtmlWorker(adfDoc: AdfDocument | null): {
     workerRef.current = null
     setState({ html: '', workerError: false })
     setRetryCount((c) => c + 1)
-  }, [retryCount, MAX_RETRIES])
+  }, [retryCount])
 
   return { html: state.html, workerError: state.workerError, retryWorker }
 }

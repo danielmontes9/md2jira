@@ -34,7 +34,26 @@ export function hasColorMarks(doc: Node): boolean {
   })
   return found
 }
-
+/**
+ * Returns true if the document contains any underline marks.
+ * Underline is not a standard Markdown element and will be serialized as the
+ * HTML `<u>` tag. Since md2jira-core silently ignores HTML, underline
+ * formatting will be lost in the Jira output — used to surface a warning.
+ */
+export function hasUnderlineMarks(doc: Node): boolean {
+  let found = false
+  doc.descendants((node) => {
+    if (found) return false // short-circuit once detected
+    for (const mark of node.marks) {
+      if (mark.type.name === 'underline') {
+        found = true
+        return false
+      }
+    }
+    return undefined // continue traversal
+  })
+  return found
+}
 // ─── Context ─────────────────────────────────────────────────────────────────
 
 interface Ctx {
@@ -239,7 +258,11 @@ function applyMark(mark: Mark, text: string): string {
       return `<sup>${text}</sup>`
     case 'textStyle': {
       const color = (mark.attrs as { color?: string }).color
-      return color ? `<span style="color:${color}">${text}</span>` : text
+      if (!color) return text
+      // Only allow characters that are valid in CSS color values to prevent
+      // CSS injection via crafted mark attributes (e.g. expression(...)).
+      if (!/^[a-zA-Z0-9#(),. %+-]+$/.test(color)) return text
+      return `<span style="color:${color}">${text}</span>`
     }
     case 'link': {
       const { href = '', title } = mark.attrs as { href?: string; title?: string }
