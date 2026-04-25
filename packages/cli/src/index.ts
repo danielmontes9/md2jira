@@ -21,6 +21,20 @@ const VALID_TRANSFORMS = new Set([
   'panel',
 ])
 
+/** Valid output format names accepted by --format. */
+const VALID_FORMATS = new Set(['wiki', 'adf'])
+
+/** Collector for --disable: supports both comma-separated and repeated flags. */
+function collectTransforms(val: string, prev: string[]): string[] {
+  return [
+    ...prev,
+    ...val
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean),
+  ]
+}
+
 const program = new Command()
 
 program
@@ -36,33 +50,52 @@ program
   )
   .option(
     '--disable <transforms>',
-    'Comma-separated list of transforms to suppress: heading,list,code,blockquote,table,thematicBreak,panel'
+    'Transform(s) to suppress — comma-separated or repeated flag: heading,list,code,blockquote,table,thematicBreak,panel',
+    collectTransforms,
+    [] as string[]
   )
   .action(
     async (
       input: string | undefined,
-      options: { output?: string; format?: string; baseUrl?: string; disable?: string }
+      options: { output?: string; format: string; baseUrl?: string; disable: string[] }
     ) => {
-      let markdown: string
+      // Validate --format before touching stdin/file so we fail fast.
+      const fmt = options.format.toLowerCase()
+      if (!VALID_FORMATS.has(fmt)) {
+        process.stderr.write(`Error: unknown format "${options.format}". Valid values: wiki, adf\n`)
+        process.exit(1)
+      }
 
+      // Validate --base-url is an absolute URL.
+      if (options.baseUrl !== undefined) {
+        try {
+          new URL(options.baseUrl)
+        } catch {
+          process.stderr.write(
+            `Error: --base-url "${options.baseUrl}" is not a valid absolute URL\n`
+          )
+          process.exit(1)
+        }
+      }
+
+      let markdown: string
       if (input) {
         markdown = await readFile(resolve(input), 'utf-8')
       } else {
         markdown = await readStdin()
       }
 
-      // Build ConvertOptions from CLI flags.
+      // Validate --disable transform names.
       let disableTransforms: ConvertOptions['disableTransforms'] | undefined
-      if (options.disable) {
-        const requested = options.disable.split(',').map((s) => s.trim())
-        const invalid = requested.filter((t) => !VALID_TRANSFORMS.has(t))
+      if (options.disable.length > 0) {
+        const invalid = options.disable.filter((t) => !VALID_TRANSFORMS.has(t))
         if (invalid.length > 0) {
           process.stderr.write(
             `Error: unknown transform(s): ${invalid.join(', ')}\nValid values: ${[...VALID_TRANSFORMS].join(', ')}\n`
           )
           process.exit(1)
         }
-        disableTransforms = requested as ConvertOptions['disableTransforms']
+        disableTransforms = options.disable as ConvertOptions['disableTransforms']
       }
 
       const convertOptions: ConvertOptions = {
@@ -70,7 +103,6 @@ program
         ...(disableTransforms ? { disableTransforms } : {}),
       }
 
-      const fmt = options.format?.toLowerCase()
       let result: string
       if (fmt === 'adf') {
         result = JSON.stringify(convertToAdf(markdown, convertOptions), null, 2)

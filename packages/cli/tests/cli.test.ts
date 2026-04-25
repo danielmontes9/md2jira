@@ -68,6 +68,9 @@ describe('md2jira CLI', () => {
     expect(exitCode).toBe(0)
     expect(stdout).toContain('Convert Markdown to Jira Wiki Markup')
     expect(stdout).toContain('--output')
+    expect(stdout).toContain('--base-url')
+    expect(stdout).toContain('--disable')
+    expect(stdout).toContain('--format')
   })
 
   it('shows version with --version', async () => {
@@ -187,6 +190,32 @@ describe('md2jira CLI', () => {
   })
 })
 
+describe('--format validation', () => {
+  it('exits with code 1 for unknown format', async () => {
+    const { stderr, exitCode } = await run(['--format', 'xml'], { stdin: '# Title\n' })
+    expect(exitCode).toBe(1)
+    expect(stderr).toContain('unknown format')
+    expect(stderr).toContain('xml')
+    expect(stderr).toContain('wiki')
+    expect(stderr).toContain('adf')
+  })
+
+  it('accepts format case-insensitively (ADF)', async () => {
+    const { stdout, exitCode } = await run(['--format', 'ADF'], { stdin: '# Title\n' })
+    expect(exitCode).toBe(0)
+    expect(JSON.parse(stdout).type).toBe('doc')
+  })
+})
+
+describe('--base-url validation', () => {
+  it('exits with code 1 for a non-URL value', async () => {
+    const { stderr, exitCode } = await run(['--base-url', 'not-a-url'], { stdin: '# Title\n' })
+    expect(exitCode).toBe(1)
+    expect(stderr).toContain('not a valid absolute URL')
+    expect(stderr).toContain('not-a-url')
+  })
+})
+
 describe('--base-url flag', () => {
   it('prepends base URL to relative links', async () => {
     const md = '[docs](/wiki/docs)\n'
@@ -258,5 +287,16 @@ describe('--disable flag', () => {
     const { stderr, exitCode } = await run(['--disable', 'unknown-transform'], { stdin: md })
     expect(exitCode).toBe(1)
     expect(stderr).toContain('unknown transform')
+  })
+
+  it('supports repeated --disable flags (heading then list)', async () => {
+    const md = '# Heading\n\n- list item\n\nParagraph\n'
+    const { stdout, exitCode } = await run(['--disable', 'heading', '--disable', 'list'], {
+      stdin: md,
+    })
+    expect(exitCode).toBe(0)
+    expect(stdout).not.toContain('h1.')
+    expect(stdout).not.toMatch(/^\* /m)
+    expect(stdout).toContain('Paragraph')
   })
 })
