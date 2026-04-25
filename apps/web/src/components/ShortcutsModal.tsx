@@ -56,6 +56,21 @@ const GROUPS = [
       { key: 'Alt+Shift+W', label: 'Switch to Wiki Markup' },
     ],
   },
+  {
+    title: 'WYSIWYG editor (Edit mode only)',
+    shortcuts: [
+      { key: `${mod}+B`, label: 'Bold' },
+      { key: `${mod}+I`, label: 'Italic' },
+      { key: `${mod}+U`, label: 'Underline' },
+      { key: `${mod}+Shift+S`, label: 'Strikethrough' },
+      { key: `${mod}+E`, label: 'Inline code' },
+      { key: `${mod}+Z`, label: 'Undo' },
+      { key: `${mod}+Shift+Z`, label: 'Redo' },
+      { key: `${mod}+Shift+7`, label: 'Ordered list' },
+      { key: `${mod}+Shift+8`, label: 'Bullet list' },
+      { key: `${mod}+Shift+9`, label: 'Blockquote' },
+    ],
+  },
 ]
 
 export function ShortcutsModal({ onClose }: ShortcutsModalProps) {

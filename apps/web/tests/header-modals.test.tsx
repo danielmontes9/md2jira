@@ -103,8 +103,9 @@ describe('ShortcutsModal', () => {
 
   it('shows individual shortcuts', () => {
     render(<ShortcutsModal onClose={vi.fn()} />)
-    expect(screen.getByText('Bold')).toBeInTheDocument()
-    expect(screen.getByText('Italic')).toBeInTheDocument()
+    // 'Bold' and 'Italic' appear in both the Formatting and WYSIWYG groups
+    expect(screen.getAllByText('Bold').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Italic').length).toBeGreaterThan(0)
     expect(screen.getByText('Move line up')).toBeInTheDocument()
   })
 
@@ -118,8 +119,20 @@ describe('ShortcutsModal', () => {
   it('shows Formatting-group shortcut labels', () => {
     render(<ShortcutsModal onClose={vi.fn()} />)
     expect(screen.getByText('Insert link')).toBeInTheDocument()
-    expect(screen.getByText('Inline code')).toBeInTheDocument()
-    expect(screen.getByText('Strikethrough')).toBeInTheDocument()
+    // 'Inline code' and 'Strikethrough' appear in both Formatting and WYSIWYG groups
+    expect(screen.getAllByText('Inline code').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Strikethrough').length).toBeGreaterThan(0)
+  })
+
+  it('displays the WYSIWYG editor group with edit-mode-only shortcuts', () => {
+    render(<ShortcutsModal onClose={vi.fn()} />)
+    expect(screen.getByText('WYSIWYG editor (Edit mode only)')).toBeInTheDocument()
+    // Shortcuts exclusive to the WYSIWYG group (not present in any other group)
+    expect(screen.getByText('Underline')).toBeInTheDocument()
+    expect(screen.getByText('Undo')).toBeInTheDocument()
+    expect(screen.getByText('Redo')).toBeInTheDocument()
+    expect(screen.getByText('Ordered list')).toBeInTheDocument()
+    expect(screen.getByText('Bullet list')).toBeInTheDocument()
   })
 })
 
