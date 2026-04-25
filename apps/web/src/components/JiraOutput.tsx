@@ -42,10 +42,7 @@ export const JiraOutput = memo(function JiraOutput({
   }, [addToast])
 
   const onUnderlineWarning = useCallback(() => {
-    addToast(
-      'Underline formatting is not supported in Jira output and will be removed.',
-      'warning',
-    )
+    addToast('Underline formatting is not supported in Jira output and will be removed.', 'warning')
   }, [addToast])
 
   // Reset view mode to 'preview' when switching away from ADF (wiki has no distinct code view)

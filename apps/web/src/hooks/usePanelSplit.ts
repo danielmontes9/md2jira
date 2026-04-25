@@ -46,7 +46,7 @@ export function usePanelSplit(storageKey: string, initial = 50) {
         return next
       })
     },
-    [storageKey],
+    [storageKey]
   )
 
   const handleDragStart = useCallback((e: ReactPointerEvent<HTMLDivElement>) => {
@@ -58,9 +58,11 @@ export function usePanelSplit(storageKey: string, initial = 50) {
     (e: ReactPointerEvent<HTMLDivElement>) => {
       if (!isDragging.current || !mainRef.current) return
       const rect = mainRef.current.getBoundingClientRect()
-      setSplit(Math.max(SPLIT_MIN, Math.min(SPLIT_MAX, ((e.clientX - rect.left) / rect.width) * 100)))
+      setSplit(
+        Math.max(SPLIT_MIN, Math.min(SPLIT_MAX, ((e.clientX - rect.left) / rect.width) * 100))
+      )
     },
-    [setSplit],
+    [setSplit]
   )
 
   const handleDragEnd = useCallback(() => {

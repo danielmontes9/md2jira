@@ -322,29 +322,29 @@ describe('getInitialFormat via App', () => {
     render(<App />)
     expect(screen.getByRole('radio', { name: 'Jira Cloud' })).toHaveAttribute(
       'aria-checked',
-      'true',
+      'true'
     )
   })
 
   it('reads wiki format from localStorage when no ?fmt= param is present', () => {
     ;(localStorage.getItem as ReturnType<typeof vi.fn>).mockImplementation((key: string) =>
-      key === 'output-format' ? 'wiki' : null,
+      key === 'output-format' ? 'wiki' : null
     )
     render(<App />)
     expect(screen.getByRole('radio', { name: 'Wiki Markup' })).toHaveAttribute(
       'aria-checked',
-      'true',
+      'true'
     )
   })
 
   it('falls back to ADF when localStorage has an invalid format value', () => {
     ;(localStorage.getItem as ReturnType<typeof vi.fn>).mockImplementation((key: string) =>
-      key === 'output-format' ? 'html' : null,
+      key === 'output-format' ? 'html' : null
     )
     render(<App />)
     expect(screen.getByRole('radio', { name: 'Jira Cloud' })).toHaveAttribute(
       'aria-checked',
-      'true',
+      'true'
     )
   })
 
@@ -354,12 +354,12 @@ describe('getInitialFormat via App', () => {
       value: { href: 'http://localhost/?fmt=adf', search: '?fmt=adf' },
     })
     ;(localStorage.getItem as ReturnType<typeof vi.fn>).mockImplementation((key: string) =>
-      key === 'output-format' ? 'wiki' : null,
+      key === 'output-format' ? 'wiki' : null
     )
     render(<App />)
     expect(screen.getByRole('radio', { name: 'Jira Cloud' })).toHaveAttribute(
       'aria-checked',
-      'true',
+      'true'
     )
   })
 })

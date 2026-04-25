@@ -19,7 +19,11 @@ import {
   getActiveFormats,
   EMPTY_FORMATS,
 } from '../utils/tiptap-commands.js'
-import { tiptapDocToMarkdown, hasColorMarks, hasUnderlineMarks } from '../utils/tiptap-to-markdown.js'
+import {
+  tiptapDocToMarkdown,
+  hasColorMarks,
+  hasUnderlineMarks,
+} from '../utils/tiptap-to-markdown.js'
 
 // Extend TableCell and TableHeader to carry a text-alignment attribute.
 // This lets the tiptap-to-markdown serializer output the correct Markdown
