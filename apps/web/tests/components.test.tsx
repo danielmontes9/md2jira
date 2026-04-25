@@ -124,7 +124,7 @@ describe('ErrorBoundary', () => {
   it('calls onError callback when child throws', () => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
     const onError = vi.fn()
-    const Boom = () => {
+    const Boom = (): never => {
       throw new Error('boundary-test')
     }
     render(
@@ -142,7 +142,7 @@ describe('ErrorBoundary', () => {
 
   it('shows remaining retry count ("3 remaining") in the Retry button', () => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    function Boom() {
+    function Boom(): never {
       throw new Error('boom')
     }
     render(
@@ -156,7 +156,7 @@ describe('ErrorBoundary', () => {
 
   it('decrements the remaining count after each manual retry', () => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    function Boom() {
+    function Boom(): never {
       throw new Error('boom')
     }
     render(
@@ -171,7 +171,7 @@ describe('ErrorBoundary', () => {
 
   it('hides Retry and shows max-retries message after 3 exhausted attempts', () => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    function Boom() {
+    function Boom(): never {
       throw new Error('boom')
     }
     render(
@@ -190,7 +190,7 @@ describe('ErrorBoundary', () => {
   it('schedules auto-retry after 500 ms for transient ChunkLoadError', () => {
     vi.useFakeTimers()
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    function ThrowChunk() {
+    function ThrowChunk(): never {
       const err = Object.assign(new Error('Loading chunk 5 failed.'), { name: 'ChunkLoadError' })
       throw err
     }
@@ -212,7 +212,7 @@ describe('ErrorBoundary', () => {
   it('does NOT auto-retry deterministic (non-transient) errors', () => {
     vi.useFakeTimers()
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    function Boom() {
+    function Boom(): never {
       throw new Error('deterministic')
     }
     render(

@@ -165,6 +165,11 @@ export function useTiptapEditor({
     },
     onUpdate: ({ editor: ed }) => {
       if (isExternalUpdateRef.current) return
+      // Only sync back to Markdown when the user is actively editing.
+      // This prevents the initial setContent('') (while previewHtml is still
+      // loading from the worker) from firing onMarkdownChange with an empty
+      // document and erasing the PLACEHOLDER / user content.
+      if (!ed.isEditable) return
       const cb = onMarkdownChangeRef.current
       if (!cb) return
 

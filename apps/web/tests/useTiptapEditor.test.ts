@@ -64,6 +64,25 @@ describe('useTiptapEditor', () => {
     expect(cb).not.toHaveBeenCalled()
   })
 
+  it('does not call onMarkdownChange while editor is non-editable (regression: content-clear bug)', async () => {
+    // Regression test: TipTap v3 can fire onUpdate when setContent('') is called
+    // while previewHtml is still loading from the ADF worker. With the editor in
+    // read-only mode (isEditable=false), onUpdate must be suppressed to prevent
+    // tiptapDocToMarkdown(emptyDoc) from calling setMarkdown('') and erasing
+    // the PLACEHOLDER / user content.
+    const cb = vi.fn()
+    renderHook(() =>
+      useTiptapEditor({
+        previewHtml: '',
+        onMarkdownChange: cb,
+        debounceMs: 50,
+      })
+    )
+    // Wait well past the debounce — no callback must fire in read-only mode.
+    await new Promise((r) => setTimeout(r, 200))
+    expect(cb).not.toHaveBeenCalled()
+  })
+
   it('returns null editor when shouldCreate is false', () => {
     const { result } = renderHook(() =>
       useTiptapEditor({
@@ -161,6 +180,11 @@ describe('useTiptapEditor', () => {
       // Wait for the editor to be ready before interacting
       await waitFor(() => expect(result.current.editor).not.toBeNull())
 
+      // Enable editing first — mirrors what JiraOutput does when the user enters edit mode
+      act(() => {
+        result.current.editor!.setEditable(true)
+      })
+
       act(() => {
         result.current.editor!.commands.setContent(
           '<p><span style="color: #ff0000">colored text</span></p>'
@@ -185,6 +209,10 @@ describe('useTiptapEditor', () => {
 
       await act(async () => {})
       await waitFor(() => expect(result.current.editor).not.toBeNull())
+
+      act(() => {
+        result.current.editor!.setEditable(true)
+      })
 
       act(() => {
         result.current.editor!.commands.setContent(
@@ -220,6 +248,10 @@ describe('useTiptapEditor', () => {
       await waitFor(() => expect(result.current.editor).not.toBeNull())
 
       act(() => {
+        result.current.editor!.setEditable(true)
+      })
+
+      act(() => {
         result.current.editor!.commands.setContent('<p><strong>just bold text</strong></p>')
       })
       // Wait for debounce to fire, then verify color warning was not triggered
@@ -246,6 +278,10 @@ describe('useTiptapEditor', () => {
       await waitFor(() => expect(result.current.editor).not.toBeNull())
 
       act(() => {
+        result.current.editor!.setEditable(true)
+      })
+
+      act(() => {
         result.current.editor!.commands.setContent('<p><u>underlined text</u></p>')
       })
 
@@ -267,6 +303,10 @@ describe('useTiptapEditor', () => {
 
       await act(async () => {})
       await waitFor(() => expect(result.current.editor).not.toBeNull())
+
+      act(() => {
+        result.current.editor!.setEditable(true)
+      })
 
       act(() => {
         result.current.editor!.commands.setContent('<p><u>first underline</u></p>')
@@ -297,6 +337,10 @@ describe('useTiptapEditor', () => {
       await waitFor(() => expect(result.current.editor).not.toBeNull())
 
       act(() => {
+        result.current.editor!.setEditable(true)
+      })
+
+      act(() => {
         result.current.editor!.commands.setContent('<p><strong>just bold text</strong></p>')
       })
       await waitFor(() => expect(onMarkdownChange).toHaveBeenCalled(), { timeout: 2000 })
@@ -318,6 +362,10 @@ describe('useTiptapEditor', () => {
 
       await act(async () => {})
       await waitFor(() => expect(result.current.editor).not.toBeNull())
+
+      act(() => {
+        result.current.editor!.setEditable(true)
+      })
 
       // First underline → warning fires
       act(() => {

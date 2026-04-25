@@ -102,6 +102,11 @@ describe('useTiptapEditor — edit roundtrip', () => {
 
     await waitFor(() => expect(result.current.editor).not.toBeNull())
 
+    // Enable editing first — onUpdate only propagates when editor is editable
+    act(() => {
+      result.current.editor!.setEditable(true)
+    })
+
     // Set table content directly on the editor (not via previewHtml prop, so
     // isExternalUpdateRef stays false and onUpdate fires normally).
     act(() => {
@@ -120,5 +125,57 @@ describe('useTiptapEditor — edit roundtrip', () => {
     expect(md).toContain('| Name | Role |')
     expect(md).toContain('| --- | --- |')
     expect(md).toContain('| Alice | Engineer |')
+  })
+
+  it('insertHtml actually inserts sanitized content into the editor DOM', async () => {
+    const { result } = renderHook(() =>
+      useTiptapEditor({
+        previewHtml: '<p>initial</p>',
+        onMarkdownChange: undefined,
+        debounceMs: 50,
+      })
+    )
+
+    await waitFor(() => expect(result.current.editor).not.toBeNull())
+
+    // Enable editing before inserting content — mirrors the real JiraOutput flow
+    act(() => {
+      result.current.editor!.setEditable(true)
+    })
+
+    act(() => {
+      result.current.insertHtml('<p><strong>inserted content</strong></p>')
+    })
+
+    // Verify the text was actually placed in the ProseMirror document tree
+    const html = result.current.editor!.getHTML()
+    expect(html).toContain('inserted content')
+  })
+
+  it('insertHtml strips unsafe XSS payloads via DOMPurify before inserting', async () => {
+    const { result } = renderHook(() =>
+      useTiptapEditor({
+        previewHtml: '<p>initial</p>',
+        onMarkdownChange: undefined,
+        debounceMs: 50,
+      })
+    )
+
+    await waitFor(() => expect(result.current.editor).not.toBeNull())
+
+    act(() => {
+      result.current.editor!.setEditable(true)
+    })
+
+    // XSS payload — DOMPurify (or the stripTags fallback) must neutralize it
+    act(() => {
+      result.current.insertHtml('<script>window.__xss = true</script><p>safe</p>')
+    })
+
+    // The document must not contain a <script> tag — TipTap's schema alone
+    // drops unknown nodes, so this is a defence-in-depth check.
+    const html = result.current.editor!.getHTML()
+    expect(html).not.toContain('<script>')
+    expect((window as unknown as Record<string, unknown>).__xss).toBeUndefined()
   })
 })
