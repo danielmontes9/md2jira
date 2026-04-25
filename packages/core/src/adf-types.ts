@@ -11,6 +11,7 @@ export type AdfMark =
   | { type: 'underline' }
   | { type: 'link'; attrs: { href: string } }
   | { type: 'subsup'; attrs: { type: 'sub' | 'sup' } }
+  | { type: 'textColor'; attrs: { color: string } }
 
 export interface AdfTextNode {
   type: 'text'

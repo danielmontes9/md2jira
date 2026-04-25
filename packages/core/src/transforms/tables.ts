@@ -1,5 +1,6 @@
-import type { Table, TableRow, TableCell } from 'mdast'
+import type { Table, TableCell } from 'mdast'
 import { convertInlineChildren } from './formatting.js'
+import { normalizeTableColumnCount } from '../utils.js'
 
 /**
  * Escapes `|` characters that appear outside of Jira link brackets `[text|url]`.
@@ -27,8 +28,11 @@ function escapePipesOutsideBrackets(text: string): string {
 
 function escapeJiraCell(text: string): string {
   let escaped = text
-  // 1. Escape Jira macro delimiters { and }
-  escaped = escaped.replace(/\{/g, '\\{').replace(/\}/g, '\\}')
+  // 1. Escape lone Jira macro delimiters { and } but NOT {{ }} sequences.
+  //    {{...}} is produced by transformInlineCode and must reach Jira intact
+  //    so it renders as inline-code monospace formatting inside table cells.
+  //    Negative lookahead/lookbehind selects only single braces.
+  escaped = escaped.replace(/(?<!\{)\{(?!\{)/g, '\\{').replace(/(?<!\})\}(?!\})/g, '\\}')
   // 2. Escape | that are not inside [text|url] Jira links
   escaped = escapePipesOutsideBrackets(escaped)
   // 3. Escape standalone brackets [text] (no URL pattern) as \[text\]
@@ -45,21 +49,11 @@ function getCellText(cell: TableCell): string {
   return escapeJiraCell(text)
 }
 
-function normalizeColumnCount(rows: TableRow[]): number {
-  let maxCols = 0
-  for (const row of rows) {
-    if (row.children.length > maxCols) {
-      maxCols = row.children.length
-    }
-  }
-  return maxCols
-}
-
 export function transformTable(node: Table): string {
   const rows = node.children
   if (rows.length === 0) return ''
 
-  const colCount = normalizeColumnCount(rows)
+  const colCount = normalizeTableColumnCount(rows)
   const lines: string[] = []
 
   for (let rowIdx = 0; rowIdx < rows.length; rowIdx++) {

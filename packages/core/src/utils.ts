@@ -1,3 +1,5 @@
+import type { TableRow } from 'mdast'
+
 /**
  * Returns true when an unknown remark node carries a string `.value` field.
  * Shared between converter.ts and adf-converter.ts to avoid duplicating the
@@ -5,4 +7,17 @@
  */
 export function hasStringValue(node: object): node is { value: string } {
   return 'value' in node && typeof (node as { value: unknown }).value === 'string'
+}
+
+/**
+ * Returns the maximum column count across all rows of a GFM table.
+ * Shared between the Wiki Markup and ADF table transforms so both converters
+ * normalise tables with unequal column counts (padding missing cells to '').
+ */
+export function normalizeTableColumnCount(rows: TableRow[]): number {
+  let maxCols = 0
+  for (const row of rows) {
+    if (row.children.length > maxCols) maxCols = row.children.length
+  }
+  return maxCols
 }

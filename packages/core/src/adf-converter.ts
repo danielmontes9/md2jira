@@ -9,7 +9,7 @@ import type {
   Table,
 } from 'mdast'
 import { parseMarkdown } from './parse.js'
-import { hasStringValue } from './utils.js'
+import { hasStringValue, normalizeTableColumnCount } from './utils.js'
 import type {
   AdfBlockNode,
   AdfDocument,
@@ -167,11 +167,7 @@ function transformTableToAdf(node: Table): AdfBlockNode {
   const rows = node.children
   const adfRows: AdfTableRowNode[] = []
 
-  // Calculate max columns for normalization
-  let maxCols = 0
-  for (const row of rows) {
-    if (row.children.length > maxCols) maxCols = row.children.length
-  }
+  const maxCols = normalizeTableColumnCount(rows)
 
   for (let rowIdx = 0; rowIdx < rows.length; rowIdx++) {
     const row = rows[rowIdx]!

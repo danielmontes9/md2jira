@@ -38,10 +38,7 @@ describe('transformTable', () => {
     const tbl: Table = {
       type: 'table',
       align: [],
-      children: [
-        row([[text('A')], [text('B')], [text('C')]]),
-        row([[text('1')], [text('2')]]),
-      ],
+      children: [row([[text('A')], [text('B')], [text('C')]]), row([[text('1')], [text('2')]])],
     }
     expect(transformTable(tbl)).toBe('||A||B||C||\n|1|2||')
   })
@@ -62,21 +59,26 @@ describe('transformTable', () => {
       align: [],
       children: [
         row([[text('Site')]]),
-        row([[
-          {
-            type: 'link',
-            url: 'https://example.com',
-            title: null,
-            children: [text('Example')],
-          } as PhrasingContent,
-        ]]),
+        row([
+          [
+            {
+              type: 'link',
+              url: 'https://example.com',
+              title: null,
+              children: [text('Example')],
+            } as PhrasingContent,
+          ],
+        ]),
       ],
     }
     expect(transformTable(tbl)).toBe('||Site||\n|[Example|https://example.com]|')
   })
 
   it('handles empty cells', () => {
-    const tbl = table([[[text('A')], [text('B')]], [[], []]])
+    const tbl = table([
+      [[text('A')], [text('B')]],
+      [[], []],
+    ])
     expect(transformTable(tbl)).toBe('||A||B||\n|||')
   })
 
@@ -86,10 +88,7 @@ describe('transformTable', () => {
       align: [],
       children: [
         row([[text('Field')], [text('Value')]]),
-        row([
-          [text('Status')],
-          [{ type: 'strong', children: [text('High')] } as PhrasingContent],
-        ]),
+        row([[text('Status')], [{ type: 'strong', children: [text('High')] } as PhrasingContent]]),
       ],
     }
     expect(transformTable(tbl)).toBe('||Field||Value||\n|Status|*High*|')
@@ -98,5 +97,29 @@ describe('transformTable', () => {
   it('escapes standalone brackets [text] that are not links', () => {
     const tbl = table([[[text('Note')]], [[text('[see docs]')]]])
     expect(transformTable(tbl)).toBe('||Note||\n|\\[see docs\\]|')
+  })
+
+  it('preserves {{inline code}} formatting in table cells without double-escaping', () => {
+    const tbl: Table = {
+      type: 'table',
+      align: [],
+      children: [
+        row([[text('Field')]]),
+        row([[{ type: 'inlineCode', value: 'myVar' } as PhrasingContent]]),
+      ],
+    }
+    expect(transformTable(tbl)).toBe('||Field||\n|{{myVar}}|')
+  })
+
+  it('escapes lone { and } macro delimiters but not {{ }} in the same cell', () => {
+    const tbl: Table = {
+      type: 'table',
+      align: [],
+      children: [
+        row([[text('A')], [text('B')]]),
+        row([[text('{color:red}')], [{ type: 'inlineCode', value: 'x' } as PhrasingContent]]),
+      ],
+    }
+    expect(transformTable(tbl)).toBe('||A||B||\n|\\{color:red\\}|{{x}}|')
   })
 })
