@@ -64,7 +64,7 @@ export function stripAlertMarker(children: PhrasingContent[]): PhrasingContent[]
  * Converts a GFM Alert blockquote to a Jira Wiki Markup panel macro.
  * e.g. `> [!NOTE]\n> content` → `{note}\ncontent\n{note}`
  */
-export function transformPanel(node: Blockquote, alertType: string): string {
+export function transformPanel(node: Blockquote, alertType: string, baseUrl?: string): string {
   const macro = ALERT_TO_JIRA_MACRO[alertType] ?? 'info'
   const parts: string[] = []
 
@@ -72,10 +72,10 @@ export function transformPanel(node: Blockquote, alertType: string): string {
     const child = node.children[i]!
     if (child.type === 'paragraph') {
       const children = i === 0 ? stripAlertMarker(child.children) : child.children
-      const text = convertInlineChildren(children)
+      const text = convertInlineChildren(children, baseUrl)
       if (text.trim()) parts.push(text)
     } else if (child.type === 'list') {
-      parts.push(transformList(child))
+      parts.push(transformList(child, '', baseUrl))
     } else if (child.type === 'code') {
       parts.push(transformCodeBlock(child))
     }
@@ -95,24 +95,24 @@ export function transformPanel(node: Blockquote, alertType: string): string {
  * a single-line prefix. Nested blockquotes are flattened: each leaf paragraph becomes
  * its own `bq.` line.
  */
-export function transformBlockquote(node: Blockquote): string {
+export function transformBlockquote(node: Blockquote, baseUrl?: string): string {
   const alertType = detectAlertType(node)
-  if (alertType !== null) return transformPanel(node, alertType)
+  if (alertType !== null) return transformPanel(node, alertType, baseUrl)
 
   const parts: string[] = []
   for (const child of node.children) {
     if (child.type === 'paragraph') {
-      const text = convertInlineChildren(child.children)
+      const text = convertInlineChildren(child.children, baseUrl)
       // Hard line breaks within the paragraph produce \n; each sub-line needs its own bq. prefix.
       for (const sub of text.split('\n')) {
         parts.push(`bq. ${sub}`)
       }
     } else if (child.type === 'blockquote') {
       // Nested blockquote: recurse and flatten (Jira Wiki has no nested bq. syntax)
-      parts.push(transformBlockquote(child))
+      parts.push(transformBlockquote(child, baseUrl))
     } else if (child.type === 'list') {
       // Lists cannot be nested inside bq. — render them at the top level
-      parts.push(transformList(child))
+      parts.push(transformList(child, '', baseUrl))
     } else if (child.type === 'code') {
       // Code blocks cannot be nested inside bq. — render them at the top level
       parts.push(transformCodeBlock(child))

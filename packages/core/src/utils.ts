@@ -21,3 +21,24 @@ export function normalizeTableColumnCount(rows: TableRow[]): number {
   }
   return maxCols
 }
+
+/**
+ * Options accepted by `convert()` and `convertToAdf()`.
+ * All fields are optional — omitting the argument preserves default behaviour.
+ */
+export interface ConvertOptions {
+  /**
+   * Base URL prepended to relative links (those starting with `/`).
+   * e.g. `'https://company.atlassian.net/wiki/spaces/PROJECT'` turns
+   * `[text](/page)` into `[text|https://company.atlassian.net/wiki/spaces/PROJECT/page]`.
+   */
+  baseUrl?: string
+  /**
+   * mdast block node types whose output should be suppressed.
+   * Valid values match mdast block node type names:
+   * `'heading' | 'list' | 'code' | 'blockquote' | 'table' | 'thematicBreak'`
+   */
+  disableTransforms?: ReadonlyArray<
+    'heading' | 'list' | 'code' | 'blockquote' | 'table' | 'thematicBreak'
+  >
+}

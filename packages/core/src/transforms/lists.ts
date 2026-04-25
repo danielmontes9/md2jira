@@ -1,7 +1,7 @@
 import type { List } from 'mdast'
 import { convertInlineChildren } from './formatting.js'
 
-export function transformList(node: List, parentPrefix: string = ''): string {
+export function transformList(node: List, parentPrefix = '', baseUrl?: string): string {
   const marker = node.ordered ? '#' : '*'
   const prefix = parentPrefix + marker
 
@@ -13,7 +13,7 @@ export function transformList(node: List, parentPrefix: string = ''): string {
   for (const item of node.children) {
     for (const child of item.children) {
       if (child.type === 'paragraph') {
-        const text = convertInlineChildren(child.children)
+        const text = convertInlineChildren(child.children, baseUrl)
         if (isTaskList) {
           // Jira Wiki has no native task list syntax; use status emoticons:
           // (/) = green check (done), (x) = red cross (to do / not done)
@@ -23,7 +23,7 @@ export function transformList(node: List, parentPrefix: string = ''): string {
           lines.push(`${prefix} ${text}`)
         }
       } else if (child.type === 'list') {
-        lines.push(transformList(child, prefix))
+        lines.push(transformList(child, prefix, baseUrl))
       }
     }
   }

@@ -44,12 +44,12 @@ function escapeJiraCell(text: string): string {
   return escaped
 }
 
-function getCellText(cell: TableCell): string {
-  const text = convertInlineChildren(cell.children)
+function getCellText(cell: TableCell, baseUrl?: string): string {
+  const text = convertInlineChildren(cell.children, baseUrl)
   return escapeJiraCell(text)
 }
 
-export function transformTable(node: Table): string {
+export function transformTable(node: Table, baseUrl?: string): string {
   const rows = node.children
   if (rows.length === 0) return ''
 
@@ -62,7 +62,7 @@ export function transformTable(node: Table): string {
 
     for (let colIdx = 0; colIdx < colCount; colIdx++) {
       const cell = row.children[colIdx]
-      cells.push(cell ? getCellText(cell) : '')
+      cells.push(cell ? getCellText(cell, baseUrl) : '')
     }
 
     if (rowIdx === 0) {

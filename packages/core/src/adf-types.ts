@@ -68,7 +68,7 @@ export interface AdfRuleNode {
 
 export interface AdfTableNode {
   type: 'table'
-  attrs: { isNumberColumnEnabled: boolean; layout: string }
+  attrs: { isNumberColumnEnabled: boolean; layout: 'default' | 'wide' | 'full-width' }
   content: AdfTableRowNode[]
 }
 
