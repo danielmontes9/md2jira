@@ -204,6 +204,18 @@ describe('transformPanel — wiki markup', () => {
     const node = bq([para([text('[!NOTE]')])])
     expect(transformPanel(node, 'NOTE')).toBe('{note}\n\n{note}')
   })
+
+  it('silently ignores a nested blockquote inside a panel body — no output, no crash', () => {
+    // Jira Wiki has no nested blockquote syntax inside a panel macro.
+    // The nested bq. must be dropped rather than emitted as malformed markup.
+    // text('[!NOTE] main content') mirrors how remark soft-wraps marker + body in one text node.
+    const nestedBq = bq([para([text('nested quote')])])
+    const node = bq([para([text('[!NOTE] main content')]), nestedBq])
+    const result = transformPanel(node, 'NOTE')
+    expect(result).toBe('{note}\nmain content\n{note}')
+    expect(result).not.toContain('bq.')
+    expect(result).not.toContain('nested quote')
+  })
 })
 
 describe('convert — GFM Alert panels (integration)', () => {
@@ -229,5 +241,14 @@ describe('convert — GFM Alert panels (integration)', () => {
 
   it('leaves regular blockquotes as bq. (no regression)', () => {
     expect(convert('> Just a regular quote')).toBe('bq. Just a regular quote')
+  })
+
+  it('silently drops nested blockquote inside GFM Alert panel — no bq. in output', () => {
+    // GitHub renders nested blockquotes inside alerts, but Jira Wiki has no equivalent.
+    // The inner blockquote must be dropped entirely rather than leaking as malformed bq. markup.
+    const result = convert('> [!NOTE]\n> content\n>\n> > nested quote')
+    expect(result).toContain('{note}')
+    expect(result).toContain('content')
+    expect(result).not.toContain('bq.')
   })
 })
