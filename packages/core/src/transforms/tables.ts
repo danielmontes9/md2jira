@@ -1,14 +1,40 @@
 import type { Table, TableRow, TableCell } from 'mdast'
 import { convertInlineChildren } from './formatting.js'
 
+/**
+ * Escapes `|` characters that appear outside of Jira link brackets `[text|url]`.
+ * Tracks bracket depth so the separator `|` inside Jira links is never escaped.
+ */
+function escapePipesOutsideBrackets(text: string): string {
+  let result = ''
+  let depth = 0
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i]!
+    if (ch === '[') {
+      depth++
+      result += ch
+    } else if (ch === ']') {
+      if (depth > 0) depth--
+      result += ch
+    } else if (ch === '|' && depth === 0) {
+      result += '\\|'
+    } else {
+      result += ch
+    }
+  }
+  return result
+}
+
 function escapeJiraCell(text: string): string {
   let escaped = text
+  // 1. Escape Jira macro delimiters { and }
   escaped = escaped.replace(/\{/g, '\\{').replace(/\}/g, '\\}')
-  // Escape standalone brackets [text] (no URL pattern)
+  // 2. Escape | that are not inside [text|url] Jira links
+  escaped = escapePipesOutsideBrackets(escaped)
+  // 3. Escape standalone brackets [text] (no URL pattern) as \[text\]
   escaped = escaped.replace(/\[([^\]|]*)\]/g, (match, inner: string) => {
     // If it already looks like a Jira link [text|url], don't escape
     if (inner.includes('|')) return match
-    // If it looks like a converted link, don't escape
     return `\\[${inner}\\]`
   })
   return escaped
