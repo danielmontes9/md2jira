@@ -35,6 +35,11 @@ jobs:
       - name: Build CLI
         run: pnpm --filter md2jira-cli build
 
+      - name: Dependency security audit
+        # Fail the build if any dependency has a known HIGH or CRITICAL vulnerability.
+        # Use --audit-level=high to allow low/moderate advisories that have no fix yet.
+        run: pnpm audit --audit-level=high
+
       - name: Lint
         run: pnpm lint
 
