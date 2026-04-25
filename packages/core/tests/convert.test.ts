@@ -439,6 +439,92 @@ describe('tables — missing separator row (known gap)', () => {
   })
 })
 
+describe('convert — ConvertOptions.baseUrl', () => {
+  it('resolves relative links with baseUrl', () => {
+    expect(convert('[docs](/guide)', { baseUrl: 'https://wiki.example.com' })).toBe(
+      '[docs|https://wiki.example.com/guide]'
+    )
+  })
+
+  it('leaves absolute links unchanged when baseUrl is set', () => {
+    expect(convert('[home](https://example.com)', { baseUrl: 'https://wiki.example.com' })).toBe(
+      '[home|https://example.com]'
+    )
+  })
+
+  it('trims trailing slash from baseUrl before prepending', () => {
+    expect(convert('[page](/about)', { baseUrl: 'https://wiki.example.com/' })).toBe(
+      '[page|https://wiki.example.com/about]'
+    )
+  })
+
+  it('resolves relative links inside table cells', () => {
+    const md = '| Link |\n|------|\n| [Guide](/guide) |'
+    expect(convert(md, { baseUrl: 'https://wiki.example.com' })).toBe(
+      '||Link||\n|[Guide|https://wiki.example.com/guide]|'
+    )
+  })
+
+  it('resolves relative links inside list items', () => {
+    expect(convert('- [Page](/path)', { baseUrl: 'https://wiki.example.com' })).toBe(
+      '* [Page|https://wiki.example.com/path]'
+    )
+  })
+
+  it('resolves relative links inside blockquotes', () => {
+    expect(convert('> See [page](/docs)', { baseUrl: 'https://wiki.example.com' })).toBe(
+      'bq. See [page|https://wiki.example.com/docs]'
+    )
+  })
+
+  it('does not affect protocol-relative or anchor links', () => {
+    expect(convert('[top](#top)', { baseUrl: 'https://wiki.example.com' })).toBe('[top|#top]')
+  })
+
+  it('without baseUrl leaves relative links as-is', () => {
+    expect(convert('[docs](/guide)')).toBe('[docs|/guide]')
+  })
+})
+
+describe('convert — ConvertOptions.disableTransforms', () => {
+  it('suppresses heading nodes', () => {
+    expect(convert('# Title\n\nParagraph', { disableTransforms: ['heading'] })).toBe('Paragraph')
+  })
+
+  it('suppresses list nodes', () => {
+    expect(convert('- item\n\nParagraph', { disableTransforms: ['list'] })).toBe('Paragraph')
+  })
+
+  it('suppresses code blocks', () => {
+    expect(convert('```js\ncode\n```\n\nParagraph', { disableTransforms: ['code'] })).toBe(
+      'Paragraph'
+    )
+  })
+
+  it('suppresses table nodes', () => {
+    const md = '| A |\n|---|\n| B |\n\nText'
+    expect(convert(md, { disableTransforms: ['table'] })).toBe('Text')
+  })
+
+  it('suppresses blockquote nodes', () => {
+    expect(convert('> quote\n\nText', { disableTransforms: ['blockquote'] })).toBe('Text')
+  })
+
+  it('suppresses thematicBreak nodes', () => {
+    expect(convert('---\n\nText', { disableTransforms: ['thematicBreak'] })).toBe('Text')
+  })
+
+  it('can disable multiple transforms at once', () => {
+    expect(
+      convert('# Title\n\n> quote\n\nText', { disableTransforms: ['heading', 'blockquote'] })
+    ).toBe('Text')
+  })
+
+  it('without options behaves identically to before', () => {
+    expect(convert('# Title')).toBe('h1. Title')
+  })
+})
+
 describe('full-document integration', () => {
   it('converts a document exercising all supported element types', () => {
     const md = [

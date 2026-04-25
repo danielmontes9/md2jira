@@ -440,3 +440,105 @@ describe('convertToAdf — GFM Alert panels', () => {
     expect(result.content[0]).toMatchObject({ type: 'blockquote' })
   })
 })
+
+describe('convertToAdf — ConvertOptions.baseUrl', () => {
+  it('resolves relative links with baseUrl', () => {
+    const result = convertToAdf('[docs](/guide)', { baseUrl: 'https://wiki.example.com' })
+    const para = result.content[0] as {
+      type: string
+      content: { marks: { type: string; attrs: { href: string } }[] }[]
+    }
+    expect(para.content[0]!.marks[0]).toMatchObject({
+      type: 'link',
+      attrs: { href: 'https://wiki.example.com/guide' },
+    })
+  })
+
+  it('leaves absolute links unchanged when baseUrl is set', () => {
+    const result = convertToAdf('[home](https://example.com)', {
+      baseUrl: 'https://wiki.example.com',
+    })
+    const para = result.content[0] as {
+      type: string
+      content: { marks: { type: string; attrs: { href: string } }[] }[]
+    }
+    expect(para.content[0]!.marks[0]).toMatchObject({
+      type: 'link',
+      attrs: { href: 'https://example.com' },
+    })
+  })
+
+  it('trims trailing slash from baseUrl', () => {
+    const result = convertToAdf('[page](/about)', { baseUrl: 'https://wiki.example.com/' })
+    const para = result.content[0] as {
+      type: string
+      content: { marks: { type: string; attrs: { href: string } }[] }[]
+    }
+    expect(para.content[0]!.marks[0]).toMatchObject({
+      type: 'link',
+      attrs: { href: 'https://wiki.example.com/about' },
+    })
+  })
+
+  it('resolves relative links in table data cells', () => {
+    const md = '| Link |\n|------|\n| [Guide](/guide) |'
+    const result = convertToAdf(md, { baseUrl: 'https://wiki.example.com' })
+    // table → tableRow (data, idx 1) → tableCell → paragraph → text[link mark]
+    const table = result.content[0] as {
+      type: string
+      content: {
+        type: string
+        content: {
+          type: string
+          content: {
+            type: string
+            content: { marks: { attrs: { href: string } }[] }[]
+          }[]
+        }[]
+      }[]
+    }
+    const dataCell = table.content[1]!.content[0]!
+    const dataPara = dataCell.content[0]!
+    expect(dataPara.content[0]!.marks[0]!.attrs.href).toBe('https://wiki.example.com/guide')
+  })
+})
+
+describe('convertToAdf — ConvertOptions.disableTransforms', () => {
+  it('suppresses heading nodes', () => {
+    const result = convertToAdf('# Title\n\nParagraph', { disableTransforms: ['heading'] })
+    expect(result.content).toHaveLength(1)
+    expect(result.content[0]).toMatchObject({ type: 'paragraph' })
+  })
+
+  it('suppresses table nodes', () => {
+    const md = '| A |\n|---|\n| B |\n\nText'
+    const result = convertToAdf(md, { disableTransforms: ['table'] })
+    expect(result.content).toHaveLength(1)
+    expect(result.content[0]).toMatchObject({ type: 'paragraph' })
+  })
+
+  it('suppresses blockquote nodes', () => {
+    const result = convertToAdf('> quote\n\nText', { disableTransforms: ['blockquote'] })
+    expect(result.content).toHaveLength(1)
+    expect(result.content[0]).toMatchObject({ type: 'paragraph' })
+  })
+
+  it('suppresses list nodes', () => {
+    const result = convertToAdf('- item\n\nText', { disableTransforms: ['list'] })
+    expect(result.content).toHaveLength(1)
+    expect(result.content[0]).toMatchObject({ type: 'paragraph' })
+  })
+
+  it('can disable multiple transforms at once', () => {
+    const result = convertToAdf('# Title\n\n> quote\n\nText', {
+      disableTransforms: ['heading', 'blockquote'],
+    })
+    expect(result.content).toHaveLength(1)
+    expect(result.content[0]).toMatchObject({ type: 'paragraph' })
+  })
+
+  it('without options preserves all nodes', () => {
+    const result = convertToAdf('# Title')
+    expect(result.content[0]).toMatchObject({ type: 'heading' })
+  })
+})
