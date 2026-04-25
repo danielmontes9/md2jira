@@ -8,6 +8,7 @@ export type AdfMark =
   | { type: 'em' }
   | { type: 'strike' }
   | { type: 'code' }
+  | { type: 'underline' }
   | { type: 'link'; attrs: { href: string } }
   | { type: 'subsup'; attrs: { type: 'sub' | 'sup' } }
 
