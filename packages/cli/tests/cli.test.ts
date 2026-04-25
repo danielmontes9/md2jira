@@ -347,3 +347,46 @@ describe('-o / --output edge cases', () => {
     expect(stderr).toMatch(/ENOENT|no such file/i)
   })
 })
+
+describe('--disable deduplication', () => {
+  it('deduplicates repeated transform names (comma-separated)', async () => {
+    // heading,heading should behave the same as heading — no error, no crash
+    const md = '# Title\n\nParagraph\n'
+    const { stdout, exitCode } = await run(['--disable', 'heading,heading'], { stdin: md })
+    expect(exitCode).toBe(0)
+    expect(stdout).not.toContain('h1.')
+    expect(stdout).toContain('Paragraph')
+  })
+
+  it('deduplicates repeated transform names (repeated flag)', async () => {
+    const md = '# Title\n\nParagraph\n'
+    const { stdout, exitCode } = await run(['--disable', 'heading', '--disable', 'heading'], {
+      stdin: md,
+    })
+    expect(exitCode).toBe(0)
+    expect(stdout).not.toContain('h1.')
+    expect(stdout).toContain('Paragraph')
+  })
+})
+
+describe('--base-url edge cases', () => {
+  it('handles trailing slash in --base-url without double slash', async () => {
+    const md = '[page](/wiki/home)\n'
+    const { stdout, exitCode } = await run(['--base-url', 'https://company.atlassian.net/'], {
+      stdin: md,
+    })
+    expect(exitCode).toBe(0)
+    // Trailing slash is stripped before concat: .../net/ → .../net + /wiki/home → no double slash
+    expect(stdout).toContain('[page|https://company.atlassian.net/wiki/home]')
+    expect(stdout).not.toContain('//wiki')
+  })
+
+  it('handles base URL without path component', async () => {
+    const md = '[page](/wiki/home)\n'
+    const { stdout, exitCode } = await run(['--base-url', 'https://company.atlassian.net'], {
+      stdin: md,
+    })
+    expect(exitCode).toBe(0)
+    expect(stdout).toContain('[page|https://company.atlassian.net/wiki/home]')
+  })
+})

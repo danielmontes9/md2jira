@@ -24,15 +24,13 @@ const VALID_TRANSFORMS = new Set([
 /** Valid output format names accepted by --format. */
 const VALID_FORMATS = new Set(['wiki', 'adf'])
 
-/** Collector for --disable: supports both comma-separated and repeated flags. */
+/** Collector for --disable: supports both comma-separated and repeated flags. Deduplicates. */
 function collectTransforms(val: string, prev: string[]): string[] {
-  return [
-    ...prev,
-    ...val
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean),
-  ]
+  const next = val
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+  return [...new Set([...prev, ...next])]
 }
 
 const program = new Command()
