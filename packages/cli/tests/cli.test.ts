@@ -220,12 +220,13 @@ describe('--base-url flag', () => {
 })
 
 describe('--disable flag', () => {
-  it('suppresses heading transform', async () => {
+  it('suppresses heading transform (heading node is dropped entirely)', async () => {
     const md = '# Title\n\nParagraph\n'
     const { stdout, exitCode } = await run(['--disable', 'heading'], { stdin: md })
     expect(exitCode).toBe(0)
     expect(stdout).not.toContain('h1.')
-    expect(stdout).toContain('Title')
+    expect(stdout).not.toContain('Title')
+    expect(stdout).toContain('Paragraph')
   })
 
   it('suppresses list transform', async () => {

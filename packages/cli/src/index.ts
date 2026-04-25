@@ -52,10 +52,7 @@ program
       }
 
       // Build ConvertOptions from CLI flags.
-      const convertOptions: ConvertOptions = {}
-      if (options.baseUrl) {
-        convertOptions.baseUrl = options.baseUrl
-      }
+      let disableTransforms: ConvertOptions['disableTransforms'] | undefined
       if (options.disable) {
         const requested = options.disable.split(',').map((s) => s.trim())
         const invalid = requested.filter((t) => !VALID_TRANSFORMS.has(t))
@@ -65,7 +62,12 @@ program
           )
           process.exit(1)
         }
-        convertOptions.disableTransforms = requested as ConvertOptions['disableTransforms']
+        disableTransforms = requested as ConvertOptions['disableTransforms']
+      }
+
+      const convertOptions: ConvertOptions = {
+        ...(options.baseUrl ? { baseUrl: options.baseUrl } : {}),
+        ...(disableTransforms ? { disableTransforms } : {}),
       }
 
       const fmt = options.format?.toLowerCase()
