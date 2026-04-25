@@ -477,6 +477,12 @@ describe('convert — ConvertOptions.baseUrl', () => {
     )
   })
 
+  it('resolves relative links inside headings', () => {
+    expect(convert('# See [Guide](/guide)', { baseUrl: 'https://wiki.example.com' })).toBe(
+      'h1. See [Guide|https://wiki.example.com/guide]'
+    )
+  })
+
   it('does not affect protocol-relative or anchor links', () => {
     expect(convert('[top](#top)', { baseUrl: 'https://wiki.example.com' })).toBe('[top|#top]')
   })

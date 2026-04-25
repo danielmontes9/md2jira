@@ -62,7 +62,7 @@ describe('transformInlineCode', () => {
   })
 
   it('preserves HTML special characters inside code', () => {
-    expect(transformInlineCode(code('<div class="x">') )).toBe('{{<div class="x">}}')
+    expect(transformInlineCode(code('<div class="x">'))).toBe('{{<div class="x">}}')
   })
 
   it('preserves Jira macro characters inside code', () => {
@@ -84,6 +84,30 @@ describe('transformLink', () => {
   it('converts link with formatted text', () => {
     expect(transformLink(link('https://example.com', [strong([text('bold')])]))).toBe(
       '[*bold*|https://example.com]'
+    )
+  })
+
+  it('resolves relative link when baseUrl is provided', () => {
+    expect(transformLink(link('/about', [text('About')]), 'https://wiki.example.com')).toBe(
+      '[About|https://wiki.example.com/about]'
+    )
+  })
+
+  it('trims trailing slash from baseUrl when prepending', () => {
+    expect(transformLink(link('/docs', [text('Docs')]), 'https://wiki.example.com/')).toBe(
+      '[Docs|https://wiki.example.com/docs]'
+    )
+  })
+
+  it('leaves absolute link unchanged even when baseUrl is provided', () => {
+    expect(
+      transformLink(link('https://external.com', [text('External')]), 'https://wiki.example.com')
+    ).toBe('[External|https://external.com]')
+  })
+
+  it('leaves anchor links unchanged when baseUrl is provided', () => {
+    expect(transformLink(link('#section', [text('Top')]), 'https://wiki.example.com')).toBe(
+      '[Top|#section]'
     )
   })
 })

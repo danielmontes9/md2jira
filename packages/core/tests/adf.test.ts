@@ -528,6 +528,23 @@ describe('convertToAdf — ConvertOptions.baseUrl', () => {
     })
   })
 
+  it('resolves relative links inside headings', () => {
+    const result = convertToAdf('# See [Guide](/guide)', { baseUrl: 'https://wiki.example.com' })
+    const heading = result.content[0] as {
+      type: string
+      attrs: { level: number }
+      content: { type: string; marks?: { type: string; attrs: { href: string } }[] }[]
+    }
+    expect(heading.type).toBe('heading')
+    expect(heading.attrs.level).toBe(1)
+    const linkNode = heading.content.find((n) => n.marks && n.marks.length > 0)
+    expect(linkNode).toBeDefined()
+    expect(linkNode!.marks![0]).toMatchObject({
+      type: 'link',
+      attrs: { href: 'https://wiki.example.com/guide' },
+    })
+  })
+
   it('resolves relative links in table data cells', () => {
     const md = '| Link |\n|------|\n| [Guide](/guide) |'
     const result = convertToAdf(md, { baseUrl: 'https://wiki.example.com' })
