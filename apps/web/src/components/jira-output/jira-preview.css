@@ -6,437 +6,569 @@
  * Tailwind utility classes cannot be applied to runtime-generated DOM nodes (ADF → HTML).
  * A future migration could use @tailwindcss/typography (prose), but the current approach
  * gives precise control over Jira's look-and-feel without visual regressions.
+ *
+ * --- CSS @layer ordering ---
+ * This file is imported by a component (JiraOutput.tsx), so Vite/Rollup processes it
+ * BEFORE the main index.css (which contains @import 'tailwindcss'). Without the
+ * ordering statement below, this file's @layer components block is declared FIRST in
+ * the cascade, making it the LOWEST priority layer — below @layer base (Tailwind
+ * preflight). That causes the preflight resets (h1 { font-size: inherit },
+ * ul { list-style: none }, etc.) to silently override all our preview styles.
+ *
+ * The fix: explicitly declare the full Tailwind layer order here, BEFORE the first
+ * @layer block. This ensures components sits above base (and below utilities) even
+ * when this file is processed first.
  */
 
-/* Placeholder when editor is empty */
-.jira-preview:empty::before {
-  content: 'Start typing or paste content here…';
-  color: #a3a3a3;
-  pointer-events: none;
-}
-.dark .jira-preview:empty::before {
-  color: #525252;
-}
+/* Correct Tailwind v4 layer cascade: theme < base < components < utilities */
+@layer theme, base, components, utilities;
 
-.jira-preview {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-  line-height: 1.6;
-  color: #171717;
-}
+@layer components {
+  /* ── ProseMirror base styles ───────────────────────────────────────────────
+   * Equivalent to prosemirror-view/style/prosemirror.css, inlined here to
+   * keep all preview-related CSS in one place and avoid a separate import.
+   * These rules are required for correct editor layout and selection behavior.
+   * -------------------------------------------------------------------------- */
+  .ProseMirror {
+    position: relative;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    white-space: break-spaces;
+    -webkit-font-variant-ligatures: none;
+    font-variant-ligatures: none;
+    font-feature-settings: 'liga' 0;
+  }
+  .ProseMirror pre {
+    white-space: pre-wrap;
+  }
+  .ProseMirror li {
+    position: relative;
+  }
+  .ProseMirror-hideselection *::selection {
+    background: transparent;
+  }
+  .ProseMirror-hideselection *::-moz-selection {
+    background: transparent;
+  }
+  .ProseMirror-hideselection {
+    caret-color: transparent;
+  }
+  .ProseMirror-selectednode {
+    outline: 2px solid #8cf;
+  }
+  li.ProseMirror-selectednode {
+    outline: none;
+  }
+  li.ProseMirror-selectednode::after {
+    content: '';
+    position: absolute;
+    left: -32px;
+    right: -2px;
+    top: -2px;
+    bottom: -2px;
+    border: 2px solid #8cf;
+    pointer-events: none;
+  }
+  img.ProseMirror-separator {
+    display: inline !important;
+    border: none !important;
+    margin: 0 !important;
+  }
+  /* ── End ProseMirror base styles ────────────────────────────────────────── */
+  /* Placeholder when editor is empty */
+  .jira-preview:empty::before {
+    content: 'Start typing or paste content here…';
+    color: #a3a3a3;
+    pointer-events: none;
+  }
+  .dark .jira-preview:empty::before {
+    color: #525252;
+  }
 
-.dark .jira-preview {
-  color: #e5e5e5;
-}
+  .jira-preview {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    line-height: 1.6;
+    color: #171717;
+  }
 
-.jira-preview h1,
-.jira-preview h2,
-.jira-preview h3,
-.jira-preview h4,
-.jira-preview h5,
-.jira-preview h6 {
-  margin-top: 1.2em;
-  margin-bottom: 0.4em;
-  font-weight: 600;
-  line-height: 1.3;
-  color: #0a0a0a;
-}
+  .dark .jira-preview {
+    color: #e5e5e5;
+  }
 
-.dark .jira-preview h1,
-.dark .jira-preview h2,
-.dark .jira-preview h3,
-.dark .jira-preview h4,
-.dark .jira-preview h5,
-.dark .jira-preview h6 {
-  color: #f5f5f5;
-}
+  .jira-preview h1,
+  .jira-preview h2,
+  .jira-preview h3,
+  .jira-preview h4,
+  .jira-preview h5,
+  .jira-preview h6 {
+    margin-top: 1.2em;
+    margin-bottom: 0.4em;
+    font-weight: 600;
+    line-height: 1.3;
+    color: #0a0a0a;
+  }
 
-.jira-preview h1 {
-  font-size: 1.5em;
-}
-.jira-preview h2 {
-  font-size: 1.3em;
-}
-.jira-preview h3 {
-  font-size: 1.15em;
-}
-.jira-preview h4 {
-  font-size: 1.05em;
-}
-.jira-preview h5 {
-  font-size: 1em;
-}
-.jira-preview h6 {
-  font-size: 0.95em;
-  color: #737373;
-}
+  .dark .jira-preview h1,
+  .dark .jira-preview h2,
+  .dark .jira-preview h3,
+  .dark .jira-preview h4,
+  .dark .jira-preview h5,
+  .dark .jira-preview h6 {
+    color: #f5f5f5;
+  }
 
-.dark .jira-preview h6 {
-  color: #a3a3a3;
-}
+  .jira-preview h1 {
+    font-size: 1.5em;
+  }
+  .jira-preview h2 {
+    font-size: 1.3em;
+  }
+  .jira-preview h3 {
+    font-size: 1.15em;
+  }
+  .jira-preview h4 {
+    font-size: 1.05em;
+  }
+  .jira-preview h5 {
+    font-size: 1em;
+  }
+  .jira-preview h6 {
+    font-size: 0.95em;
+    color: #737373;
+  }
 
-.jira-preview h1:first-child,
-.jira-preview h2:first-child,
-.jira-preview h3:first-child {
-  margin-top: 0;
-}
+  .dark .jira-preview h6 {
+    color: #a3a3a3;
+  }
 
-.jira-preview p {
-  margin: 0.5em 0;
-}
+  .jira-preview h1:first-child,
+  .jira-preview h2:first-child,
+  .jira-preview h3:first-child {
+    margin-top: 0;
+  }
 
-.jira-preview strong {
-  font-weight: 700;
-  color: #0a0a0a;
-}
+  .jira-preview p {
+    margin: 0.5em 0;
+  }
 
-.dark .jira-preview strong {
-  color: #f5f5f5;
-}
+  .jira-preview strong {
+    font-weight: 700;
+    color: #0a0a0a;
+  }
 
-.jira-preview em {
-  font-style: italic;
-}
+  .dark .jira-preview strong {
+    color: #f5f5f5;
+  }
 
-.jira-preview s {
-  text-decoration: line-through;
-  color: #737373;
-}
+  .jira-preview em {
+    font-style: italic;
+  }
 
-.dark .jira-preview s {
-  color: #a3a3a3;
-}
+  .jira-preview s {
+    text-decoration: line-through;
+    color: #737373;
+  }
 
-.jira-preview a {
-  color: #2563eb;
-  text-decoration: none;
-}
+  .dark .jira-preview s {
+    color: #a3a3a3;
+  }
 
-.dark .jira-preview a {
-  color: #60a5fa;
-}
+  .jira-preview a {
+    color: #2563eb;
+    text-decoration: none;
+  }
 
-.jira-preview a:hover {
-  text-decoration: underline;
-}
+  .dark .jira-preview a {
+    color: #60a5fa;
+  }
 
-.jira-preview code {
-  background: #f5f5f4;
-  color: #c2410c;
-  padding: 0.15em 0.35em;
-  border-radius: 3px;
-  font-size: 0.9em;
-  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-}
+  .jira-preview a:hover {
+    text-decoration: underline;
+  }
 
-.dark .jira-preview code {
-  background: #292524;
-  color: #fb923c;
-}
+  .jira-preview code {
+    background: #f5f5f4;
+    color: #c2410c;
+    padding: 0.15em 0.35em;
+    border-radius: 3px;
+    font-size: 0.9em;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  }
 
-.jira-preview pre {
-  background: #fafaf9;
-  border: 1px solid #d4d4d4;
-  border-radius: 6px;
-  padding: 0.8em 1em;
-  margin: 0.75em 0;
-  overflow-x: auto;
-}
+  .dark .jira-preview code {
+    background: #292524;
+    color: #fb923c;
+  }
 
-.dark .jira-preview pre {
-  background: #1c1917;
-  border-color: #404040;
-}
+  .jira-preview pre {
+    background: #fafaf9;
+    border: 1px solid #d4d4d4;
+    border-radius: 6px;
+    padding: 0.8em 1em;
+    margin: 0.75em 0;
+    overflow-x: auto;
+  }
 
-.jira-preview pre code {
-  background: none;
-  color: #171717;
-  padding: 0;
-  font-size: 0.85em;
-}
+  .dark .jira-preview pre {
+    background: #1c1917;
+    border-color: #404040;
+  }
 
-.dark .jira-preview pre code {
-  color: #e5e5e5;
-}
+  .jira-preview pre code {
+    background: none;
+    color: #171717;
+    padding: 0;
+    font-size: 0.85em;
+  }
 
-.jira-preview blockquote {
-  border-left: 3px solid #d4d4d4;
-  padding: 0.4em 0.8em;
-  margin: 0.75em 0;
-  color: #737373;
-  background: #fafaf9;
-  border-radius: 0 4px 4px 0;
-}
+  .dark .jira-preview pre code {
+    color: #e5e5e5;
+  }
 
-.dark .jira-preview blockquote {
-  border-left-color: #525252;
-  color: #a3a3a3;
-  background: #1c1917;
-}
+  .jira-preview blockquote {
+    border-left: 3px solid #d4d4d4;
+    padding: 0.4em 0.8em;
+    margin: 0.75em 0;
+    color: #737373;
+    background: #fafaf9;
+    border-radius: 0 4px 4px 0;
+  }
 
-.jira-preview blockquote p {
-  margin: 0.2em 0;
-}
+  .dark .jira-preview blockquote {
+    border-left-color: #525252;
+    color: #a3a3a3;
+    background: #1c1917;
+  }
 
-.jira-preview hr {
-  border: none;
-  border-top: 1px solid #d4d4d4;
-  margin: 1em 0;
-}
+  .jira-preview blockquote p {
+    margin: 0.2em 0;
+  }
 
-.dark .jira-preview hr {
-  border-top-color: #404040;
-}
+  .jira-preview hr {
+    border: none;
+    border-top: 1px solid #d4d4d4;
+    margin: 1em 0;
+  }
 
-.jira-preview ul,
-.jira-preview ol {
-  margin: 0.5em 0;
-  padding-left: 1.6em;
-}
+  .dark .jira-preview hr {
+    border-top-color: #404040;
+  }
 
-.jira-preview ul {
-  list-style-type: disc;
-}
-.jira-preview ol {
-  list-style-type: decimal;
-}
+  .jira-preview ul,
+  .jira-preview ol {
+    margin: 0.5em 0;
+    padding-left: 1.6em;
+  }
 
-.jira-preview li {
-  margin: 0.2em 0;
-}
+  .jira-preview ul {
+    list-style-type: disc;
+  }
+  .jira-preview ol {
+    list-style-type: decimal;
+  }
 
-.jira-preview li ul,
-.jira-preview li ol {
-  margin: 0.1em 0;
-}
+  .jira-preview li {
+    margin: 0.2em 0;
+  }
 
-/* Task lists (TipTap TaskList / ADF taskList) */
-.jira-preview ul[data-type='taskList'] {
-  list-style: none;
-  padding-left: 0.25em;
-}
+  .jira-preview li ul,
+  .jira-preview li ol {
+    margin: 0.1em 0;
+  }
 
-.jira-preview li[data-type='taskItem'] {
-  display: flex;
-  align-items: baseline;
-  gap: 0.5em;
-  margin: 0.2em 0;
-}
+  /* Task lists (TipTap TaskList / ADF taskList) */
+  .jira-preview ul[data-type='taskList'] {
+    list-style: none;
+    padding-left: 0.25em;
+  }
 
-.jira-preview li[data-type='taskItem'] > label {
-  display: flex;
-  align-items: center;
-  gap: 0.4em;
-  cursor: pointer;
-  user-select: none;
-}
+  .jira-preview li[data-type='taskItem'] {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5em;
+    margin: 0.2em 0;
+  }
 
-.jira-preview li[data-type='taskItem'] input[type='checkbox'] {
-  accent-color: #2563eb;
-  cursor: pointer;
-}
+  .jira-preview li[data-type='taskItem'] > label {
+    display: flex;
+    align-items: center;
+    gap: 0.4em;
+    cursor: pointer;
+    user-select: none;
+  }
 
-/* Subscript and superscript */
-.jira-preview sub,
-.jira-preview sup {
-  font-size: 0.75em;
-  line-height: 0;
-  position: relative;
-  vertical-align: baseline;
-}
+  .jira-preview li[data-type='taskItem'] input[type='checkbox'] {
+    accent-color: #2563eb;
+    cursor: pointer;
+  }
 
-.jira-preview sub {
-  bottom: -0.25em;
-}
+  /* Subscript and superscript */
+  .jira-preview sub,
+  .jira-preview sup {
+    font-size: 0.75em;
+    line-height: 0;
+    position: relative;
+    vertical-align: baseline;
+  }
 
-.jira-preview sup {
-  top: -0.5em;
-}
+  .jira-preview sub {
+    bottom: -0.25em;
+  }
 
-.jira-preview table {
-  border-collapse: collapse;
-  width: 100%;
-  margin: 0.75em 0;
-}
+  .jira-preview sup {
+    top: -0.5em;
+  }
 
-.jira-preview th,
-.jira-preview td {
-  border: 1px solid #d4d4d4;
-  padding: 0.45em 0.65em;
-  text-align: left;
-}
+  .jira-preview table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 0.75em 0;
+  }
 
-.dark .jira-preview th,
-.dark .jira-preview td {
-  border-color: #404040;
-}
+  .jira-preview th,
+  .jira-preview td {
+    border: 1px solid #d4d4d4;
+    padding: 0.45em 0.65em;
+    text-align: left;
+  }
 
-.jira-preview th {
-  background: #f5f5f4;
-  font-weight: 600;
-  color: #0a0a0a;
-}
+  .dark .jira-preview th,
+  .dark .jira-preview td {
+    border-color: #404040;
+  }
 
-.dark .jira-preview th {
-  background: #292524;
-  color: #f5f5f5;
-}
+  .jira-preview th {
+    background: #f5f5f4;
+    font-weight: 600;
+    color: #0a0a0a;
+  }
 
-.jira-preview td {
-  background: #ffffff;
-}
+  .dark .jira-preview th {
+    background: #292524;
+    color: #f5f5f5;
+  }
 
-.dark .jira-preview td {
-  background: #1a1a1a;
-}
+  .jira-preview td {
+    background: #ffffff;
+  }
 
-/* ── JSON syntax highlighting (ADF code view) ── */
-.json-key {
-  color: #2563eb;
-} /* blue-600  — object keys */
-.json-string {
-  color: #16a34a;
-} /* green-600 — string values */
-.json-boolean {
-  color: #d97706;
-} /* amber-600 — true / false */
-.json-null {
-  color: #dc2626;
-} /* red-600   — null */
-.json-number {
-  color: #7c3aed;
-} /* violet-700 — numbers */
+  .dark .jira-preview td {
+    background: #1a1a1a;
+  }
 
-.dark .json-key {
-  color: #60a5fa;
-} /* blue-400 */
-.dark .json-string {
-  color: #4ade80;
-} /* green-400 */
-.dark .json-boolean {
-  color: #fbbf24;
-} /* amber-400 */
-.dark .json-null {
-  color: #f87171;
-} /* red-400 */
-.dark .json-number {
-  color: #c084fc;
-} /* purple-400 */
+  /* ── JSON syntax highlighting (ADF code view) ── */
+  .json-key {
+    color: #2563eb;
+  } /* blue-600  — object keys */
+  .json-string {
+    color: #16a34a;
+  } /* green-600 — string values */
+  .json-boolean {
+    color: #d97706;
+  } /* amber-600 — true / false */
+  .json-null {
+    color: #dc2626;
+  } /* red-600   — null */
+  .json-number {
+    color: #7c3aed;
+  } /* violet-700 — numbers */
 
-/* ── Wiki Markup syntax highlighting (wiki preview) ── */
-.wiki-heading {
-  color: #7c3aed;
-  font-weight: 600;
-} /* h1. – h6. keywords */
-.wiki-rule {
-  color: #737373;
-} /* ---- horizontal rule */
-.wiki-th {
-  color: #2563eb;
-  font-weight: 700;
-} /* || header delimiter */
-.wiki-td {
-  color: #374151;
-} /* | cell delimiter */
-.wiki-code-fence {
-  color: #16a34a;
-  font-weight: 600;
-} /* {code}/{noformat} fence */
+  .dark .json-key {
+    color: #60a5fa;
+  } /* blue-400 */
+  .dark .json-string {
+    color: #4ade80;
+  } /* green-400 */
+  .dark .json-boolean {
+    color: #fbbf24;
+  } /* amber-400 */
+  .dark .json-null {
+    color: #f87171;
+  } /* red-400 */
+  .dark .json-number {
+    color: #c084fc;
+  } /* purple-400 */
 
-.dark .wiki-heading {
-  color: #c084fc;
-}
-.dark .wiki-rule {
-  color: #525252;
-}
-.dark .wiki-th {
-  color: #60a5fa;
-}
-.dark .wiki-td {
-  color: #9ca3af;
-}
-.dark .wiki-code-fence {
-  color: #4ade80;
-}
-/* Inline tokens */
-.wiki-blockquote {
-  color: #0369a1;
-  font-weight: 600;
-} /* bq. keyword */
-.wiki-list-marker {
-  color: #9333ea;
-  font-weight: 700;
-} /* * # list prefix */
-.wiki-bold {
-  font-weight: 700;
-  color: inherit;
-} /* *bold* */
-.wiki-italic {
-  font-style: italic;
-  color: inherit;
-} /* _italic_ */
-.wiki-strike {
-  text-decoration: line-through;
-  color: inherit;
-} /* -strike- */
-.wiki-inline-code {
-  color: #c2410c;
-  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-  font-size: 0.9em;
-} /* {{code}} */
-.wiki-link {
-  color: #2563eb;
-} /* [text|url] */
-.wiki-macro {
-  color: #d97706;
-  font-weight: 600;
-} /* {color:red} macro tokens */
-.wiki-block-macro {
-  color: #0891b2;
-  font-weight: 600;
-} /* {info} {panel} {note} block macros */
+  /* ── Wiki Markup syntax highlighting (wiki preview) ── */
+  .wiki-heading {
+    color: #7c3aed;
+    font-weight: 600;
+  } /* h1. – h6. keywords */
+  .wiki-rule {
+    color: #737373;
+  } /* ---- horizontal rule */
+  .wiki-th {
+    color: #2563eb;
+    font-weight: 700;
+  } /* || header delimiter */
+  .wiki-td {
+    color: #374151;
+  } /* | cell delimiter */
+  .wiki-code-fence {
+    color: #16a34a;
+    font-weight: 600;
+  } /* {code}/{noformat} fence */
 
-.dark .wiki-blockquote {
-  color: #38bdf8;
-}
-.dark .wiki-list-marker {
-  color: #c084fc;
-}
-.dark .wiki-inline-code {
-  color: #fb923c;
-}
-.dark .wiki-link {
-  color: #60a5fa;
-}
-.dark .wiki-macro {
-  color: #fbbf24;
-}
-.dark .wiki-block-macro {
-  color: #22d3ee;
-}
+  .dark .wiki-heading {
+    color: #c084fc;
+  }
+  .dark .wiki-rule {
+    color: #525252;
+  }
+  .dark .wiki-th {
+    color: #60a5fa;
+  }
+  .dark .wiki-td {
+    color: #9ca3af;
+  }
+  .dark .wiki-code-fence {
+    color: #4ade80;
+  }
+  /* Inline tokens */
+  .wiki-blockquote {
+    color: #0369a1;
+    font-weight: 600;
+  } /* bq. keyword */
+  .wiki-list-marker {
+    color: #9333ea;
+    font-weight: 700;
+  } /* * # list prefix */
+  .wiki-bold {
+    font-weight: 700;
+    color: inherit;
+  } /* *bold* */
+  .wiki-italic {
+    font-style: italic;
+    color: inherit;
+  } /* _italic_ */
+  .wiki-strike {
+    text-decoration: line-through;
+    color: inherit;
+  } /* -strike- */
+  .wiki-inline-code {
+    color: #c2410c;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.9em;
+  } /* {{code}} */
+  .wiki-link {
+    color: #2563eb;
+  } /* [text|url] */
+  .wiki-macro {
+    color: #d97706;
+    font-weight: 600;
+  } /* {color:red} macro tokens */
+  .wiki-block-macro {
+    color: #0891b2;
+    font-weight: 600;
+  } /* {info} {panel} {note} block macros */
 
-/* ── Insert panel templates (Info panel, Decision) ── */
-.jira-preview [data-type='info-panel'] {
-  background: #deebff;
-  border-left: 4px solid #0052cc;
-  border-radius: 0 4px 4px 0;
-  padding: 8px 12px;
-  margin: 4px 0;
-}
+  .dark .wiki-blockquote {
+    color: #38bdf8;
+  }
+  .dark .wiki-list-marker {
+    color: #c084fc;
+  }
+  .dark .wiki-inline-code {
+    color: #fb923c;
+  }
+  .dark .wiki-link {
+    color: #60a5fa;
+  }
+  .dark .wiki-macro {
+    color: #fbbf24;
+  }
+  .dark .wiki-block-macro {
+    color: #22d3ee;
+  }
 
-.dark .jira-preview [data-type='info-panel'] {
-  background: #172b4d;
-  border-left-color: #4c9aff;
-}
+  /* ── Insert panel templates (Info panel, Decision) ── */
+  .jira-preview [data-type='info-panel'] {
+    background: #deebff;
+    border-left: 4px solid #0052cc;
+    border-radius: 0 4px 4px 0;
+    padding: 8px 12px;
+    margin: 4px 0;
+  }
 
-.jira-preview [data-type='decision-panel'] {
-  background: #fffae6;
-  border-left: 4px solid #ff991f;
-  border-radius: 0 4px 4px 0;
-  padding: 8px 12px;
-  margin: 4px 0;
-}
+  .dark .jira-preview [data-type='info-panel'] {
+    background: #172b4d;
+    border-left-color: #4c9aff;
+  }
 
-.dark .jira-preview [data-type='decision-panel'] {
-  background: #3d2800;
-  border-left-color: #ff991f;
-}
+  .jira-preview [data-type='decision-panel'] {
+    background: #fffae6;
+    border-left: 4px solid #ff991f;
+    border-radius: 0 4px 4px 0;
+    padding: 8px 12px;
+    margin: 4px 0;
+  }
+
+  .dark .jira-preview [data-type='decision-panel'] {
+    background: #3d2800;
+    border-left-color: #ff991f;
+  }
+
+  /* ── ADF panel nodes (info, note, warning, tip, error, success) ── */
+  /* These are emitted by adf-renderer.ts when converting ADF documents that   */
+  /* contain {panel} macro nodes — distinct from the WYSIWYG insert templates. */
+  .jira-preview .adf-panel {
+    border-left: 4px solid;
+    border-radius: 0 4px 4px 0;
+    padding: 8px 12px;
+    margin: 8px 0;
+  }
+
+  .jira-preview .adf-panel--info {
+    background: #deebff;
+    border-left-color: #0052cc;
+  }
+  .dark .jira-preview .adf-panel--info {
+    background: #172b4d;
+    border-left-color: #4c9aff;
+  }
+
+  .jira-preview .adf-panel--note {
+    background: #fffae6;
+    border-left-color: #ff991f;
+  }
+  .dark .jira-preview .adf-panel--note {
+    background: #3d2800;
+    border-left-color: #ff991f;
+  }
+
+  .jira-preview .adf-panel--warning {
+    background: #fff8e6;
+    border-left-color: #e56910;
+  }
+  .dark .jira-preview .adf-panel--warning {
+    background: #3a2000;
+    border-left-color: #e56910;
+  }
+
+  .jira-preview .adf-panel--tip {
+    background: #e3fcef;
+    border-left-color: #006644;
+  }
+  .dark .jira-preview .adf-panel--tip {
+    background: #0a2e1f;
+    border-left-color: #57d9a3;
+  }
+
+  .jira-preview .adf-panel--error {
+    background: #ffebe6;
+    border-left-color: #de350b;
+  }
+  .dark .jira-preview .adf-panel--error {
+    background: #3b0a00;
+    border-left-color: #ff5630;
+  }
+
+  .jira-preview .adf-panel--success {
+    background: #e3fcef;
+    border-left-color: #00875a;
+  }
+  .dark .jira-preview .adf-panel--success {
+    background: #0a2e1f;
+    border-left-color: #57d9a3;
+  }
+} /* end @layer components */
