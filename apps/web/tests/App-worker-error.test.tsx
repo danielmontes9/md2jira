@@ -52,34 +52,28 @@ describe('App – worker error banner', () => {
 
   it('shows the worker-error alert banner when workerError is true', async () => {
     render(<App />)
-    // Both App.tsx (top banner) and JiraOutput.tsx (panel banner) render
-    // role="alert" when workerError is true, so we use getAllByRole.
+    // Only App.tsx's top-level banner renders role="alert" for worker errors
+    // after removing the duplicate banner from JiraOutput.tsx (WCAG 4.1.3).
     await waitFor(() => {
-      const alerts = screen.getAllByRole('alert')
-      expect(alerts.length).toBeGreaterThanOrEqual(1)
+      expect(screen.getByRole('alert')).toBeInTheDocument()
     })
-    const alerts = screen.getAllByRole('alert')
-    const hasWorkerErrorText = alerts.some((el) =>
-      /preview rendering failed/i.test(el.textContent ?? '')
-    )
-    expect(hasWorkerErrorText).toBe(true)
+    expect(screen.getByRole('alert')).toHaveTextContent(/preview rendering failed/i)
   })
 
   it('renders a Retry button inside the worker-error banner', async () => {
     render(<App />)
-    // There can be multiple Retry buttons (App top-banner + JiraOutput panel banner)
     await waitFor(() => {
-      expect(screen.getAllByRole('button', { name: /retry/i }).length).toBeGreaterThanOrEqual(1)
+      expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument()
     })
   })
 
   it('calls retryWorker when the Retry button is clicked', async () => {
     render(<App />)
     await waitFor(() => {
-      expect(screen.getAllByRole('button', { name: /retry/i }).length).toBeGreaterThanOrEqual(1)
+      expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument()
     })
     act(() => {
-      fireEvent.click(screen.getAllByRole('button', { name: /retry/i })[0]!)
+      fireEvent.click(screen.getByRole('button', { name: /retry/i }))
     })
     expect(mockRetryWorker).toHaveBeenCalledOnce()
   })

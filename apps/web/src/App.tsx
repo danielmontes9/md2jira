@@ -275,7 +275,9 @@ export function App() {
               activePanel !== 'input' ? ' hidden sm:flex' : ''
             }`}
           >
-            <ErrorBoundary>
+            <ErrorBoundary
+              onError={(err) => console.warn('[md2jira] MarkdownInput render error:', err.message)}
+            >
               <MarkdownInput
                 value={markdown}
                 onChange={setMarkdown}
@@ -316,7 +318,9 @@ export function App() {
               activePanel !== 'output' ? ' hidden sm:flex' : ''
             }`}
           >
-            <ErrorBoundary>
+            <ErrorBoundary
+              onError={(err) => console.warn('[md2jira] JiraOutput render error:', err.message)}
+            >
               <JiraOutput
                 value={jiraOutput}
                 format={format}
@@ -324,8 +328,6 @@ export function App() {
                 previewHtml={previewHtml}
                 isPending={isPending}
                 onMarkdownChange={setMarkdown}
-                workerError={workerError}
-                retryWorker={retryWorker}
               />
             </ErrorBoundary>
           </section>

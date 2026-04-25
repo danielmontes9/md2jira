@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { App } from '../src/App.js'
 import { ErrorBoundary } from '../src/components/ErrorBoundary.js'
 
@@ -138,6 +138,95 @@ describe('ErrorBoundary', () => {
       expect.objectContaining({ componentStack: expect.any(String) })
     )
     spy.mockRestore()
+  })
+
+  it('shows remaining retry count ("3 remaining") in the Retry button', () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    function Boom() {
+      throw new Error('boom')
+    }
+    render(
+      <ErrorBoundary>
+        <Boom />
+      </ErrorBoundary>
+    )
+    expect(screen.getByRole('button', { name: /3 remaining/i })).toBeInTheDocument()
+    spy.mockRestore()
+  })
+
+  it('decrements the remaining count after each manual retry', () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    function Boom() {
+      throw new Error('boom')
+    }
+    render(
+      <ErrorBoundary>
+        <Boom />
+      </ErrorBoundary>
+    )
+    fireEvent.click(screen.getByRole('button', { name: /3 remaining/i }))
+    expect(screen.getByRole('button', { name: /2 remaining/i })).toBeInTheDocument()
+    spy.mockRestore()
+  })
+
+  it('hides Retry and shows max-retries message after 3 exhausted attempts', () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    function Boom() {
+      throw new Error('boom')
+    }
+    render(
+      <ErrorBoundary>
+        <Boom />
+      </ErrorBoundary>
+    )
+    fireEvent.click(screen.getByRole('button', { name: /3 remaining/i }))
+    fireEvent.click(screen.getByRole('button', { name: /2 remaining/i }))
+    fireEvent.click(screen.getByRole('button', { name: /1 remaining/i }))
+    expect(screen.queryByRole('button', { name: /retry/i })).not.toBeInTheDocument()
+    expect(screen.getByText(/maximum retries reached/i)).toBeInTheDocument()
+    spy.mockRestore()
+  })
+
+  it('schedules auto-retry after 500 ms for transient ChunkLoadError', () => {
+    vi.useFakeTimers()
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    function ThrowChunk() {
+      const err = Object.assign(new Error('Loading chunk 5 failed.'), { name: 'ChunkLoadError' })
+      throw err
+    }
+    render(
+      <ErrorBoundary>
+        <ThrowChunk />
+      </ErrorBoundary>
+    )
+    expect(screen.getByRole('button', { name: /3 remaining/i })).toBeInTheDocument()
+    act(() => {
+      vi.advanceTimersByTime(500)
+    })
+    // Auto-retry fires → retryCount becomes 1 → ThrowChunk throws again → 2 remaining
+    expect(screen.getByRole('button', { name: /2 remaining/i })).toBeInTheDocument()
+    spy.mockRestore()
+    vi.useRealTimers()
+  })
+
+  it('does NOT auto-retry deterministic (non-transient) errors', () => {
+    vi.useFakeTimers()
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    function Boom() {
+      throw new Error('deterministic')
+    }
+    render(
+      <ErrorBoundary>
+        <Boom />
+      </ErrorBoundary>
+    )
+    act(() => {
+      vi.advanceTimersByTime(2_000)
+    })
+    // retryCount still 0 — no auto-retry was scheduled
+    expect(screen.getByRole('button', { name: /3 remaining/i })).toBeInTheDocument()
+    spy.mockRestore()
+    vi.useRealTimers()
   })
 })
 

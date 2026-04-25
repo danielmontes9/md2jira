@@ -41,51 +41,25 @@ const baseProps = {
   previewHtml: '<ul><li>item</li></ul>',
 }
 
-// ── Worker error banner ───────────────────────────────────────────────────────
+// ── No duplicate worker-error alert ──────────────────────────────────────────
+// Worker errors are surfaced by App.tsx's top-level banner.
+// JiraOutput must not render its own redundant role="alert" so screen readers
+// announce the error only once (WCAG 4.1.3 Status Messages).
 
-describe('JiraOutput — worker error banner', () => {
-  it('does not show error banner when workerError is absent', () => {
+describe('JiraOutput — no duplicate worker-error alert', () => {
+  it('renders without any role="alert" element in normal operation', () => {
     renderWithToast(createElement(JiraOutput, baseProps))
-    expect(screen.queryByText('Preview rendering failed.')).not.toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 
-  it('does not show error banner when workerError=false', () => {
-    renderWithToast(createElement(JiraOutput, { ...baseProps, workerError: false }))
-    expect(screen.queryByText('Preview rendering failed.')).not.toBeInTheDocument()
+  it('renders without any role="alert" element when isPending is true', () => {
+    renderWithToast(createElement(JiraOutput, { ...baseProps, isPending: true }))
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 
-  it('shows role="alert" banner when workerError=true', () => {
-    renderWithToast(createElement(JiraOutput, { ...baseProps, workerError: true }))
-    const alerts = screen.getAllByRole('alert')
-    const banner = alerts.find((el) => el.textContent?.includes('Preview rendering failed.'))
-    expect(banner).toBeDefined()
-  })
-
-  it('banner text contains "Preview rendering failed."', () => {
-    renderWithToast(createElement(JiraOutput, { ...baseProps, workerError: true }))
-    expect(screen.getByText('Preview rendering failed.')).toBeInTheDocument()
-  })
-
-  it('shows Retry button when retryWorker is provided alongside workerError', () => {
-    const retryWorker = vi.fn()
-    renderWithToast(
-      createElement(JiraOutput, { ...baseProps, workerError: true, retryWorker })
-    )
-    expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument()
-  })
-
-  it('calls retryWorker when Retry button is clicked', () => {
-    const retryWorker = vi.fn()
-    renderWithToast(
-      createElement(JiraOutput, { ...baseProps, workerError: true, retryWorker })
-    )
-    fireEvent.click(screen.getByRole('button', { name: /retry/i }))
-    expect(retryWorker).toHaveBeenCalledOnce()
-  })
-
-  it('does not show Retry button when retryWorker is absent', () => {
-    renderWithToast(createElement(JiraOutput, { ...baseProps, workerError: true }))
-    expect(screen.queryByRole('button', { name: /retry/i })).not.toBeInTheDocument()
+  it('renders without any role="alert" element in wiki format', () => {
+    renderWithToast(createElement(JiraOutput, { ...baseProps, format: 'wiki' }))
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 })
 
@@ -99,17 +73,13 @@ describe('JiraOutput — onUnderlineWarning toast', () => {
       return stubEditorState
     })
 
-    renderWithToast(
-      createElement(JiraOutput, { ...baseProps, onMarkdownChange: vi.fn() })
-    )
+    renderWithToast(createElement(JiraOutput, { ...baseProps, onMarkdownChange: vi.fn() }))
 
     act(() => {
       capturedWarning?.()
     })
 
-    expect(
-      screen.getByText(/underline formatting is not supported/i)
-    ).toBeInTheDocument()
+    expect(screen.getByText(/underline formatting is not supported/i)).toBeInTheDocument()
   })
 
   it('passes onUnderlineWarning as a function to useTiptapEditor', () => {
@@ -119,9 +89,7 @@ describe('JiraOutput — onUnderlineWarning toast', () => {
       return stubEditorState
     })
 
-    renderWithToast(
-      createElement(JiraOutput, { ...baseProps, onMarkdownChange: vi.fn() })
-    )
+    renderWithToast(createElement(JiraOutput, { ...baseProps, onMarkdownChange: vi.fn() }))
 
     expect(typeof capturedWarning).toBe('function')
   })

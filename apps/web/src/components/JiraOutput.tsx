@@ -17,10 +17,6 @@ interface JiraOutputProps {
   previewHtml: string
   isPending?: boolean
   onMarkdownChange?: (md: string) => void
-  /** True when the ADF Web Worker failed to render the preview. */
-  workerError?: boolean
-  /** Terminates the stalled worker and re-triggers rendering. */
-  retryWorker?: () => void
 }
 
 export const JiraOutput = memo(function JiraOutput({
@@ -30,8 +26,6 @@ export const JiraOutput = memo(function JiraOutput({
   previewHtml,
   isPending,
   onMarkdownChange,
-  workerError,
-  retryWorker,
 }: JiraOutputProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('preview')
   const [editMode, setEditMode] = useState(false)
@@ -131,25 +125,6 @@ export const JiraOutput = memo(function JiraOutput({
           ? 'Edit mode enabled'
           : `${format === 'adf' ? 'Jira Cloud' : 'Wiki Markup'} ${viewMode}`}
       </div>
-
-      {/* ── Worker error banner ── */}
-      {workerError && (
-        <div
-          role="alert"
-          className="flex items-center justify-between border-b border-red-200 bg-red-50 px-4 py-2 text-sm text-red-800 dark:border-red-800 dark:bg-red-950/50 dark:text-red-300"
-        >
-          <span>Preview rendering failed.</span>
-          {retryWorker && (
-            <button
-              type="button"
-              onClick={retryWorker}
-              className="ml-3 rounded px-2 py-0.5 text-xs font-medium underline hover:no-underline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-red-500"
-            >
-              Retry
-            </button>
-          )}
-        </div>
-      )}
 
       {/* ── Content ── */}
       <JiraOutputContent
