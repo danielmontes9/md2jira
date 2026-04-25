@@ -1,4 +1,4 @@
-import { useState, useMemo, useDeferredValue, useEffect } from 'react'
+import { useState, useMemo, useDeferredValue, useEffect, useRef, useCallback } from 'react'
 import { convert, convertToAdf } from 'md2jira-core'
 import type { AdfDocument } from 'md2jira-core'
 import { Header } from './components/Header.js'
@@ -39,6 +39,29 @@ export function App() {
   const { theme, toggleTheme } = useTheme()
   const isOffline = useOfflineStatus()
   const { needsUpdate, applyUpdate } = usePwaUpdate()
+
+  /** Active panel shown on mobile (below the sm: breakpoint). Desktop always shows both. */
+  const [activePanel, setActivePanel] = useState<'input' | 'output'>('input')
+  /** Percentage of the main area assigned to the input panel on desktop (20–80). */
+  const [split, setSplit] = useState(50)
+  const mainRef = useRef<HTMLElement>(null)
+  const isDragging = useRef(false)
+
+  const handleDragStart = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    e.currentTarget.setPointerCapture(e.pointerId)
+    isDragging.current = true
+  }, [])
+
+  const handleDragMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging.current || !mainRef.current) return
+    const rect = mainRef.current.getBoundingClientRect()
+    const newSplit = Math.max(20, Math.min(80, ((e.clientX - rect.left) / rect.width) * 100))
+    setSplit(newSplit)
+  }, [])
+
+  const handleDragEnd = useCallback(() => {
+    isDragging.current = false
+  }, [])
 
   // useDeferredValue keeps the textarea fully responsive by deferring
   // the expensive convert() / convertToAdf() calls until the browser is idle.
@@ -225,12 +248,49 @@ export function App() {
             </div>
           </div>
         )}
+        {/* Mobile panel tabs — only visible below the sm: breakpoint */}
+        <div
+          className="flex shrink-0 border-b border-neutral-200 sm:hidden dark:border-neutral-800"
+          aria-label="Switch panel"
+        >
+          <button
+            type="button"
+            aria-pressed={activePanel === 'input'}
+            onClick={() => setActivePanel('input')}
+            className={`flex-1 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-blue-500 ${
+              activePanel === 'input'
+                ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400'
+                : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200'
+            }`}
+          >
+            Markdown
+          </button>
+          <button
+            type="button"
+            aria-pressed={activePanel === 'output'}
+            onClick={() => setActivePanel('output')}
+            className={`flex-1 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-blue-500 ${
+              activePanel === 'output'
+                ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400'
+                : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200'
+            }`}
+          >
+            Jira Output
+          </button>
+        </div>
         <main
+          ref={mainRef}
           id="main-content"
           aria-label="Main content"
-          className="flex flex-1 flex-col gap-4 overflow-auto p-4 sm:flex-row sm:overflow-hidden"
+          className="flex flex-1 flex-col gap-4 overflow-auto p-4 sm:flex-row sm:gap-0 sm:overflow-hidden"
         >
-          <section aria-label="Markdown input" className="flex min-h-64 flex-1 flex-col sm:min-h-0">
+          <section
+            aria-label="Markdown input"
+            style={{ flex: split }}
+            className={`flex min-h-0 flex-col sm:min-h-0 sm:min-w-0 sm:overflow-hidden${
+              activePanel !== 'input' ? ' hidden sm:flex' : ''
+            }`}
+          >
             <ErrorBoundary>
               <MarkdownInput
                 value={markdown}
@@ -239,7 +299,39 @@ export function App() {
               />
             </ErrorBoundary>
           </section>
-          <section aria-label="Jira output" className="flex min-h-64 flex-1 flex-col sm:min-h-0">
+          {/* Resize handle — desktop only. Draggable; keyboard: ArrowLeft/Right adjust by 1 %. */}
+          <div
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Resize panels"
+            aria-valuenow={Math.round(split)}
+            aria-valuemin={20}
+            aria-valuemax={80}
+            tabIndex={0}
+            className="group hidden shrink-0 cursor-col-resize select-none items-center justify-center rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 sm:flex sm:w-4"
+            onPointerDown={handleDragStart}
+            onPointerMove={handleDragMove}
+            onPointerUp={handleDragEnd}
+            onPointerCancel={handleDragEnd}
+            onKeyDown={(e) => {
+              if (e.key === 'ArrowLeft') {
+                e.preventDefault()
+                setSplit((s) => Math.max(20, s - 1))
+              } else if (e.key === 'ArrowRight') {
+                e.preventDefault()
+                setSplit((s) => Math.min(80, s + 1))
+              }
+            }}
+          >
+            <div className="h-16 w-1 rounded-full bg-neutral-300 transition-colors group-hover:bg-blue-400 group-active:bg-blue-500 group-focus-visible:bg-blue-400 dark:bg-neutral-700 dark:group-hover:bg-blue-500 dark:group-active:bg-blue-600 dark:group-focus-visible:bg-blue-500" />
+          </div>
+          <section
+            aria-label="Jira output"
+            style={{ flex: 100 - split }}
+            className={`flex min-h-0 flex-col sm:min-h-0 sm:min-w-0 sm:overflow-hidden${
+              activePanel !== 'output' ? ' hidden sm:flex' : ''
+            }`}
+          >
             <ErrorBoundary>
               <JiraOutput
                 value={jiraOutput}
