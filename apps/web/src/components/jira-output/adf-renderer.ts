@@ -8,6 +8,7 @@ import type {
   AdfTableRowNode,
   AdfTableHeaderNode,
   AdfTableCellNode,
+  AdfPanelNode,
 } from 'md2jira-core'
 import { escapeHtml } from '../../utils/escape-html.js'
 
@@ -102,6 +103,11 @@ const BLOCK_HANDLERS: BlockHandlerMap = {
         return `<li data-type="taskItem"><label><input type="checkbox"${item.attrs.state === 'DONE' ? ' checked' : ''} disabled tabindex="-1"> ${inlineHtml}</label></li>`
       })
       .join('')}</ul>`,
+  panel: (node) => {
+    // Render Jira panels as styled blockquotes; preserve panelType for CSS targeting
+    const inner = node.content.map(adfBlockToHtml).join('')
+    return `<div class="adf-panel adf-panel--${node.attrs.panelType}">${inner}</div>`
+  },
   table: (node) => {
     const rows = node.content.map((row: AdfTableRowNode) => {
       const cells = row.content.map((cell: AdfTableHeaderNode | AdfTableCellNode) => {

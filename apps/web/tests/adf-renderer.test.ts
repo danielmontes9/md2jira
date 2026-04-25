@@ -386,3 +386,35 @@ describe('adfBlockToHtml', () => {
     expect(result).toContain('<strong>bold</strong>')
   })
 })
+
+describe('adfBlockToHtml — panel nodes', () => {
+  const panelTypes = ['info', 'note', 'warning', 'tip', 'error', 'success'] as const
+
+  for (const panelType of panelTypes) {
+    it(`renders a ${panelType} panel with correct class and content`, () => {
+      const result = adfBlockToHtml({
+        type: 'panel',
+        attrs: { panelType },
+        content: [{ type: 'paragraph', content: [{ type: 'text', text: `${panelType} message` }] }],
+      })
+      expect(result).toContain('class="adf-panel adf-panel--' + panelType + '"')
+      expect(result).toContain(`${panelType} message`)
+      expect(result).toContain('<p>')
+    })
+  }
+
+  it('panel wraps multiple child blocks', () => {
+    const result = adfBlockToHtml({
+      type: 'panel',
+      attrs: { panelType: 'info' },
+      content: [
+        { type: 'paragraph', content: [{ type: 'text', text: 'First' }] },
+        { type: 'paragraph', content: [{ type: 'text', text: 'Second' }] },
+      ],
+    })
+    expect(result).toContain('First')
+    expect(result).toContain('Second')
+    // Verify both paragraphs are inside the same panel div
+    expect(result).toMatch(/adf-panel--info[\s\S]*<p>First<\/p>[\s\S]*<p>Second<\/p>/)
+  })
+})
