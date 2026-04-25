@@ -332,6 +332,28 @@ describe('EditorToolbar', () => {
     expect(insertHtmlMock).toHaveBeenCalledWith('<p>@</p>')
   })
 
+  it('InsertMenu Info panel item calls insertHtml with INFO_PANEL_HTML', () => {
+    renderToolbar()
+    const insertBtn = screen.getByRole('button', { name: 'Insert elements' })
+    fireEvent.mouseDown(insertBtn)
+    const infoPanelItem = screen.getByText('Info panel')
+    fireEvent.mouseDown(infoPanelItem)
+    expect(insertHtmlMock).toHaveBeenCalledWith(
+      expect.stringContaining('data-type="info-panel"')
+    )
+  })
+
+  it('InsertMenu Decision item calls insertHtml with DECISION_PANEL_HTML', () => {
+    renderToolbar()
+    const insertBtn = screen.getByRole('button', { name: 'Insert elements' })
+    fireEvent.mouseDown(insertBtn)
+    const decisionItem = screen.getByText('Decision')
+    fireEvent.mouseDown(decisionItem)
+    expect(insertHtmlMock).toHaveBeenCalledWith(
+      expect.stringContaining('data-type="decision-panel"')
+    )
+  })
+
   it('TextStyleMenu ArrowDown moves focus to the next menu item', () => {
     renderToolbar()
     const ttBtn = screen.getByText('Tt').closest('button')!
