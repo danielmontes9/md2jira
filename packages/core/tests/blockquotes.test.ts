@@ -27,9 +27,7 @@ describe('transformBlockquote', () => {
   })
 
   it('converts blockquote with bold formatting', () => {
-    const node = bq([
-      para([{ type: 'strong', children: [text('bold')] }, text(' quote')]),
-    ])
+    const node = bq([para([{ type: 'strong', children: [text('bold')] }, text(' quote')])])
     expect(transformBlockquote(node)).toBe('bq. *bold* quote')
   })
 
@@ -145,9 +143,7 @@ describe('transformPanel — wiki markup', () => {
   })
 
   it('preserves inline formatting in panel body', () => {
-    const node = bq([
-      para([text('[!NOTE]\n'), { type: 'strong', children: [text('bold')] }]),
-    ])
+    const node = bq([para([text('[!NOTE]\n'), { type: 'strong', children: [text('bold')] }])])
     expect(transformPanel(node, 'NOTE')).toBe('{note}\n*bold*\n{note}')
   })
 })
