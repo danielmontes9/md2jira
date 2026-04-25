@@ -57,4 +57,32 @@ describe('ToastContext', () => {
     expect(screen.getByText('First')).toBeInTheDocument()
     expect(screen.getByText('Second')).toBeInTheDocument()
   })
+
+  it('caps the toast list at 5 — oldest toast is dropped when a 6th is added', async () => {
+    function TestConsumer() {
+      const addToast = useToast()
+      return (
+        <button
+          onClick={() => {
+            for (let i = 1; i <= 6; i++) {
+              addToast(`Toast ${i}`)
+            }
+          }}
+        >
+          trigger
+        </button>
+      )
+    }
+
+    render(createElement(ToastProvider, null, createElement(TestConsumer)))
+
+    await act(async () => {
+      screen.getByRole('button', { name: 'trigger' }).click()
+    })
+
+    // Only 5 toasts should be visible — the oldest ('Toast 1') is discarded
+    expect(screen.queryByText('Toast 1')).not.toBeInTheDocument()
+    expect(screen.getByText('Toast 2')).toBeInTheDocument()
+    expect(screen.getByText('Toast 6')).toBeInTheDocument()
+  })
 })

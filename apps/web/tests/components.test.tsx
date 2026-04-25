@@ -337,6 +337,25 @@ describe('Copy link button', () => {
       expect(clipboardSpy).toHaveBeenCalledWith('http://localhost/?md=SGVsbG8')
     })
   })
+
+  it('shows an error toast when clipboard.writeText rejects', async () => {
+    Object.defineProperty(navigator, 'clipboard', {
+      writable: true,
+      configurable: true,
+      value: { writeText: vi.fn().mockRejectedValue(new Error('denied')) },
+    })
+
+    render(<App />)
+    const textarea = screen.getByPlaceholderText('Paste your Markdown here...')
+    fireEvent.change(textarea, { target: { value: '# Hello' } })
+
+    const btn = screen.getAllByRole('button', { name: /copy shareable link/i })[0]!
+    fireEvent.click(btn)
+
+    await waitFor(() => {
+      expect(screen.getByText(/could not copy link/i)).toBeInTheDocument()
+    })
+  })
 })
 
 describe('URL deep-linking', () => {
