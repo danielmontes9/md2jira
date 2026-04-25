@@ -95,9 +95,13 @@ export function transformPanel(node: Blockquote, alertType: string, baseUrl?: st
  * a single-line prefix. Nested blockquotes are flattened: each leaf paragraph becomes
  * its own `bq.` line.
  */
-export function transformBlockquote(node: Blockquote, baseUrl?: string): string {
+export function transformBlockquote(
+  node: Blockquote,
+  baseUrl?: string,
+  disablePanel?: boolean
+): string {
   const alertType = detectAlertType(node)
-  if (alertType !== null) return transformPanel(node, alertType, baseUrl)
+  if (alertType !== null && !disablePanel) return transformPanel(node, alertType, baseUrl)
 
   const parts: string[] = []
   for (const child of node.children) {

@@ -26,7 +26,7 @@ function transformNode(node: RootContent, ctx: WikiConvertContext): string | nul
     case 'code':
       return transformCodeBlock(node)
     case 'blockquote':
-      return transformBlockquote(node, ctx.baseUrl)
+      return transformBlockquote(node, ctx.baseUrl, ctx.disabled.has('panel'))
     case 'thematicBreak':
       return '----'
     case 'table':

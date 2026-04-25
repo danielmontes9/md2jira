@@ -257,7 +257,8 @@ function transformNodeToAdf(node: RootContent, ctx: AdfConvertContext): AdfBlock
       return transformCodeBlockToAdf(node)
     case 'blockquote': {
       const alertType = detectAlertType(node)
-      if (alertType !== null) return transformPanelToAdf(node, alertType, ctx)
+      if (alertType !== null && !ctx.disabled.has('panel'))
+        return transformPanelToAdf(node, alertType, ctx)
       return transformBlockquoteToAdf(node, ctx)
     }
     case 'thematicBreak':

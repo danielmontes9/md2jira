@@ -39,6 +39,6 @@ export interface ConvertOptions {
    * `'heading' | 'list' | 'code' | 'blockquote' | 'table' | 'thematicBreak'`
    */
   disableTransforms?: ReadonlyArray<
-    'heading' | 'list' | 'code' | 'blockquote' | 'table' | 'thematicBreak'
+    'heading' | 'list' | 'code' | 'blockquote' | 'table' | 'thematicBreak' | 'panel'
   >
 }
