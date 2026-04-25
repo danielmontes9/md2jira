@@ -181,4 +181,28 @@ describe('useDeepLink', () => {
     })
     expect(replaceStateSpy).not.toHaveBeenCalled()
   })
+
+  it('falls back to direct updateUrl() call when requestIdleCallback is unavailable', () => {
+    // Remove requestIdleCallback to exercise the else-branch in useDeepLink.
+    // This covers the synchronous-fallback path that runs in environments
+    // that do not support the Idle Callback API (e.g. Firefox < 119, jsdom).
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const saved = (window as any).requestIdleCallback
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete (window as any).requestIdleCallback
+    try {
+      renderHook(() => useDeepLink('# Hello', 'adf'))
+      act(() => {
+        vi.advanceTimersByTime(300)
+      })
+      // replaceState must still fire even without requestIdleCallback
+      expect(replaceStateSpy).toHaveBeenCalledOnce()
+      const calledUrl = replaceStateSpy.mock.calls[0]![2] as string
+      const url = new URL(calledUrl)
+      expect(url.searchParams.get('md')).toBe(encodeMarkdown('# Hello'))
+    } finally {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;(window as any).requestIdleCallback = saved
+    }
+  })
 })

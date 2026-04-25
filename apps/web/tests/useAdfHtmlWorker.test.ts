@@ -147,3 +147,119 @@ describe('useAdfHtmlWorker', () => {
     expect(result.current.html).toContain('Hello world')
   })
 })
+
+// ---------------------------------------------------------------------------
+// Worker message-path tests (mocked Worker)
+//
+// The tests above all rely on jsdom's Worker constructor throwing, which
+// routes the hook through the synchronous fallback.  The section below stubs
+// the global Worker so the try-block succeeds and we can exercise the
+// onMessage handler, the stale-id guard, and the error-response branch.
+// ---------------------------------------------------------------------------
+
+describe('useAdfHtmlWorker — Worker message path (mocked Worker)', () => {
+  type MessageHandler = (e: MessageEvent<unknown>) => void
+
+  /** Minimal fake Worker that lets tests fire message/error events. */
+  interface FakeWorker {
+    postMessage: ReturnType<typeof vi.fn>
+    terminate: ReturnType<typeof vi.fn>
+    addEventListener: ReturnType<typeof vi.fn>
+    removeEventListener: ReturnType<typeof vi.fn>
+    _fire: (type: 'message' | 'error', data?: unknown) => void
+    _handlers: Map<string, MessageHandler[]>
+  }
+
+  let fakeWorker: FakeWorker
+
+  beforeEach(() => {
+    vi.useFakeTimers()
+    adfToHtmlSpy.mockClear()
+
+    const handlers = new Map<string, MessageHandler[]>()
+
+    fakeWorker = {
+      _handlers: handlers,
+      postMessage: vi.fn(),
+      terminate: vi.fn(),
+      addEventListener: vi.fn((type: string, handler: MessageHandler) => {
+        const list = handlers.get(type) ?? []
+        list.push(handler)
+        handlers.set(type, list)
+      }),
+      removeEventListener: vi.fn((type: string, handler: MessageHandler) => {
+        handlers.set(
+          type,
+          (handlers.get(type) ?? []).filter((h) => h !== handler)
+        )
+      }),
+      _fire(type, data) {
+        const event = new MessageEvent(type, { data })
+        for (const h of handlers.get(type) ?? []) h(event)
+      },
+    }
+
+    // Stub the global Worker constructor to return our fake worker.
+    vi.stubGlobal('Worker', vi.fn().mockReturnValue(fakeWorker))
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.unstubAllGlobals()
+    vi.clearAllMocks()
+  })
+
+  it('updates html when the worker responds with a matching request id', async () => {
+    const { result } = renderHook(() => useAdfHtmlWorker(SIMPLE_ADF))
+
+    // Wait for the effect to run and postMessage to be called
+    await act(async () => {
+      await Promise.resolve()
+    })
+
+    // Grab the id the hook sent to the worker
+    const posted = fakeWorker.postMessage.mock.calls[0]![0] as { id: number; doc: AdfDocument }
+
+    // Fire a successful response from the worker
+    act(() => {
+      fakeWorker._fire('message', { id: posted.id, html: '<p>Worker result</p>' })
+    })
+
+    expect(result.current.html).toBe('<p>Worker result</p>')
+    expect(result.current.workerError).toBe(false)
+  })
+
+  it('discards a stale response whose request id does not match', async () => {
+    const { result } = renderHook(() => useAdfHtmlWorker(SIMPLE_ADF))
+
+    await act(async () => {
+      await Promise.resolve()
+    })
+
+    // Fire a message with the WRONG id — the hook must ignore it
+    act(() => {
+      fakeWorker._fire('message', { id: 9999, html: '<p>Stale</p>' })
+    })
+
+    // html stays empty (initial state) — stale response was discarded
+    expect(result.current.html).toBe('')
+    expect(result.current.workerError).toBe(false)
+  })
+
+  it('sets workerError when the worker responds with an error flag', async () => {
+    const { result } = renderHook(() => useAdfHtmlWorker(SIMPLE_ADF))
+
+    await act(async () => {
+      await Promise.resolve()
+    })
+
+    const posted = fakeWorker.postMessage.mock.calls[0]![0] as { id: number }
+
+    act(() => {
+      fakeWorker._fire('message', { id: posted.id, html: '', error: true })
+    })
+
+    expect(result.current.html).toBe('')
+    expect(result.current.workerError).toBe(true)
+  })
+})

@@ -277,6 +277,50 @@ describe('adfToHtml', () => {
     expect(html).not.toContain('<script>')
     expect(html).toContain('&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;')
   })
+
+  it('sanitizes XSS payload in codeBlock language attribute — OWASP A03', () => {
+    // The language tag is used in a class attribute: class="language-{lang}".
+    // An attacker could try to inject HTML by supplying a crafted lang value.
+    // The sanitizer (lang.replace(/[^\w-]/g, '')) strips every character that
+    // is not a word char or hyphen.  The payload below would inject a <script>
+    // tag if not sanitized; after sanitization it becomes benign residue.
+    const doc: AdfDocument = {
+      version: 1,
+      type: 'doc',
+      content: [
+        {
+          type: 'codeBlock',
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          attrs: { language: '"><script>alert(1)</script><span class="' } as any,
+          content: [{ type: 'text', text: 'code' }],
+        },
+      ],
+    }
+    const html = adfToHtml(doc)
+    // The injected angle brackets and quotes must be absent from the output
+    expect(html).not.toContain('<script>')
+    expect(html).not.toContain('alert(1)')
+    // The output must still be valid HTML — the <pre> wrapper must be present
+    expect(html).toContain('<pre>')
+    // The code content itself must appear verbatim
+    expect(html).toContain('code')
+  })
+
+  it('allows alphanumeric and hyphen characters in codeBlock language attribute', () => {
+    const doc: AdfDocument = {
+      version: 1,
+      type: 'doc',
+      content: [
+        {
+          type: 'codeBlock',
+          attrs: { language: 'typescript' },
+          content: [{ type: 'text', text: 'const x = 1' }],
+        },
+      ],
+    }
+    const html = adfToHtml(doc)
+    expect(html).toContain('class="language-typescript"')
+  })
 })
 
 describe('adfBlockToHtml', () => {
