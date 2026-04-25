@@ -1,2 +1,5 @@
 User-agent: *
 Allow: /
+
+Sitemap: https://danielmontes9.github.io/md2jira/sitemap.xml
+

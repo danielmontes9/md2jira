@@ -16,8 +16,9 @@
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
-    <!-- VITE_CANONICAL_URL lets CI/CD set the correct domain at build time.
-         Falls back to the GitHub Pages URL used in the default deployment. -->
+    <!-- `data-vite-canonical` marks this tag for the canonicalUrlPlugin in vite.config.ts.
+         At build time, set VITE_CANONICAL_URL=https://your-domain.com to override the
+         href. Falls back to the GitHub Pages URL used in the default deployment. -->
     <link rel="canonical" href="https://danielmontes9.github.io/md2jira" data-vite-canonical />
     <link rel="preconnect" href="https://cdn.buymeacoffee.com" crossorigin />
 

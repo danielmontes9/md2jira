@@ -5,8 +5,30 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { visualizer } from 'rollup-plugin-visualizer'
 import { fileURLToPath } from 'node:url'
 
+/**
+ * Replaces the canonical URL in index.html at build time when VITE_CANONICAL_URL
+ * is set. Uses the `data-vite-canonical` attribute as a stable selector so the
+ * replacement is opt-in and never accidentally clobbers other <link> tags.
+ *
+ * Usage: VITE_CANONICAL_URL=https://example.com/myapp pnpm build
+ */
+function canonicalUrlPlugin(): PluginOption {
+  const canonicalUrl = process.env.VITE_CANONICAL_URL
+  if (!canonicalUrl) return null
+  return {
+    name: 'canonical-url',
+    transformIndexHtml(html: string): string {
+      return html.replace(
+        /(<link rel="canonical" href=")[^"]*(")([^/]* data-vite-canonical \/>)/,
+        `$1${canonicalUrl}$2$3`
+      )
+    },
+  }
+}
+
 export default defineConfig({
   plugins: [
+    canonicalUrlPlugin(),
     react(),
     tailwindcss(),
     VitePWA({
