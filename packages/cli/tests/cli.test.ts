@@ -56,7 +56,8 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
-  const files = ['sample.md', 'output.jira']
+  // Clean up all generated fixture files. Use catch(() => {}) so missing files don't fail teardown.
+  const files = ['sample.md', 'output.jira', 'bom.md', 'out.jira']
   for (const f of files) {
     await unlink(resolve(FIXTURES_DIR, f)).catch(() => {})
   }

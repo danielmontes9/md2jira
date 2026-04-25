@@ -14,6 +14,9 @@ articles/
 coverage/
 .vitest/
 
+# CLI test fixtures (generated at runtime by beforeAll/afterAll)
+packages/cli/tests/fixtures/
+
 # Playwright artifacts (uploaded to GH Actions, not committed)
 test-results/
 playwright-report/
