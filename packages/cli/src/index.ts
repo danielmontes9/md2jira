@@ -5,9 +5,21 @@ import { resolve } from 'node:path'
 import { createInterface } from 'node:readline'
 import { Command } from 'commander'
 import { convert, convertToAdf } from 'md2jira-core'
+import type { ConvertOptions } from 'md2jira-core'
 
 const require = createRequire(import.meta.url)
 const { version } = require('../package.json') as { version: string }
+
+/** Valid transform names accepted by --disable. */
+const VALID_TRANSFORMS = new Set([
+  'heading',
+  'list',
+  'code',
+  'blockquote',
+  'table',
+  'thematicBreak',
+  'panel',
+])
 
 const program = new Command()
 
@@ -18,29 +30,59 @@ program
   .argument('[input]', 'Input Markdown file (omit to read from stdin)')
   .option('-o, --output <file>', 'Output file (omit to write to stdout)')
   .option('-f, --format <format>', 'Output format: "wiki" (default) or "adf"', 'wiki')
-  .action(async (input: string | undefined, options: { output?: string; format?: string }) => {
-    let markdown: string
+  .option(
+    '--base-url <url>',
+    'Base URL prepended to relative links (e.g. https://company.atlassian.net/wiki)'
+  )
+  .option(
+    '--disable <transforms>',
+    'Comma-separated list of transforms to suppress: heading,list,code,blockquote,table,thematicBreak,panel'
+  )
+  .action(
+    async (
+      input: string | undefined,
+      options: { output?: string; format?: string; baseUrl?: string; disable?: string }
+    ) => {
+      let markdown: string
 
-    if (input) {
-      markdown = await readFile(resolve(input), 'utf-8')
-    } else {
-      markdown = await readStdin()
-    }
+      if (input) {
+        markdown = await readFile(resolve(input), 'utf-8')
+      } else {
+        markdown = await readStdin()
+      }
 
-    const fmt = options.format?.toLowerCase()
-    let result: string
-    if (fmt === 'adf') {
-      result = JSON.stringify(convertToAdf(markdown), null, 2)
-    } else {
-      result = convert(markdown)
-    }
+      // Build ConvertOptions from CLI flags.
+      const convertOptions: ConvertOptions = {}
+      if (options.baseUrl) {
+        convertOptions.baseUrl = options.baseUrl
+      }
+      if (options.disable) {
+        const requested = options.disable.split(',').map((s) => s.trim())
+        const invalid = requested.filter((t) => !VALID_TRANSFORMS.has(t))
+        if (invalid.length > 0) {
+          process.stderr.write(
+            `Error: unknown transform(s): ${invalid.join(', ')}\nValid values: ${[...VALID_TRANSFORMS].join(', ')}\n`
+          )
+          process.exit(1)
+        }
+        convertOptions.disableTransforms = requested as ConvertOptions['disableTransforms']
+      }
 
-    if (options.output) {
-      await writeFile(resolve(options.output), result, 'utf-8')
-    } else {
-      process.stdout.write(result)
+      const fmt = options.format?.toLowerCase()
+      let result: string
+      if (fmt === 'adf') {
+        result = JSON.stringify(convertToAdf(markdown, convertOptions), null, 2)
+      } else {
+        result = convert(markdown, convertOptions)
+      }
+
+      if (options.output) {
+        await writeFile(resolve(options.output), result, 'utf-8')
+      } else {
+        process.stdout.write(result)
+      }
     }
-  })
+  )
 
 program.parseAsync(process.argv).catch((err: unknown) => {
   process.stderr.write(`Error: ${String(err instanceof Error ? err.message : err)}\n`)

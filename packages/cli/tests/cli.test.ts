@@ -186,3 +186,76 @@ describe('md2jira CLI', () => {
     expect(stdout).toContain('Paragraph')
   })
 })
+
+describe('--base-url flag', () => {
+  it('prepends base URL to relative links', async () => {
+    const md = '[docs](/wiki/docs)\n'
+    const { stdout, exitCode } = await run(['--base-url', 'https://company.atlassian.net'], {
+      stdin: md,
+    })
+    expect(exitCode).toBe(0)
+    expect(stdout).toContain('[docs|https://company.atlassian.net/wiki/docs]')
+  })
+
+  it('leaves absolute links unchanged when --base-url is set', async () => {
+    const md = '[external](https://example.com)\n'
+    const { stdout, exitCode } = await run(['--base-url', 'https://company.atlassian.net'], {
+      stdin: md,
+    })
+    expect(exitCode).toBe(0)
+    expect(stdout).toContain('[external|https://example.com]')
+  })
+
+  it('works with --format adf', async () => {
+    const md = '[page](/wiki/page)\n'
+    const { stdout, exitCode } = await run(
+      ['--base-url', 'https://company.atlassian.net', '--format', 'adf'],
+      { stdin: md }
+    )
+    expect(exitCode).toBe(0)
+    const doc = JSON.parse(stdout)
+    const json = JSON.stringify(doc)
+    expect(json).toContain('https://company.atlassian.net/wiki/page')
+  })
+})
+
+describe('--disable flag', () => {
+  it('suppresses heading transform', async () => {
+    const md = '# Title\n\nParagraph\n'
+    const { stdout, exitCode } = await run(['--disable', 'heading'], { stdin: md })
+    expect(exitCode).toBe(0)
+    expect(stdout).not.toContain('h1.')
+    expect(stdout).toContain('Title')
+  })
+
+  it('suppresses list transform', async () => {
+    const md = '- item A\n- item B\n'
+    const { stdout, exitCode } = await run(['--disable', 'list'], { stdin: md })
+    expect(exitCode).toBe(0)
+    expect(stdout).not.toMatch(/^\* item/m)
+  })
+
+  it('suppresses multiple transforms with comma-separated values', async () => {
+    const md = '# Heading\n\n- list item\n\nParagraph\n'
+    const { stdout, exitCode } = await run(['--disable', 'heading,list'], { stdin: md })
+    expect(exitCode).toBe(0)
+    expect(stdout).not.toContain('h1.')
+    expect(stdout).not.toMatch(/^\* /m)
+    expect(stdout).toContain('Paragraph')
+  })
+
+  it('suppresses panel transform (GFM alert becomes plain blockquote)', async () => {
+    const md = '> [!NOTE]\n> This is a note\n'
+    const { stdout, exitCode } = await run(['--disable', 'panel'], { stdin: md })
+    expect(exitCode).toBe(0)
+    expect(stdout).not.toContain('{panel')
+    expect(stdout).toContain('bq.')
+  })
+
+  it('exits with code 1 for unknown transform name', async () => {
+    const md = '# Title\n'
+    const { stderr, exitCode } = await run(['--disable', 'unknown-transform'], { stdin: md })
+    expect(exitCode).toBe(1)
+    expect(stderr).toContain('unknown transform')
+  })
+})
