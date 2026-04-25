@@ -22,8 +22,9 @@ import { test, expect } from '@playwright/test'
 test('default state — Jira Cloud preview', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('textbox', { name: 'Markdown input' }).waitFor()
-  // Wait for ADF preview content to settle (worker renders asynchronously)
-  await page.waitForTimeout(1500)
+  // Wait for ADF preview heading to appear — the worker renders the PLACEHOLDER
+  // asynchronously; polling for real content is more reliable than a fixed timeout.
+  await page.locator('[aria-label="Jira content editor"] h1').waitFor({ timeout: 5000 })
   await expect(page).toHaveScreenshot('default-state.png')
 })
 
@@ -31,6 +32,9 @@ test('Wiki Markup mode', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('textbox', { name: 'Markdown input' }).waitFor()
   await page.getByRole('radio', { name: 'Wiki Markup' }).click()
+  // Wiki conversion is synchronous, but wait for the pre element to be visible
+  // before snapshotting to guard against layout shifts on slow CI runners.
+  await page.getByRole('region', { name: 'Wiki markup preview' }).waitFor()
   await expect(page).toHaveScreenshot('wiki-markup-mode.png')
 })
 
@@ -39,8 +43,9 @@ test('dark mode', async ({ page }) => {
   await page.getByRole('textbox', { name: 'Markdown input' }).waitFor()
   // Theme toggle label is "Switch to dark mode" or "Switch to light mode"
   await page.getByRole('button', { name: /switch to/i }).click()
-  // Allow 200 ms for the CSS transition to settle before snapshotting
-  await page.waitForTimeout(200)
+  // Wait for the 'dark' class to appear on <html> — deterministic alternative
+  // to waitForTimeout() that is immune to CI load spikes.
+  await page.waitForFunction(() => document.documentElement.classList.contains('dark'))
   await expect(page).toHaveScreenshot('dark-mode.png')
 })
 
@@ -55,9 +60,8 @@ test('ADF code view', async ({ page }) => {
 test('WYSIWYG edit mode with formatting toolbar', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('textbox', { name: 'Markdown input' }).waitFor()
-  // Wait for the Edit button to be available before clicking
-  await page.getByRole('button', { name: /edit/i }).waitFor()
-  await page.waitForTimeout(500)
+  // Wait for the ADF preview to fully render before enabling edit mode
+  await page.locator('[aria-label="Jira content editor"] h1').waitFor({ timeout: 5000 })
   await page.getByRole('button', { name: /edit/i }).click()
   // Wait for the toolbar to animate in
   await page.getByRole('toolbar', { name: 'Text formatting' }).waitFor()
