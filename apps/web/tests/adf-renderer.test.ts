@@ -52,6 +52,11 @@ describe('adfInlineToHtml', () => {
     expect(adfInlineToHtml(node)).toBe('<code>x</code>')
   })
 
+  it('wraps underline mark', () => {
+    const node: AdfInlineNode = { type: 'text', text: 'underlined', marks: [{ type: 'underline' }] }
+    expect(adfInlineToHtml(node)).toBe('<u>underlined</u>')
+  })
+
   it('allows safe https links', () => {
     const node: AdfInlineNode = {
       type: 'text',

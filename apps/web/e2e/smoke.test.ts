@@ -25,7 +25,7 @@ test('typing markdown converts to Jira Wiki Markup', async ({ page }) => {
   // Switch to Code view to see raw output
   await page.getByRole('button', { name: 'Code' }).click()
 
-  const codeRegion = page.getByRole('region', { name: 'Jira markup code' })
+  const codeRegion = page.getByRole('region', { name: 'Wiki markup code' })
   await expect(codeRegion).toContainText('h1. Hello World')
   await expect(codeRegion).toContainText('*bold*')
 })
@@ -106,8 +106,8 @@ test('Preview / Code view toggle works', async ({ page }) => {
   await expect(previewBtn).toHaveAttribute('aria-pressed', 'true')
   await codeBtn.click()
   await expect(codeBtn).toHaveAttribute('aria-pressed', 'true')
-  // Code region should now be visible
-  await expect(page.getByRole('region', { name: 'Jira markup code' })).toBeVisible()
+  // Default format is ADF — code region label reflects that
+  await expect(page.getByRole('region', { name: 'ADF JSON code' })).toBeVisible()
 })
 
 test('Shortcuts button opens the shortcuts modal', async ({ page }) => {
@@ -217,4 +217,60 @@ test('importing a .md file populates the Markdown input', async ({ page }) => {
   // The textarea content should update to match the file contents
   const textarea = page.getByRole('textbox', { name: 'Markdown input' })
   await expect(textarea).toContainText('# Sample', { timeout: 3000 })
+})
+
+// ─── Mobile panel tabs ────────────────────────────────────────────────────────
+
+test('mobile tab strip is hidden at desktop viewport', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await page.goto('/')
+  // The tab strip only renders on small screens (sm: breakpoint = 640 px).
+  // At desktop width it must not be visible.
+  await expect(page.getByRole('button', { name: 'Markdown' })).not.toBeVisible()
+  await expect(page.getByRole('button', { name: 'Jira Output' })).not.toBeVisible()
+})
+
+test('mobile tab strip switches panels on small screens', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/')
+
+  // 'Markdown' tab is active by default — input panel visible
+  const mdTab = page.getByRole('button', { name: 'Markdown' })
+  const outputTab = page.getByRole('button', { name: 'Jira Output' })
+  await expect(mdTab).toBeVisible()
+  await expect(mdTab).toHaveAttribute('aria-pressed', 'true')
+
+  // Switch to output panel
+  await outputTab.click()
+  await expect(outputTab).toHaveAttribute('aria-pressed', 'true')
+  await expect(mdTab).toHaveAttribute('aria-pressed', 'false')
+})
+
+// ─── Desktop resize handle ────────────────────────────────────────────────────
+
+test('resize handle is visible on desktop and has ARIA attributes', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await page.goto('/')
+
+  const handle = page.getByRole('separator', { name: 'Resize panels' })
+  await expect(handle).toBeVisible()
+  await expect(handle).toHaveAttribute('aria-valuenow', '50')
+  await expect(handle).toHaveAttribute('aria-valuemin', '20')
+  await expect(handle).toHaveAttribute('aria-valuemax', '80')
+})
+
+test('resize handle responds to keyboard navigation', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await page.goto('/')
+
+  const handle = page.getByRole('separator', { name: 'Resize panels' })
+  await handle.focus()
+
+  // ArrowRight should increase split by 1
+  await page.keyboard.press('ArrowRight')
+  await expect(handle).toHaveAttribute('aria-valuenow', '51')
+
+  // ArrowLeft should decrease split by 1
+  await page.keyboard.press('ArrowLeft')
+  await expect(handle).toHaveAttribute('aria-valuenow', '50')
 })

@@ -19,6 +19,8 @@ export function useAdfHtmlWorker(adfDoc: AdfDocument | null): {
 } {
   const [state, setState] = useState({ html: '', workerError: false })
   const [retryCount, setRetryCount] = useState(0)
+  /** Stop retrying after this many attempts to prevent infinite loops on persistent failures. */
+  const MAX_RETRIES = 3
   const workerRef = useRef<Worker | null>(null)
   // Monotonically increasing request id — used to discard stale worker responses
   const workerReqRef = useRef(0)
@@ -97,13 +99,15 @@ export function useAdfHtmlWorker(adfDoc: AdfDocument | null): {
   // Terminate the worker when the hook unmounts to free resources.
   useEffect(() => () => workerRef.current?.terminate(), [])
 
-  /** Terminates the stalled worker, clears the error, and re-triggers rendering. */
+  /** Terminates the stalled worker, clears the error, and re-triggers rendering.
+   * Capped at MAX_RETRIES to prevent an infinite retry loop on persistent failures. */
   const retryWorker = useCallback(() => {
+    if (retryCount >= MAX_RETRIES) return
     workerRef.current?.terminate()
     workerRef.current = null
     setState({ html: '', workerError: false })
     setRetryCount((c) => c + 1)
-  }, [])
+  }, [retryCount, MAX_RETRIES])
 
   return { html: state.html, workerError: state.workerError, retryWorker }
 }
