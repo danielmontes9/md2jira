@@ -404,3 +404,39 @@ describe('convertToAdf — blockquote complex children', () => {
     expect(hasCode).toBe(true)
   })
 })
+
+describe('convertToAdf — GFM Alert panels', () => {
+  it('converts [!NOTE] alert to ADF panel with panelType note', () => {
+    const result = convertToAdf('> [!NOTE]\n> Some info')
+    expect(result.content[0]).toMatchObject({
+      type: 'panel',
+      attrs: { panelType: 'note' },
+      content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Some info' }] }],
+    })
+  })
+
+  it('converts [!TIP] to panelType tip', () => {
+    const result = convertToAdf('> [!TIP]\n> A tip')
+    expect(result.content[0]).toMatchObject({ type: 'panel', attrs: { panelType: 'tip' } })
+  })
+
+  it('converts [!WARNING] to panelType warning', () => {
+    const result = convertToAdf('> [!WARNING]\n> Be careful')
+    expect(result.content[0]).toMatchObject({ type: 'panel', attrs: { panelType: 'warning' } })
+  })
+
+  it('maps [!CAUTION] to panelType warning', () => {
+    const result = convertToAdf('> [!CAUTION]\n> Danger')
+    expect(result.content[0]).toMatchObject({ type: 'panel', attrs: { panelType: 'warning' } })
+  })
+
+  it('maps [!IMPORTANT] to panelType info', () => {
+    const result = convertToAdf('> [!IMPORTANT]\n> Important info')
+    expect(result.content[0]).toMatchObject({ type: 'panel', attrs: { panelType: 'info' } })
+  })
+
+  it('leaves regular blockquotes as blockquote node (no regression)', () => {
+    const result = convertToAdf('> regular quote')
+    expect(result.content[0]).toMatchObject({ type: 'blockquote' })
+  })
+})

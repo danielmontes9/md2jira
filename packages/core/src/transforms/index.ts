@@ -19,4 +19,10 @@ export {
 export { transformList } from './lists.js'
 export { transformCodeBlock } from './codeblocks.js'
 export { transformTable } from './tables.js'
-export { transformBlockquote } from './blockquotes.js'
+export {
+  transformBlockquote,
+  detectAlertType,
+  stripAlertMarker,
+  transformPanel,
+  ALERT_TO_ADF_PANEL,
+} from './blockquotes.js'

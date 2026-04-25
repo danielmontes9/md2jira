@@ -16,4 +16,5 @@ export type {
   AdfTableRowNode,
   AdfTableHeaderNode,
   AdfTableCellNode,
+  AdfPanelNode,
 } from './adf-types.js'

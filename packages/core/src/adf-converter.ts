@@ -10,6 +10,7 @@ import type {
 } from 'mdast'
 import { parseMarkdown } from './parse.js'
 import { hasStringValue, normalizeTableColumnCount } from './utils.js'
+import { detectAlertType, stripAlertMarker, ALERT_TO_ADF_PANEL } from './transforms/blockquotes.js'
 import type {
   AdfBlockNode,
   AdfDocument,
@@ -163,6 +164,37 @@ function transformBlockquoteToAdf(node: Blockquote, ctx: AdfConvertContext): Adf
   return { type: 'blockquote', content }
 }
 
+function transformPanelToAdf(
+  node: Blockquote,
+  alertType: string,
+  ctx: AdfConvertContext
+): AdfBlockNode {
+  const panelType = ALERT_TO_ADF_PANEL[alertType] ?? 'info'
+  const content: AdfBlockNode[] = []
+
+  for (let i = 0; i < node.children.length; i++) {
+    const child = node.children[i]!
+    if (child.type === 'paragraph') {
+      const children = i === 0 ? stripAlertMarker(child.children) : child.children
+      const inlineContent = convertChildrenToAdf(children)
+      if (inlineContent.length > 0) {
+        content.push({ type: 'paragraph', content: inlineContent })
+      }
+    } else if (child.type === 'list') {
+      content.push(transformListToAdf(child, ctx))
+    } else if (child.type === 'code') {
+      content.push(transformCodeBlockToAdf(child))
+    }
+    // nested blockquotes inside a panel: skip (no ADF equivalent)
+  }
+
+  return {
+    type: 'panel',
+    attrs: { panelType },
+    content: content.length > 0 ? content : [{ type: 'paragraph', content: [] }],
+  }
+}
+
 function transformTableToAdf(node: Table): AdfBlockNode {
   const rows = node.children
   const adfRows: AdfTableRowNode[] = []
@@ -211,8 +243,11 @@ function transformNodeToAdf(node: RootContent, ctx: AdfConvertContext): AdfBlock
       return transformListToAdf(node, ctx)
     case 'code':
       return transformCodeBlockToAdf(node)
-    case 'blockquote':
+    case 'blockquote': {
+      const alertType = detectAlertType(node)
+      if (alertType !== null) return transformPanelToAdf(node, alertType, ctx)
       return transformBlockquoteToAdf(node, ctx)
+    }
     case 'thematicBreak':
       return { type: 'rule' }
     case 'table':

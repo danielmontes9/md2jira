@@ -79,13 +79,13 @@ export interface AdfTableRowNode {
 
 export interface AdfTableHeaderNode {
   type: 'tableHeader'
-  attrs?: Record<string, unknown>
+  attrs?: { colspan?: number; rowspan?: number; colwidth?: number[] }
   content: AdfBlockNode[]
 }
 
 export interface AdfTableCellNode {
   type: 'tableCell'
-  attrs?: Record<string, unknown>
+  attrs?: { colspan?: number; rowspan?: number; colwidth?: number[] }
   content: AdfBlockNode[]
 }
 
@@ -101,6 +101,12 @@ export interface AdfTaskListNode {
   content: AdfTaskItemNode[]
 }
 
+export interface AdfPanelNode {
+  type: 'panel'
+  attrs: { panelType: 'info' | 'note' | 'warning' | 'tip' | 'error' | 'success' }
+  content: AdfBlockNode[]
+}
+
 export type AdfBlockNode =
   | AdfHeadingNode
   | AdfParagraphNode
@@ -109,6 +115,7 @@ export type AdfBlockNode =
   | AdfTaskListNode
   | AdfCodeBlockNode
   | AdfBlockquoteNode
+  | AdfPanelNode
   | AdfRuleNode
   | AdfTableNode
 
