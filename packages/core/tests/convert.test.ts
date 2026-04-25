@@ -317,10 +317,15 @@ describe('tables — edge cases', () => {
   })
 
   it('escapes pipe characters inside cells', () => {
-    // Pipe inside cell content should be escaped
-    const md = '| Formula |\n|---------|\n| a \\| b |'
-    const result = convert(md)
-    expect(result).toContain('||Formula||')
+    // GFM \| inside a cell is a literal pipe; must be escaped as \| in Jira output
+    const md = '| Formula |\n|---------\n| a \\| b |'
+    expect(convert(md)).toBe('||Formula||\n|a \\| b|')
+  })
+
+  it('preserves pipe separator in Jira links inside cells', () => {
+    // The | in [text|url] is the Jira link separator — must NOT be escaped
+    const md = '| Site |\n|------\n| [Example](https://example.com) |'
+    expect(convert(md)).toBe('||Site||\n|[Example|https://example.com]|')
   })
 
   it('handles single-column table', () => {
