@@ -75,7 +75,7 @@ afterEach(() => {
 
 describe('usePwaUpdate', () => {
   it('returns needsUpdate=false on initial render when no SW is registered', async () => {
-    stubServiceWorker({ reg: undefined })
+    stubServiceWorker({})
     const { result } = renderHook(() => usePwaUpdate())
     // Let the getRegistration promise resolve
     await act(async () => {})
@@ -142,7 +142,7 @@ describe('usePwaUpdate', () => {
   })
 
   it('applyUpdate still reloads even if no waiting worker is tracked', () => {
-    stubServiceWorker({ reg: undefined })
+    stubServiceWorker({})
     const { result } = renderHook(() => usePwaUpdate())
 
     act(() => {

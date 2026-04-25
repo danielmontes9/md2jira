@@ -21,22 +21,22 @@ import { test, expect } from '@playwright/test'
 
 test('default state — Jira Cloud preview', async ({ page }) => {
   await page.goto('/')
-  await page.getByLabel('Markdown input').waitFor()
-  // Wait for the ADF worker to finish rendering the preview HTML
-  await page.waitForLoadState('networkidle')
+  await page.getByRole('textbox', { name: 'Markdown input' }).waitFor()
+  // Wait for ADF preview content to settle (worker renders asynchronously)
+  await page.waitForTimeout(1500)
   await expect(page).toHaveScreenshot('default-state.png')
 })
 
 test('Wiki Markup mode', async ({ page }) => {
   await page.goto('/')
-  await page.getByLabel('Markdown input').waitFor()
+  await page.getByRole('textbox', { name: 'Markdown input' }).waitFor()
   await page.getByRole('radio', { name: 'Wiki Markup' }).click()
   await expect(page).toHaveScreenshot('wiki-markup-mode.png')
 })
 
 test('dark mode', async ({ page }) => {
   await page.goto('/')
-  await page.getByLabel('Markdown input').waitFor()
+  await page.getByRole('textbox', { name: 'Markdown input' }).waitFor()
   // Theme toggle label is "Switch to dark mode" or "Switch to light mode"
   await page.getByRole('button', { name: /switch to/i }).click()
   // Allow 200 ms for the CSS transition to settle before snapshotting
@@ -46,15 +46,18 @@ test('dark mode', async ({ page }) => {
 
 test('ADF code view', async ({ page }) => {
   await page.goto('/')
-  await page.getByLabel('Markdown input').waitFor()
-  await page.getByRole('button', { name: 'Code' }).click()
+  await page.getByRole('textbox', { name: 'Markdown input' }).waitFor()
+  await page.getByRole('radio', { name: 'Code' }).waitFor()
+  await page.getByRole('radio', { name: 'Code' }).click()
   await expect(page).toHaveScreenshot('adf-code-view.png')
 })
 
 test('WYSIWYG edit mode with formatting toolbar', async ({ page }) => {
   await page.goto('/')
-  await page.getByLabel('Markdown input').waitFor()
-  await page.waitForLoadState('networkidle')
+  await page.getByRole('textbox', { name: 'Markdown input' }).waitFor()
+  // Wait for the Edit button to be available before clicking
+  await page.getByRole('button', { name: /edit/i }).waitFor()
+  await page.waitForTimeout(500)
   await page.getByRole('button', { name: /edit/i }).click()
   // Wait for the toolbar to animate in
   await page.getByRole('toolbar', { name: 'Text formatting' }).waitFor()
@@ -63,7 +66,7 @@ test('WYSIWYG edit mode with formatting toolbar', async ({ page }) => {
 
 test('offline banner', async ({ page }) => {
   await page.goto('/')
-  await page.getByLabel('Markdown input').waitFor()
+  await page.getByRole('textbox', { name: 'Markdown input' }).waitFor()
   // Simulate losing network connectivity
   await page.context().setOffline(true)
   await page.evaluate(() => window.dispatchEvent(new Event('offline')))

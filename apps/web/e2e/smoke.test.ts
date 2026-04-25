@@ -17,7 +17,7 @@ test('page title is correct', async ({ page }) => {
 test('typing markdown converts to Jira Wiki Markup', async ({ page }) => {
   await page.goto('/')
 
-  const textarea = page.getByLabel('Markdown input')
+  const textarea = page.getByRole('textbox', { name: 'Markdown input' })
   await textarea.fill('# Hello World\n\nThis is **bold** text.')
 
   // Switch to Wiki Markup format if not already selected
@@ -47,7 +47,7 @@ test('h1 heading contains the app name', async ({ page }) => {
 
 test('Markdown textarea is visible and accepts input', async ({ page }) => {
   await page.goto('/')
-  const textarea = page.getByLabel('Markdown input')
+  const textarea = page.getByRole('textbox', { name: 'Markdown input' })
   await expect(textarea).toBeVisible()
   await textarea.fill('# Hello E2E')
   await expect(textarea).toHaveValue(/Hello E2E/)
@@ -93,15 +93,15 @@ test('URL deep-linking: ?md= param pre-populates the editor', async ({ page }) =
     .replace(/=+$/, '')
   await page.goto(`/?md=${encoded}`)
 
-  const textarea = page.getByLabel('Markdown input')
+  const textarea = page.getByRole('textbox', { name: 'Markdown input' })
   await expect(textarea).toHaveValue(/Hello from URL/)
 })
 
 test('Preview / Code view toggle works', async ({ page }) => {
   await page.goto('/')
 
-  const previewBtn = page.getByRole('button', { name: 'Preview' })
-  const codeBtn = page.getByRole('button', { name: 'Code' })
+  const previewBtn = page.getByRole('radio', { name: 'Preview' })
+  const codeBtn = page.getByRole('radio', { name: 'Code' })
 
   await expect(previewBtn).toHaveAttribute('aria-pressed', 'true')
   await codeBtn.click()
@@ -189,7 +189,7 @@ test('Typing in edit mode updates the Markdown input panel', async ({ page }) =>
   await page.goto('/')
 
   // Clear the default content and start fresh
-  const textarea = page.getByLabel('Markdown input')
+  const textarea = page.getByRole('textbox', { name: 'Markdown input' })
   await textarea.fill('')
 
   // Enter ADF edit mode
@@ -215,6 +215,6 @@ test('importing a .md file populates the Markdown input', async ({ page }) => {
   await fileInput.setInputFiles(fixturePath)
 
   // The textarea content should update to match the file contents
-  const textarea = page.getByLabel('Markdown input')
+  const textarea = page.getByRole('textbox', { name: 'Markdown input' })
   await expect(textarea).toContainText('# Sample', { timeout: 3000 })
 })

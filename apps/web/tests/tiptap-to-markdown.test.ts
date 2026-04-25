@@ -426,16 +426,14 @@ describe('hasColorMarks', () => {
   })
 
   it('returns true when text has a textStyle color mark', () => {
-    expect(
-      hasColorMarks(htmlToDoc('<p><span style="color: #ff0000">red text</span></p>'))
-    ).toBe(true)
+    expect(hasColorMarks(htmlToDoc('<p><span style="color: #ff0000">red text</span></p>'))).toBe(
+      true
+    )
   })
 
   it('returns true when color appears only in part of the paragraph', () => {
     expect(
-      hasColorMarks(
-        htmlToDoc('<p>normal <span style="color: #0000ff">blue</span> normal</p>')
-      )
+      hasColorMarks(htmlToDoc('<p>normal <span style="color: #0000ff">blue</span> normal</p>'))
     ).toBe(true)
   })
 

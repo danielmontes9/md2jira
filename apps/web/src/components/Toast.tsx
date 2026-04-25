@@ -1,5 +1,11 @@
 import { useEffect, useRef, useState, type ReactElement } from 'react'
-import { IconAlertCircle, IconCheck, IconClose, IconInfoCircle } from './icons.js'
+import {
+  IconAlertCircle,
+  IconCheck,
+  IconClose,
+  IconInfoCircle,
+  IconWarningTriangle,
+} from './icons.js'
 
 export type ToastType = 'error' | 'success' | 'info' | 'warning'
 
@@ -24,7 +30,7 @@ const icons: Record<ToastType, ReactElement> = {
   error: <IconAlertCircle />,
   success: <IconCheck />,
   info: <IconInfoCircle />,
-  warning: <IconAlertCircle />,
+  warning: <IconWarningTriangle />,
 }
 
 export function Toast({ message, type = 'info', onClose, duration = 7000 }: ToastProps) {

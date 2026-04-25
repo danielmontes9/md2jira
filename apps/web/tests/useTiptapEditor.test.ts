@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { renderHook, act } from '@testing-library/react'
+import { renderHook, act, waitFor } from '@testing-library/react'
 import { useTiptapEditor } from '../src/hooks/useTiptapEditor.js'
 
 beforeEach(() => {
@@ -113,5 +113,92 @@ describe('useTiptapEditor', () => {
       act(() => result.current.insertHtml('<img src=x onerror=alert(1)>'))
       act(() => result.current.insertHtml('<b>safe content</b>'))
     }).not.toThrow()
+  })
+
+  describe('onColorWarning', () => {
+    it('calls onColorWarning once when colored content is set', async () => {
+      const onColorWarning = vi.fn()
+      const onMarkdownChange = vi.fn()
+
+      const { result } = renderHook(() =>
+        useTiptapEditor({
+          previewHtml: '<p>Hello</p>',
+          onMarkdownChange,
+          onColorWarning,
+          debounceMs: 50,
+        })
+      )
+
+      // Flush any pending microtasks from the initial previewHtml sync
+      await act(async () => {})
+
+      // Wait for the editor to be ready before interacting
+      await waitFor(() => expect(result.current.editor).not.toBeNull())
+
+      act(() => {
+        result.current.editor!.commands.setContent(
+          '<p><span style="color: #ff0000">colored text</span></p>'
+        )
+      })
+
+      await waitFor(() => expect(onColorWarning).toHaveBeenCalledTimes(1), { timeout: 2000 })
+    })
+
+    it('fires onColorWarning only once per editing session despite multiple color edits', async () => {
+      const onColorWarning = vi.fn()
+      const onMarkdownChange = vi.fn()
+
+      const { result } = renderHook(() =>
+        useTiptapEditor({
+          previewHtml: '<p>Hello</p>',
+          onMarkdownChange,
+          onColorWarning,
+          debounceMs: 50,
+        })
+      )
+
+      await act(async () => {})
+      await waitFor(() => expect(result.current.editor).not.toBeNull())
+
+      act(() => {
+        result.current.editor!.commands.setContent(
+          '<p><span style="color: #ff0000">first color</span></p>'
+        )
+      })
+      await waitFor(() => expect(onColorWarning).toHaveBeenCalledTimes(1), { timeout: 2000 })
+
+      act(() => {
+        result.current.editor!.commands.setContent(
+          '<p><span style="color: #0000ff">second color</span></p>'
+        )
+      })
+      // Wait for debounce to fire (onMarkdownChange should be called twice), then verify warning still only once
+      await waitFor(() => expect(onMarkdownChange).toHaveBeenCalledTimes(2), { timeout: 2000 })
+      expect(onColorWarning).toHaveBeenCalledTimes(1)
+    })
+
+    it('does not call onColorWarning for content without color marks', async () => {
+      const onColorWarning = vi.fn()
+      const onMarkdownChange = vi.fn()
+
+      const { result } = renderHook(() =>
+        useTiptapEditor({
+          previewHtml: '<p>Hello</p>',
+          onMarkdownChange,
+          onColorWarning,
+          debounceMs: 50,
+        })
+      )
+
+      await act(async () => {})
+      await waitFor(() => expect(result.current.editor).not.toBeNull())
+
+      act(() => {
+        result.current.editor!.commands.setContent('<p><strong>just bold text</strong></p>')
+      })
+      // Wait for debounce to fire, then verify color warning was not triggered
+      await waitFor(() => expect(onMarkdownChange).toHaveBeenCalled(), { timeout: 2000 })
+      expect(onColorWarning).not.toHaveBeenCalled()
+    })
   })
 })

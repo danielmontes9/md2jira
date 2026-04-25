@@ -11,7 +11,7 @@ import AxeBuilder from '@axe-core/playwright'
 test('home page has no WCAG 2.1 A/AA violations', async ({ page }) => {
   await page.goto('/')
   // Wait for the app to fully render
-  await page.getByLabel('Markdown input').waitFor()
+  await page.getByRole('textbox', { name: 'Markdown input' }).waitFor()
 
   const results = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
@@ -23,7 +23,7 @@ test('home page has no WCAG 2.1 A/AA violations', async ({ page }) => {
 
 test('Wiki Markup mode has no WCAG 2.1 A/AA violations', async ({ page }) => {
   await page.goto('/')
-  await page.getByLabel('Markdown input').waitFor()
+  await page.getByRole('textbox', { name: 'Markdown input' }).waitFor()
   await page.getByRole('radio', { name: 'Wiki Markup' }).click()
 
   const results = await new AxeBuilder({ page })
@@ -36,7 +36,7 @@ test('Wiki Markup mode has no WCAG 2.1 A/AA violations', async ({ page }) => {
 
 test('dark mode has no WCAG 2.1 A/AA violations', async ({ page }) => {
   await page.goto('/')
-  await page.getByLabel('Markdown input').waitFor()
+  await page.getByRole('textbox', { name: 'Markdown input' }).waitFor()
 
   // Toggle to dark mode
   await page.getByRole('button', { name: /theme/i }).click()

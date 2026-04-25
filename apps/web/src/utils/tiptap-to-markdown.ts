@@ -30,6 +30,7 @@ export function hasColorMarks(doc: Node): boolean {
         return false
       }
     }
+    return undefined // continue traversal
   })
   return found
 }
