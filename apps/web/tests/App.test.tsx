@@ -400,13 +400,58 @@ describe('App – mobile panel tabs', () => {
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Markdown' }))
     })
-    expect(screen.getByRole('button', { name: 'Markdown' })).toHaveAttribute(
-      'aria-pressed',
-      'true'
-    )
+    expect(screen.getByRole('button', { name: 'Markdown' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('button', { name: 'Jira Output' })).toHaveAttribute(
       'aria-pressed',
       'false'
     )
+  })
+})
+
+describe('App – resize panel keyboard (WCAG 4.1.2)', () => {
+  it('separator has role, accessible name, and required ARIA range attributes', () => {
+    render(<App />)
+    const sep = screen.getByRole('separator', { name: /resize panels/i })
+    expect(sep).toHaveAttribute('aria-valuemin', '20')
+    expect(sep).toHaveAttribute('aria-valuemax', '80')
+    expect(sep).toHaveAttribute('aria-valuenow')
+  })
+
+  it('ArrowRight increases aria-valuenow by 1', () => {
+    render(<App />)
+    const sep = screen.getByRole('separator', { name: /resize panels/i })
+    const before = parseInt(sep.getAttribute('aria-valuenow')!, 10)
+    fireEvent.keyDown(sep, { key: 'ArrowRight' })
+    expect(parseInt(sep.getAttribute('aria-valuenow')!, 10)).toBe(before + 1)
+  })
+
+  it('ArrowLeft decreases aria-valuenow by 1', () => {
+    render(<App />)
+    const sep = screen.getByRole('separator', { name: /resize panels/i })
+    const before = parseInt(sep.getAttribute('aria-valuenow')!, 10)
+    fireEvent.keyDown(sep, { key: 'ArrowLeft' })
+    expect(parseInt(sep.getAttribute('aria-valuenow')!, 10)).toBe(before - 1)
+  })
+
+  it('ArrowRight is capped at aria-valuemax (80)', () => {
+    render(<App />)
+    const sep = screen.getByRole('separator', { name: /resize panels/i })
+    // Default split is 50; press right 35 times — must saturate at 80
+    for (let i = 0; i < 35; i++) fireEvent.keyDown(sep, { key: 'ArrowRight' })
+    expect(parseInt(sep.getAttribute('aria-valuenow')!, 10)).toBe(80)
+    // One more — must remain at 80 (guard holds)
+    fireEvent.keyDown(sep, { key: 'ArrowRight' })
+    expect(parseInt(sep.getAttribute('aria-valuenow')!, 10)).toBe(80)
+  })
+
+  it('ArrowLeft is capped at aria-valuemin (20)', () => {
+    render(<App />)
+    const sep = screen.getByRole('separator', { name: /resize panels/i })
+    // Default split is 50; press left 35 times — must saturate at 20
+    for (let i = 0; i < 35; i++) fireEvent.keyDown(sep, { key: 'ArrowLeft' })
+    expect(parseInt(sep.getAttribute('aria-valuenow')!, 10)).toBe(20)
+    // One more — must remain at 20
+    fireEvent.keyDown(sep, { key: 'ArrowLeft' })
+    expect(parseInt(sep.getAttribute('aria-valuenow')!, 10)).toBe(20)
   })
 })

@@ -267,22 +267,58 @@ describe('useAdfHtmlWorker — Worker message path (mocked Worker)', () => {
     const { result } = renderHook(() => useAdfHtmlWorker(SIMPLE_ADF))
 
     // Wait for initial effect — 1 postMessage call
-    await act(async () => { await Promise.resolve() })
+    await act(async () => {
+      await Promise.resolve()
+    })
     expect(fakeWorker.postMessage.mock.calls.length).toBe(1)
 
     // 3 retries — each must trigger a new postMessage (retryCount 0→1→2→3)
     for (let i = 0; i < 3; i++) {
-      await act(async () => { result.current.retryWorker() })
-      await act(async () => { await Promise.resolve() })
+      await act(async () => {
+        result.current.retryWorker()
+      })
+      await act(async () => {
+        await Promise.resolve()
+      })
     }
     // After 3 retries: initial(1) + 3 retry effects = 4 postMessages total
     expect(fakeWorker.postMessage.mock.calls.length).toBe(4)
 
     // 4th retryWorker() call — retryCount === MAX_RETRIES (3), must be a no-op
-    await act(async () => { result.current.retryWorker() })
-    await act(async () => { await Promise.resolve() })
+    await act(async () => {
+      result.current.retryWorker()
+    })
+    await act(async () => {
+      await Promise.resolve()
+    })
 
     // No additional postMessage — the guard prevented the retry
     expect(fakeWorker.postMessage.mock.calls.length).toBe(4)
+  })
+
+  it('falls back to synchronous rendering after the 5 s safety-net timeout fires', async () => {
+    const { result } = renderHook(() => useAdfHtmlWorker(SIMPLE_ADF))
+
+    // Wait for the effect to run — postMessage should be called once.
+    await act(async () => {
+      await Promise.resolve()
+    })
+    expect(fakeWorker.postMessage.mock.calls.length).toBe(1)
+
+    // Do NOT fire any message from the worker — simulate a completely stalled worker.
+    // Advance the timer past the 5 s safety-net threshold so the timeout callback fires.
+    await act(async () => {
+      vi.advanceTimersByTime(5_001)
+    })
+    // Flush the dynamic import() promise that the timeout callback triggers.
+    await act(async () => {
+      await vi.runAllTimersAsync()
+    })
+
+    // The timeout fires: terminates the stalled worker, imports adf-renderer synchronously.
+    expect(fakeWorker.terminate).toHaveBeenCalled()
+    // The synchronous fallback renders HTML via the spy.
+    expect(result.current.html).toContain('Hello world')
+    expect(result.current.workerError).toBe(false)
   })
 })
