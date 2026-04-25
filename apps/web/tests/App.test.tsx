@@ -363,3 +363,50 @@ describe('getInitialFormat via App', () => {
     )
   })
 })
+
+describe('App – mobile panel tabs', () => {
+  it('starts with the Markdown tab active (aria-pressed="true")', () => {
+    render(<App />)
+    const mdBtn = screen.getByRole('button', { name: 'Markdown' })
+    const outputBtn = screen.getByRole('button', { name: 'Jira Output' })
+    expect(mdBtn).toHaveAttribute('aria-pressed', 'true')
+    expect(outputBtn).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('switches to Jira Output tab when that button is clicked', async () => {
+    render(<App />)
+    const outputBtn = screen.getByRole('button', { name: 'Jira Output' })
+    await act(async () => {
+      fireEvent.click(outputBtn)
+    })
+    expect(outputBtn).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'Markdown' })).toHaveAttribute(
+      'aria-pressed',
+      'false'
+    )
+  })
+
+  it('switches back to Markdown tab when Markdown button is clicked after Jira Output', async () => {
+    render(<App />)
+    // Switch to Jira Output
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Jira Output' }))
+    })
+    expect(screen.getByRole('button', { name: 'Jira Output' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
+    // Switch back to Markdown
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Markdown' }))
+    })
+    expect(screen.getByRole('button', { name: 'Markdown' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
+    expect(screen.getByRole('button', { name: 'Jira Output' })).toHaveAttribute(
+      'aria-pressed',
+      'false'
+    )
+  })
+})

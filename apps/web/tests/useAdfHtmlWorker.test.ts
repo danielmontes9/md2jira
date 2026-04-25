@@ -262,4 +262,27 @@ describe('useAdfHtmlWorker — Worker message path (mocked Worker)', () => {
     expect(result.current.html).toBe('')
     expect(result.current.workerError).toBe(true)
   })
+
+  it('retryWorker() becomes a no-op after MAX_RETRIES (3) exhausted retries', async () => {
+    const { result } = renderHook(() => useAdfHtmlWorker(SIMPLE_ADF))
+
+    // Wait for initial effect — 1 postMessage call
+    await act(async () => { await Promise.resolve() })
+    expect(fakeWorker.postMessage.mock.calls.length).toBe(1)
+
+    // 3 retries — each must trigger a new postMessage (retryCount 0→1→2→3)
+    for (let i = 0; i < 3; i++) {
+      await act(async () => { result.current.retryWorker() })
+      await act(async () => { await Promise.resolve() })
+    }
+    // After 3 retries: initial(1) + 3 retry effects = 4 postMessages total
+    expect(fakeWorker.postMessage.mock.calls.length).toBe(4)
+
+    // 4th retryWorker() call — retryCount === MAX_RETRIES (3), must be a no-op
+    await act(async () => { result.current.retryWorker() })
+    await act(async () => { await Promise.resolve() })
+
+    // No additional postMessage — the guard prevented the retry
+    expect(fakeWorker.postMessage.mock.calls.length).toBe(4)
+  })
 })

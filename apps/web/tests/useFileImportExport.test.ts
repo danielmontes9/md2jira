@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import type React from 'react'
 import { useFileImportExport } from '../src/hooks/useFileImportExport.js'
-import type { ChangeEvent } from 'react'
+import type { ChangeEvent, DragEvent } from 'react'
 
 describe('useFileImportExport', () => {
   const mockOnChange = vi.fn()
@@ -142,6 +142,104 @@ describe('useFileImportExport', () => {
     expect(mockOnChange).not.toHaveBeenCalled()
 
     global.FileReader = OriginalFileReader
+  })
+
+  it('handleDragOver prevents default, sets dropEffect to copy, and marks isDragging', () => {
+    const { result } = renderHook(() => useFileImportExport('', mockOnChange, mockAddToast))
+    const mockPreventDefault = vi.fn()
+    const mockEvent = {
+      preventDefault: mockPreventDefault,
+      dataTransfer: { dropEffect: '' },
+    } as unknown as DragEvent<HTMLElement>
+    act(() => {
+      result.current.handleDragOver(mockEvent)
+    })
+    expect(mockPreventDefault).toHaveBeenCalled()
+    expect((mockEvent.dataTransfer as { dropEffect: string }).dropEffect).toBe('copy')
+    expect(result.current.isDragging).toBe(true)
+  })
+
+  it('handleDragLeave clears isDragging when relatedTarget is outside the drop zone', () => {
+    const { result } = renderHook(() => useFileImportExport('', mockOnChange, mockAddToast))
+    // First, enter the drag zone
+    const enterEvent = {
+      preventDefault: vi.fn(),
+      dataTransfer: { dropEffect: '' },
+    } as unknown as DragEvent<HTMLElement>
+    act(() => { result.current.handleDragOver(enterEvent) })
+    expect(result.current.isDragging).toBe(true)
+
+    // Leave — relatedTarget is null (outside the drop zone entirely)
+    const leaveEvent = {
+      preventDefault: vi.fn(),
+      relatedTarget: null,
+      currentTarget: { contains: () => false },
+    } as unknown as DragEvent<HTMLElement>
+    act(() => { result.current.handleDragLeave(leaveEvent) })
+    expect(result.current.isDragging).toBe(false)
+  })
+
+  it('handleDragLeave keeps isDragging true when relatedTarget is inside the drop zone', () => {
+    const { result } = renderHook(() => useFileImportExport('', mockOnChange, mockAddToast))
+    const enterEvent = {
+      preventDefault: vi.fn(),
+      dataTransfer: { dropEffect: '' },
+    } as unknown as DragEvent<HTMLElement>
+    act(() => { result.current.handleDragOver(enterEvent) })
+    expect(result.current.isDragging).toBe(true)
+
+    // relatedTarget IS a Node inside the drop zone — must NOT clear isDragging
+    const childNode = document.createElement('span')
+    const containerNode = document.createElement('div')
+    containerNode.appendChild(childNode)
+    const leaveEvent = {
+      preventDefault: vi.fn(),
+      relatedTarget: childNode,
+      currentTarget: containerNode,
+    } as unknown as DragEvent<HTMLElement>
+    act(() => { result.current.handleDragLeave(leaveEvent) })
+    // isDragging must remain true because we moved into a child element
+    expect(result.current.isDragging).toBe(true)
+  })
+
+  it('handleDrop reads a valid dropped .md file and calls onChange', async () => {
+    const { result } = renderHook(() => useFileImportExport('', mockOnChange, mockAddToast))
+    const content = '# Dropped'
+    const mockFile = new File([content], 'dropped.md', { type: 'text/markdown' })
+    const dropEvent = {
+      preventDefault: vi.fn(),
+      dataTransfer: { files: [mockFile] },
+    } as unknown as DragEvent<HTMLElement>
+    act(() => { result.current.handleDrop(dropEvent) })
+    await act(async () => {
+      await new Promise<void>((resolve) => setTimeout(resolve, 50))
+    })
+    expect(mockOnChange).toHaveBeenCalledWith(content)
+    expect(mockAddToast).toHaveBeenCalledWith('Imported "dropped.md"', 'success')
+    expect(result.current.isDragging).toBe(false)
+  })
+
+  it('handleDrop rejects a dropped file with an unsupported extension', () => {
+    const { result } = renderHook(() => useFileImportExport('', mockOnChange, mockAddToast))
+    const mockFile = new File(['data'], 'image.png', { type: 'image/png' })
+    const dropEvent = {
+      preventDefault: vi.fn(),
+      dataTransfer: { files: [mockFile] },
+    } as unknown as DragEvent<HTMLElement>
+    act(() => { result.current.handleDrop(dropEvent) })
+    expect(mockAddToast).toHaveBeenCalledWith(expect.stringContaining('.png'), 'error')
+    expect(mockOnChange).not.toHaveBeenCalled()
+  })
+
+  it('handleDrop does nothing when dataTransfer has no files', () => {
+    const { result } = renderHook(() => useFileImportExport('', mockOnChange, mockAddToast))
+    const dropEvent = {
+      preventDefault: vi.fn(),
+      dataTransfer: { files: [] },
+    } as unknown as DragEvent<HTMLElement>
+    act(() => { result.current.handleDrop(dropEvent) })
+    expect(mockAddToast).not.toHaveBeenCalled()
+    expect(mockOnChange).not.toHaveBeenCalled()
   })
 
   it('handleExport creates a download anchor with filename document.md', () => {

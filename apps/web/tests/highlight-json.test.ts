@@ -106,4 +106,16 @@ describe('highlightJson', () => {
     const result = highlightJson('hello world')
     expect(result).toBe('hello world')
   })
+
+  it('returns HTML-escaped text without highlight spans for payloads over 500KB', () => {
+    // ~600 KB payload — must take the early-exit path to avoid blocking the main thread
+    const large = '{"key": "value"}\n'.repeat(37_500)
+    const result = highlightJson(large)
+    // Bypass path: no span tags injected
+    expect(result).not.toContain('<span class="json-key">')
+    expect(result).not.toContain('<span class="json-string">')
+    // But the content must still be HTML-escaped
+    expect(result).toContain('&quot;key&quot;')
+    expect(result).toContain('&quot;value&quot;')
+  })
 })
