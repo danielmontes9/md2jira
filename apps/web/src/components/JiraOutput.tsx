@@ -29,6 +29,7 @@ export const JiraOutput = memo(function JiraOutput({
 }: JiraOutputProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('preview')
   const [editMode, setEditMode] = useState(false)
+  const [wikiDraft, setWikiDraft] = useState(value)
   const addToast = useToast()
 
   const onColorWarning = useCallback(() => {
@@ -39,10 +40,16 @@ export const JiraOutput = memo(function JiraOutput({
     addToast('Underline formatting is not supported in Jira output and will be removed.', 'warning')
   }, [addToast])
 
-  // Reset view mode to 'preview' when switching away from ADF (wiki has no distinct code view)
+  // Reset view mode to 'preview' and exit edit mode when switching away from ADF
   useEffect(() => {
     if (format !== 'adf') setViewMode('preview')
+    setEditMode(false)
   }, [format])
+
+  // Sync wikiDraft with the converted value when not in wiki edit mode
+  useEffect(() => {
+    if (!(format === 'wiki' && editMode)) setWikiDraft(value)
+  }, [value, format, editMode])
 
   // Only initialize TipTap when ADF format is active — saves resources in wiki mode
   const shouldCreate = import.meta.env.VITE_ENABLE_WYSIWYG !== 'false' && format === 'adf'
@@ -55,14 +62,18 @@ export const JiraOutput = memo(function JiraOutput({
     onUnderlineWarning,
   })
 
-  const { copied, handleCopy } = useJiraCopy(value, format, editor)
+  // Use wikiDraft as the clipboard source when in wiki edit mode
+  const copyValue = format === 'wiki' && editMode ? wikiDraft : value
+  const { copied, handleCopy } = useJiraCopy(copyValue, format, editor)
 
-  const canEdit =
+  // ADF-specific edit check (TipTap); wiki uses a plain textarea instead
+  const adfCanEdit =
     import.meta.env.VITE_ENABLE_WYSIWYG !== 'false' &&
     format === 'adf' &&
     viewMode === 'preview' &&
     !!onMarkdownChange
-  const showToolbar = canEdit && editMode
+  const canEdit = adfCanEdit || format === 'wiki'
+  const showToolbar = adfCanEdit && editMode
 
   // Toggle TipTap editable state based on edit mode
   useEffect(() => {
@@ -135,6 +146,8 @@ export const JiraOutput = memo(function JiraOutput({
         canEdit={canEdit}
         editMode={editMode}
         isPending={isPending}
+        wikiDraft={wikiDraft}
+        onWikiDraftChange={setWikiDraft}
       />
     </div>
   )

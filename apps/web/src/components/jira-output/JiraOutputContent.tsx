@@ -13,6 +13,9 @@ interface JiraOutputContentProps {
   canEdit: boolean
   editMode: boolean
   isPending?: boolean | undefined
+  /** Locally-edited Wiki Markup draft (only relevant in wiki edit mode). */
+  wikiDraft?: string
+  onWikiDraftChange?: (v: string) => void
 }
 
 /**
@@ -33,6 +36,8 @@ export function JiraOutputContent({
   canEdit,
   editMode,
   isPending,
+  wikiDraft,
+  onWikiDraftChange,
 }: JiraOutputContentProps) {
   // Memoize expensive syntax-highlight passes: only recompute when `value` changes,
   // not on every render triggered by isPending / editMode / canEdit toggling.
@@ -61,6 +66,19 @@ export function JiraOutputContent({
         aria-multiline={true}
         aria-readonly={!(canEdit && editMode)}
         className={`jira-preview flex-1 overflow-auto p-6 text-sm text-neutral-900 outline-none transition-opacity duration-200 dark:text-neutral-100 ${isPending && !(canEdit && editMode) ? 'opacity-50' : ''} ${canEdit && editMode ? 'ring-1 ring-inset ring-blue-300 dark:ring-blue-700' : 'ring-0'}`}
+      />
+    )
+  }
+
+  // Wiki edit mode — plain textarea for direct editing
+  if (format === 'wiki' && editMode) {
+    return (
+      <textarea
+        value={wikiDraft ?? value}
+        onChange={(e) => onWikiDraftChange?.(e.target.value)}
+        aria-label="Wiki Markup editor"
+        spellCheck={false}
+        className="flex-1 resize-none p-4 font-mono text-sm leading-6 text-neutral-900 outline-none ring-1 ring-inset ring-blue-300 dark:text-neutral-100 dark:ring-blue-700"
       />
     )
   }
