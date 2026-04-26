@@ -140,7 +140,12 @@ export function App() {
         >
           Skip to main content
         </a>
-        <Header theme={theme} onToggleTheme={toggleTheme} />
+        <Header
+          theme={theme}
+          onToggleTheme={toggleTheme}
+          isDeepLinkActive={isDeepLinkActive}
+          hasContent={markdown.length > 0}
+        />
         {isOffline && (
           <div
             role="status"
@@ -279,11 +284,7 @@ export function App() {
             <ErrorBoundary
               onError={(err, info) => reportError(err, info.componentStack ?? undefined)}
             >
-              <MarkdownInput
-                value={markdown}
-                onChange={setMarkdown}
-                isDeepLinkActive={isDeepLinkActive}
-              />
+              <MarkdownInput value={markdown} onChange={setMarkdown} />
             </ErrorBoundary>
           </section>
           {/* Resize handle — desktop only. Draggable; keyboard: ArrowLeft/Right adjust by 1 %. */}

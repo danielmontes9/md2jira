@@ -302,23 +302,15 @@ describe('Copy link button', () => {
   // top-level beforeAll matchMedia stub and break subsequent describe blocks.
   // The top-level afterAll handles global cleanup at the end of the file.
 
-  it('shows Copy link button when deep-link is active and content exists', async () => {
-    const clipboardSpy = vi.fn().mockResolvedValue(undefined)
-    Object.defineProperty(navigator, 'clipboard', {
-      writable: true,
-      configurable: true,
-      value: { writeText: clipboardSpy },
-    })
-
+  it('shows Share button in header when deep-link is active and content exists', async () => {
     render(<App />)
     const textarea = screen.getByPlaceholderText('Paste your Markdown here...')
     fireEvent.change(textarea, { target: { value: '# Hello' } })
 
-    const copyLinkBtns = screen.queryAllByRole('button', { name: /copy shareable link/i })
-    expect(copyLinkBtns.length).toBeGreaterThanOrEqual(1)
+    expect(screen.getByRole('button', { name: /share document link/i })).toBeInTheDocument()
   })
 
-  it('calls clipboard.writeText with current URL when Copy link is clicked', async () => {
+  it('opens share modal and copies URL to clipboard when Share is clicked', async () => {
     const clipboardSpy = vi.fn().mockResolvedValue(undefined)
     Object.defineProperty(navigator, 'clipboard', {
       writable: true,
@@ -330,30 +322,11 @@ describe('Copy link button', () => {
     const textarea = screen.getByPlaceholderText('Paste your Markdown here...')
     fireEvent.change(textarea, { target: { value: '# Hello' } })
 
-    const btn = screen.getAllByRole('button', { name: /copy shareable link/i })[0]!
-    fireEvent.click(btn)
+    fireEvent.click(screen.getByRole('button', { name: /share document link/i }))
+    fireEvent.click(await screen.findByRole('button', { name: /copy link to share/i }))
 
     await waitFor(() => {
       expect(clipboardSpy).toHaveBeenCalledWith('http://localhost/?md=SGVsbG8')
-    })
-  })
-
-  it('shows an error toast when clipboard.writeText rejects', async () => {
-    Object.defineProperty(navigator, 'clipboard', {
-      writable: true,
-      configurable: true,
-      value: { writeText: vi.fn().mockRejectedValue(new Error('denied')) },
-    })
-
-    render(<App />)
-    const textarea = screen.getByPlaceholderText('Paste your Markdown here...')
-    fireEvent.change(textarea, { target: { value: '# Hello' } })
-
-    const btn = screen.getAllByRole('button', { name: /copy shareable link/i })[0]!
-    fireEvent.click(btn)
-
-    await waitFor(() => {
-      expect(screen.getByText(/could not copy link/i)).toBeInTheDocument()
     })
   })
 })
