@@ -1,5 +1,6 @@
 import { useState, Fragment, Suspense, memo, useCallback } from 'react'
-import { IconInfoCircle, IconSun, IconMoon, IconGitHub } from './icons.js'
+import { IconInfoCircle, IconSun, IconMoon, IconGitHub, IconLink, IconLinkOff } from './icons.js'
+import { ShareModal } from './Modal.js'
 
 import { lazyNamed } from '../utils/lazy-named.js'
 
@@ -10,11 +11,19 @@ const GITHUB_URL = 'https://github.com/danielmontes9/md2jira'
 interface HeaderProps {
   theme: 'light' | 'dark'
   onToggleTheme: () => void
+  isDeepLinkActive?: boolean
+  hasContent?: boolean
 }
 
-export const Header = memo(function Header({ theme, onToggleTheme }: HeaderProps) {
+export const Header = memo(function Header({
+  theme,
+  onToggleTheme,
+  isDeepLinkActive = false,
+  hasContent = false,
+}: HeaderProps) {
   const [infoOpen, setInfoOpen] = useState(false)
   const [bmacError, setBmacError] = useState(false)
+  const [showShare, setShowShare] = useState(false)
   const handleBmacError = useCallback(() => setBmacError(true), [])
 
   return (
@@ -63,7 +72,7 @@ export const Header = memo(function Header({ theme, onToggleTheme }: HeaderProps
               href={GITHUB_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden items-center gap-1.5 rounded-full border border-neutral-200 px-3 py-1 text-xs text-neutral-500 transition-colors hover:border-yellow-400 hover:text-yellow-500 sm:flex dark:border-neutral-700 dark:text-neutral-400 dark:hover:border-yellow-500 dark:hover:text-yellow-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
+              className="flex items-center gap-1.5 rounded-full border border-neutral-200 px-3 py-1 text-xs text-neutral-500 transition-colors hover:border-yellow-400 hover:text-yellow-500 dark:border-neutral-700 dark:text-neutral-400 dark:hover:border-yellow-500 dark:hover:text-yellow-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
               aria-label="Star on GitHub"
             >
               Star on GitHub
@@ -87,6 +96,38 @@ export const Header = memo(function Header({ theme, onToggleTheme }: HeaderProps
             >
               <IconInfoCircle />
             </button>
+            {/* Share */}
+            {isDeepLinkActive && hasContent ? (
+              <button
+                type="button"
+                onClick={() => setShowShare(true)}
+                className="rounded-md p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
+                aria-label="Share document link"
+                aria-haspopup="dialog"
+                title="Share link"
+              >
+                <IconLink className="h-5 w-5" />
+              </button>
+            ) : !isDeepLinkActive && hasContent ? (
+              <button
+                type="button"
+                disabled
+                title="Document too large for URL sharing"
+                aria-label="URL sharing unavailable — document exceeds size limit"
+                className="cursor-not-allowed rounded-md p-2 text-amber-500 dark:text-amber-400"
+              >
+                <IconLinkOff className="h-5 w-5" />
+              </button>
+            ) : (
+              <button
+                type="button"
+                disabled
+                aria-label="Share — no content to share yet"
+                className="cursor-not-allowed rounded-md p-2 text-neutral-300 dark:text-neutral-600"
+              >
+                <IconLink className="h-5 w-5" />
+              </button>
+            )}
             <button
               type="button"
               onClick={onToggleTheme}
@@ -101,6 +142,7 @@ export const Header = memo(function Header({ theme, onToggleTheme }: HeaderProps
       <Suspense fallback={null}>
         {infoOpen && <InfoModal onClose={() => setInfoOpen(false)} />}
       </Suspense>
+      {showShare && <ShareModal url={window.location.href} onClose={() => setShowShare(false)} />}
     </Fragment>
   )
 })
