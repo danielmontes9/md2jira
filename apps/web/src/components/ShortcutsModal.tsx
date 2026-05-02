@@ -1,6 +1,7 @@
 import { MOD_KEY } from '../utils/keyboard.js'
 import { Modal } from './Modal.js'
 import { IconClose } from './icons.js'
+import { useSettings } from '../context/SettingsContext.js'
 
 interface ShortcutsModalProps {
   onClose: () => void
@@ -54,6 +55,8 @@ const GROUPS = [
     shortcuts: [
       { key: 'Alt+Shift+A', label: 'Switch to Jira Cloud (ADF)' },
       { key: 'Alt+Shift+W', label: 'Switch to Wiki Markup' },
+      { key: 'Alt+H', label: 'Toggle document history' },
+      { key: 'Alt+N', label: 'New document (saves to history first)' },
     ],
   },
   {
@@ -74,6 +77,24 @@ const GROUPS = [
 ]
 
 export function ShortcutsModal({ onClose }: ShortcutsModalProps) {
+  const { historyEnabled } = useSettings()
+
+  // Inject the Ctrl+S shortcut with a label that reflects the current settings state.
+  const groups = GROUPS.map((g) =>
+    g.title === 'Editor'
+      ? {
+          ...g,
+          shortcuts: [
+            ...g.shortcuts,
+            {
+              key: `${mod}+S`,
+              label: historyEnabled ? 'Save to history' : 'Save to history (enable in Settings)',
+            },
+          ],
+        }
+      : g
+  )
+
   return (
     <Modal onClose={onClose} ariaLabelledBy="shortcuts-modal-title">
       <div className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-xl border border-neutral-200 bg-white p-6 shadow-2xl dark:border-neutral-800 dark:bg-neutral-900">
@@ -95,7 +116,7 @@ export function ShortcutsModal({ onClose }: ShortcutsModalProps) {
         </div>
 
         <div className="space-y-5">
-          {GROUPS.map((group) => (
+          {groups.map((group) => (
             <div key={group.title}>
               <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
                 {group.title}

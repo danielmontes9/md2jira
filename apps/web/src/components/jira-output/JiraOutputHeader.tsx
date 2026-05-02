@@ -1,6 +1,7 @@
 import { memo } from 'react'
 import type { OutputFormat, ViewMode } from '../../types.js'
 import { CopyEditGroup } from './CopyEditGroup.js'
+import { useT } from '../../i18n/index.js'
 
 /** Returns the correct className for a toggle-group button. */
 function toggleBtnCls(active: boolean, side: 'left' | 'right'): string {
@@ -43,11 +44,12 @@ export const JiraOutputHeader = memo(function JiraOutputHeader({
   onCopy,
   onToggleEdit,
 }: JiraOutputHeaderProps) {
+  const t = useT()
   return (
     <div className="flex flex-col gap-1.5 border-b border-neutral-200 px-3 py-2 dark:border-neutral-800 @[540px]:flex-row @[540px]:items-center @[540px]:justify-between @[540px]:gap-2 @[540px]:px-4">
       {/* Label */}
       <span className="shrink-0 flex items-center gap-1.5 text-sm font-medium text-neutral-500 dark:text-neutral-400">
-        Output
+        {t('outputLabel')}
         {isPending && (
           <span
             className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-600 dark:border-neutral-600 dark:border-t-neutral-300"
@@ -55,7 +57,7 @@ export const JiraOutputHeader = memo(function JiraOutputHeader({
           />
         )}
         <span role="status" aria-live="polite" className="sr-only">
-          {isPending ? 'Converting…' : ''}
+          {isPending ? t('convertingLabel') : ''}
         </span>
       </span>
       {/* Actions — wrap on narrow, single row on wide */}
@@ -73,7 +75,7 @@ export const JiraOutputHeader = memo(function JiraOutputHeader({
             tabIndex={format === 'adf' ? 0 : -1}
             className={toggleBtnCls(format === 'adf', 'left')}
           >
-            Jira Cloud
+            {t('formatAdf')}
           </button>
           <button
             type="button"
@@ -83,7 +85,7 @@ export const JiraOutputHeader = memo(function JiraOutputHeader({
             tabIndex={format === 'wiki' ? 0 : -1}
             className={toggleBtnCls(format === 'wiki', 'right')}
           >
-            Wiki Markup
+            {t('formatWiki')}
           </button>
         </div>
         {format === 'adf' && (
@@ -100,7 +102,7 @@ export const JiraOutputHeader = memo(function JiraOutputHeader({
               tabIndex={viewMode === 'preview' ? 0 : -1}
               className={toggleBtnCls(viewMode === 'preview', 'left')}
             >
-              Preview
+              {t('viewPreview')}
             </button>
             <button
               type="button"
@@ -110,7 +112,7 @@ export const JiraOutputHeader = memo(function JiraOutputHeader({
               tabIndex={viewMode === 'code' ? 0 : -1}
               className={toggleBtnCls(viewMode === 'code', 'right')}
             >
-              Code
+              {t('viewCode')}
             </button>
           </div>
         )}

@@ -1,30 +1,52 @@
-import { useState, Fragment, Suspense, memo, useCallback } from 'react'
-import { IconInfoCircle, IconSun, IconMoon, IconGitHub, IconLink, IconLinkOff } from './icons.js'
+import { useState, Fragment, Suspense, memo, useCallback, useRef, useEffect } from 'react'
+import {
+  IconGitHub,
+  IconLink,
+  IconLinkOff,
+  IconSettings,
+  IconPrint,
+  IconChevronDown,
+  IconHistory,
+} from './icons.js'
 import { ShareModal } from './Modal.js'
 
 import { lazyNamed } from '../utils/lazy-named.js'
 
-const InfoModal = lazyNamed(() => import('./InfoModal.js'), 'InfoModal')
-
 const GITHUB_URL = 'https://github.com/danielmontes9/md2jira'
 
 interface HeaderProps {
-  theme: 'light' | 'dark'
-  onToggleTheme: () => void
   isDeepLinkActive?: boolean
   hasContent?: boolean
+  onOpenSettings?: () => void
+  onToggleHistory?: () => void
+  historyOpen?: boolean
+  /** When false, the history button appears dimmed and its tooltip explains how to enable it. */
+  historyEnabled?: boolean
 }
 
 export const Header = memo(function Header({
-  theme,
-  onToggleTheme,
   isDeepLinkActive = false,
   hasContent = false,
+  onOpenSettings = () => {},
+  onToggleHistory = () => {},
+  historyOpen = false,
+  historyEnabled = false,
 }: HeaderProps) {
-  const [infoOpen, setInfoOpen] = useState(false)
   const [bmacError, setBmacError] = useState(false)
   const [showShare, setShowShare] = useState(false)
+  const [showExportMenu, setShowExportMenu] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
   const handleBmacError = useCallback(() => setBmacError(true), [])
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    if (!showExportMenu) return
+    function handler(e: MouseEvent) {
+      if (!menuRef.current?.contains(e.target as Node)) setShowExportMenu(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [showExportMenu])
 
   return (
     <Fragment>
@@ -86,62 +108,101 @@ export const Header = memo(function Header({
             >
               <IconGitHub className="h-5 w-5" />
             </a>
+            {/* Unified Share & Export dropdown */}
+            <div className="relative" ref={menuRef}>
+              <button
+                type="button"
+                onClick={() => hasContent && setShowExportMenu((v) => !v)}
+                disabled={!hasContent}
+                aria-label="Share or export"
+                aria-haspopup="true"
+                aria-expanded={showExportMenu}
+                title={hasContent ? 'Share or export' : 'No content to share or export yet'}
+                className={`flex items-center gap-0.5 rounded-md p-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500 ${
+                  hasContent
+                    ? 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200'
+                    : 'cursor-not-allowed text-neutral-300 dark:text-neutral-600'
+                }`}
+              >
+                <IconLink className="h-5 w-5" />
+                <IconChevronDown />
+              </button>
+              {showExportMenu && (
+                <div className="absolute right-0 top-full z-50 mt-1 min-w-44 overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-lg dark:border-neutral-700 dark:bg-neutral-800">
+                  {/* Share link */}
+                  {isDeepLinkActive ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowShare(true)
+                        setShowExportMenu(false)
+                      }}
+                      className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-sm text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-700 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
+                    >
+                      <IconLink className="h-4 w-4 shrink-0" />
+                      Share link
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled
+                      title="Document too large for URL sharing"
+                      className="flex w-full cursor-not-allowed items-center gap-2.5 px-3 py-2.5 text-left text-sm text-neutral-400 dark:text-neutral-500"
+                    >
+                      <IconLinkOff className="h-4 w-4 shrink-0" />
+                      <span>Share link</span>
+                      <span className="ml-auto text-xs text-amber-500 dark:text-amber-400">
+                        Too large
+                      </span>
+                    </button>
+                  )}
+                  {/* Export PDF */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      window.print()
+                      setShowExportMenu(false)
+                    }}
+                    className="flex w-full items-center gap-2.5 border-t border-neutral-100 px-3 py-2.5 text-left text-sm text-neutral-700 hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-700 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
+                  >
+                    <IconPrint className="h-4 w-4 shrink-0" />
+                    Export PDF
+                  </button>
+                </div>
+              )}
+            </div>
             <button
               type="button"
-              onClick={() => setInfoOpen(true)}
+              onClick={onToggleHistory}
+              aria-label={historyOpen ? 'Close document history' : 'Open document history'}
+              aria-pressed={historyOpen}
+              title={
+                historyEnabled
+                  ? 'Document history'
+                  : 'Document history (disabled — enable in Settings)'
+              }
+              className={`rounded-md p-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500 ${
+                historyOpen
+                  ? 'bg-neutral-100 text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100'
+                  : historyEnabled
+                    ? 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200'
+                    : 'text-neutral-300 hover:bg-neutral-100 hover:text-neutral-400 dark:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-600'
+              }`}
+            >
+              <IconHistory className="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              onClick={onOpenSettings}
               className="rounded-md p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
-              aria-label="About this project"
-              aria-expanded={infoOpen}
+              aria-label="Open settings"
               aria-haspopup="dialog"
             >
-              <IconInfoCircle />
-            </button>
-            {/* Share */}
-            {isDeepLinkActive && hasContent ? (
-              <button
-                type="button"
-                onClick={() => setShowShare(true)}
-                className="rounded-md p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
-                aria-label="Share document link"
-                aria-haspopup="dialog"
-                title="Share link"
-              >
-                <IconLink className="h-5 w-5" />
-              </button>
-            ) : !isDeepLinkActive && hasContent ? (
-              <button
-                type="button"
-                disabled
-                title="Document too large for URL sharing"
-                aria-label="URL sharing unavailable — document exceeds size limit"
-                className="cursor-not-allowed rounded-md p-2 text-amber-500 dark:text-amber-400"
-              >
-                <IconLinkOff className="h-5 w-5" />
-              </button>
-            ) : (
-              <button
-                type="button"
-                disabled
-                aria-label="Share — no content to share yet"
-                className="cursor-not-allowed rounded-md p-2 text-neutral-300 dark:text-neutral-600"
-              >
-                <IconLink className="h-5 w-5" />
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={onToggleTheme}
-              className="rounded-md p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
-              aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-            >
-              {theme === 'dark' ? <IconSun /> : <IconMoon />}
+              <IconSettings className="h-5 w-5" />
             </button>
           </div>
         </div>
       </header>
-      <Suspense fallback={null}>
-        {infoOpen && <InfoModal onClose={() => setInfoOpen(false)} />}
-      </Suspense>
       {showShare && <ShareModal url={window.location.href} onClose={() => setShowShare(false)} />}
     </Fragment>
   )

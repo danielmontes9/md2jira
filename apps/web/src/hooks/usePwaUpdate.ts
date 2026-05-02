@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 /**
  * Detects when a new service worker version is waiting to activate.
@@ -48,12 +48,12 @@ export function usePwaUpdate(): { needsUpdate: boolean; applyUpdate: () => void 
     })
   }, [])
 
-  const applyUpdate = () => {
+  const applyUpdate = useCallback(() => {
     if (waitingWorker) {
       waitingWorker.postMessage({ type: 'SKIP_WAITING' })
     }
     window.location.reload()
-  }
+  }, [waitingWorker])
 
   return { needsUpdate, applyUpdate }
 }

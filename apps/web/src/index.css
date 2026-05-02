@@ -1,6 +1,46 @@
 @import 'tailwindcss';
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* ── Print / Export PDF ─────────────────────────────────────────────────────── */
+@media print {
+  /* Remove browser-added page headers/footers (title, URL, date) */
+  @page {
+    margin: 0;
+  }
+
+  /* Allow full-length content to paginate across multiple pages */
+  html,
+  body {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Hide everything */
+  body {
+    visibility: hidden;
+  }
+
+  /* Reveal only the Jira content area */
+  [data-print-content] {
+    visibility: visible;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+    padding: 1cm;
+    background: white;
+    color: black;
+    font-size: 11pt;
+  }
+
+  /* Ensure all descendants are visible */
+  [data-print-content] * {
+    visibility: visible;
+  }
+}
+
 /* Custom scrollbar */
 * {
   scrollbar-width: thin;

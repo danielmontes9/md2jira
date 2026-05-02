@@ -16,6 +16,8 @@ interface JiraOutputProps {
   onFormatChange: (format: OutputFormat) => void
   previewHtml: string
   isPending?: boolean
+  /** True while the ADF worker is computing the first HTML for this session. */
+  isLoadingPreview?: boolean
   onMarkdownChange?: (md: string) => void
 }
 
@@ -25,6 +27,7 @@ export const JiraOutput = memo(function JiraOutput({
   onFormatChange,
   previewHtml,
   isPending,
+  isLoadingPreview,
   onMarkdownChange,
 }: JiraOutputProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('preview')
@@ -80,6 +83,18 @@ export const JiraOutput = memo(function JiraOutput({
     if (editor) editor.setEditable(canEdit && editMode)
   }, [editor, canEdit, editMode])
 
+  // Show a one-time warning when entering Wiki edit mode so the user knows
+  // their edits won't sync back to the Markdown source.
+  const handleToggleEdit = useCallback(() => {
+    if (format === 'wiki' && !editMode) {
+      addToast(
+        'Wiki markup edits are independent — changes won\u2019t sync back to the Markdown source.',
+        'warning'
+      )
+    }
+    setEditMode((v) => !v)
+  }, [format, editMode, addToast])
+
   return (
     <div className="@container flex min-h-0 flex-1 flex-col rounded-lg border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
       {/* ── Header bar ── */}
@@ -93,7 +108,7 @@ export const JiraOutput = memo(function JiraOutput({
         editMode={editMode}
         copied={copied}
         onCopy={handleCopy}
-        onToggleEdit={() => setEditMode((v) => !v)}
+        onToggleEdit={handleToggleEdit}
       />
 
       {format === 'adf' && viewMode === 'code' && (
@@ -138,17 +153,20 @@ export const JiraOutput = memo(function JiraOutput({
       </div>
 
       {/* ── Content ── */}
-      <JiraOutputContent
-        format={format}
-        viewMode={viewMode}
-        value={value}
-        editor={editor}
-        canEdit={canEdit}
-        editMode={editMode}
-        isPending={isPending}
-        wikiDraft={wikiDraft}
-        onWikiDraftChange={setWikiDraft}
-      />
+      <div data-print-content className="flex min-h-0 flex-1 flex-col overflow-auto">
+        <JiraOutputContent
+          format={format}
+          viewMode={viewMode}
+          value={value}
+          editor={editor}
+          canEdit={canEdit}
+          editMode={editMode}
+          isPending={isPending}
+          isLoadingPreview={isLoadingPreview ?? false}
+          wikiDraft={wikiDraft}
+          onWikiDraftChange={setWikiDraft}
+        />
+      </div>
     </div>
   )
 })

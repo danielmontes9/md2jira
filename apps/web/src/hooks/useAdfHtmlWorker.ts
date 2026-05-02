@@ -15,7 +15,10 @@ const MAX_RETRIES = 3
  * - Falls back immediately to synchronous rendering when module Workers are
  *   not available (e.g. jsdom unit-test environments).
  */
-export function useAdfHtmlWorker(adfDoc: AdfDocument | null): {
+export function useAdfHtmlWorker(
+  adfDoc: AdfDocument | null,
+  onFallback?: () => void
+): {
   html: string
   workerError: boolean
   retryWorker: () => void
@@ -23,6 +26,8 @@ export function useAdfHtmlWorker(adfDoc: AdfDocument | null): {
   const [state, setState] = useState({ html: '', workerError: false })
   const [retryCount, setRetryCount] = useState(0)
   const workerRef = useRef<Worker | null>(null)
+  const onFallbackRef = useRef(onFallback)
+  onFallbackRef.current = onFallback
   // Monotonically increasing request id — used to discard stale worker responses
   const workerReqRef = useRef(0)
 
@@ -66,8 +71,10 @@ export function useAdfHtmlWorker(adfDoc: AdfDocument | null): {
         workerRef.current = null
         import('../components/jira-output/adf-renderer.js')
           .then(({ adfToHtml }) => {
-            if (workerReqRef.current === id)
+            if (workerReqRef.current === id) {
               setState({ html: adfToHtml(adfDoc), workerError: false })
+              onFallbackRef.current?.()
+            }
           })
           .catch(() => setState({ html: '', workerError: true }))
       }, 5_000)
