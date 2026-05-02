@@ -3,6 +3,7 @@ import { render, screen, fireEvent, act } from '@testing-library/react'
 import { createElement } from 'react'
 import type { ReactNode } from 'react'
 import { ToastProvider } from '../src/context/ToastContext.js'
+import { SettingsProvider } from '../src/context/SettingsContext.js'
 import { JiraOutput } from '../src/components/JiraOutput.js'
 import { useTiptapEditor } from '../src/hooks/useTiptapEditor.js'
 
@@ -31,7 +32,7 @@ beforeEach(() => {
 })
 
 function renderWithToast(ui: ReactNode) {
-  return render(createElement(ToastProvider, null, ui))
+  return render(createElement(SettingsProvider, null, createElement(ToastProvider, null, ui)))
 }
 
 const baseProps = {
@@ -92,5 +93,26 @@ describe('JiraOutput — onUnderlineWarning toast', () => {
     renderWithToast(createElement(JiraOutput, { ...baseProps, onMarkdownChange: vi.fn() }))
 
     expect(typeof capturedWarning).toBe('function')
+  })
+})
+
+// ── Wiki edit desync warning ──────────────────────────────────────────────────
+
+describe('JiraOutput — wiki edit desync warning', () => {
+  it('shows a warning toast when entering wiki edit mode', () => {
+    renderWithToast(createElement(JiraOutput, { ...baseProps, format: 'wiki', previewHtml: '' }))
+    // In wiki mode canEdit=true, so the Edit button is rendered.
+    fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    expect(screen.getByText(/wiki markup edits are independent/i)).toBeInTheDocument()
+  })
+
+  it('does not show the desync toast when switching back to view mode', () => {
+    renderWithToast(createElement(JiraOutput, { ...baseProps, format: 'wiki', previewHtml: '' }))
+    // Enter edit mode (toast fires)
+    fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    // Exit edit mode (no second toast)
+    fireEvent.click(screen.getByRole('button', { name: 'View' }))
+    // Still only one toast visible (the first one)
+    expect(screen.getAllByText(/wiki markup edits are independent/i)).toHaveLength(1)
   })
 })

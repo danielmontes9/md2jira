@@ -3,6 +3,47 @@ import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { App } from '../src/App.js'
 import { ErrorBoundary } from '../src/components/ErrorBoundary.js'
 
+// Replace CodeMirror with a native <textarea> so getByPlaceholderText works
+// and fireEvent.change triggers onChange correctly in jsdom.
+vi.mock('../src/hooks/useCodeMirrorEditor.js', async () => {
+  const { useEffect, useRef } = await import('react')
+  return {
+    useCodeMirrorEditor: ({
+      containerRef,
+      value,
+      onChange,
+      placeholderText = 'Paste your Markdown here...',
+    }: {
+      containerRef: { current: HTMLDivElement | null }
+      value: string
+      onChange: (value: string) => void
+      isDark?: boolean
+      placeholderText?: string
+      onSave?: () => void
+    }) => {
+      const onChangeRef = useRef(onChange)
+      useEffect(() => {
+        onChangeRef.current = onChange
+      }, [onChange])
+      useEffect(() => {
+        const container = containerRef.current
+        if (!container) return
+        let ta = container.querySelector<HTMLTextAreaElement>('textarea')
+        if (!ta) {
+          ta = document.createElement('textarea')
+          ta.placeholder = placeholderText
+          ta.addEventListener('change', (e) => {
+            onChangeRef.current((e.target as HTMLTextAreaElement).value)
+          })
+          container.appendChild(ta)
+        }
+        ta.value = value
+      })
+      return { undo: vi.fn(), redo: vi.fn(), openSearch: vi.fn() }
+    },
+  }
+})
+
 // Use vi.stubGlobal so vitest restores originals after this file's tests run,
 // preventing cross-file global pollution in shared worker pools.
 beforeAll(() => {
@@ -39,13 +80,18 @@ describe('App', () => {
     expect(screen.getByRole('region', { name: /jira output/i })).toBeInTheDocument()
   })
 
-  it('toggles theme button label', () => {
+  it('toggles theme button label', async () => {
     render(<App />)
-    const btn = screen.getByRole('button', { name: /switch to/i })
-    expect(btn).toBeInTheDocument()
-    fireEvent.click(btn)
-    // After click the label flips (light→dark or dark→light)
-    expect(screen.getByRole('button', { name: /switch to/i })).toBeInTheDocument()
+    // Theme toggle is inside the Settings modal — open it first and flush lazy import
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /open settings/i }))
+    })
+    // The theme toggle has role="switch" in SettingsModal
+    const toggle = await screen.findByRole('switch', { name: /switch to/i })
+    expect(toggle).toBeInTheDocument()
+    fireEvent.click(toggle)
+    // After click the aria-label flips (light→dark or dark→light)
+    expect(screen.getByRole('switch', { name: /switch to/i })).toBeInTheDocument()
   })
 
   it('renders the Markdown input section', () => {
@@ -307,7 +353,8 @@ describe('Copy link button', () => {
     const textarea = screen.getByPlaceholderText('Paste your Markdown here...')
     fireEvent.change(textarea, { target: { value: '# Hello' } })
 
-    expect(screen.getByRole('button', { name: /share document link/i })).toBeInTheDocument()
+    // The share/export dropdown is always present when content exists
+    expect(screen.getByRole('button', { name: /share or export/i })).toBeInTheDocument()
   })
 
   it('opens share modal and copies URL to clipboard when Share is clicked', async () => {
@@ -322,7 +369,9 @@ describe('Copy link button', () => {
     const textarea = screen.getByPlaceholderText('Paste your Markdown here...')
     fireEvent.change(textarea, { target: { value: '# Hello' } })
 
-    fireEvent.click(screen.getByRole('button', { name: /share document link/i }))
+    // Open the share/export dropdown, then click "Share link"
+    fireEvent.click(screen.getByRole('button', { name: /share or export/i }))
+    fireEvent.click(await screen.findByRole('button', { name: /^share link$/i }))
     fireEvent.click(await screen.findByRole('button', { name: /copy link to share/i }))
 
     await waitFor(() => {

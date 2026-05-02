@@ -3,6 +3,47 @@ import { render } from '@testing-library/react'
 import { axe } from 'vitest-axe'
 import { App } from '../src/App.js'
 
+// Replace CodeMirror with a native <textarea> to avoid jsdom incompatibilities
+// (textRange().getClientRects) that would cause spurious accessibility violations.
+vi.mock('../src/hooks/useCodeMirrorEditor.js', async () => {
+  const { useEffect, useRef } = await import('react')
+  return {
+    useCodeMirrorEditor: ({
+      containerRef,
+      value,
+      onChange,
+      placeholderText = 'Paste your Markdown here...',
+    }: {
+      containerRef: { current: HTMLDivElement | null }
+      value: string
+      onChange: (value: string) => void
+      isDark?: boolean
+      placeholderText?: string
+      onSave?: () => void
+    }) => {
+      const onChangeRef = useRef(onChange)
+      useEffect(() => {
+        onChangeRef.current = onChange
+      }, [onChange])
+      useEffect(() => {
+        const container = containerRef.current
+        if (!container) return
+        let ta = container.querySelector<HTMLTextAreaElement>('textarea')
+        if (!ta) {
+          ta = document.createElement('textarea')
+          ta.placeholder = placeholderText
+          ta.addEventListener('change', (e) => {
+            onChangeRef.current((e.target as HTMLTextAreaElement).value)
+          })
+          container.appendChild(ta)
+        }
+        ta.value = value
+      })
+      return { undo: vi.fn(), redo: vi.fn(), openSearch: vi.fn() }
+    },
+  }
+})
+
 // Use vi.stubGlobal (instead of Object.defineProperty at module level) so vitest
 // can restore the originals after this file's tests run, preventing cross-file
 // global pollution in shared worker pools.

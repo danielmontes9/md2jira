@@ -4,6 +4,20 @@ import userEvent from '@testing-library/user-event'
 import { CopyEditGroup } from '../src/components/jira-output/CopyEditGroup.js'
 import { JiraOutputHeader } from '../src/components/jira-output/JiraOutputHeader.js'
 
+// CopyEditGroup and JiraOutputHeader now call useT() which internally uses
+// useSettings(). Mock the context so these unit tests don't need a Provider.
+vi.mock('../src/context/SettingsContext.js', () => ({
+  useSettings: () => ({
+    historyEnabled: true,
+    maxHistoryEntries: 10 as const,
+    locale: 'en' as const,
+    toggleHistory: vi.fn(),
+    setMaxHistoryEntries: vi.fn(),
+    setLocale: vi.fn(),
+  }),
+  SettingsProvider: ({ children }: { children: React.ReactNode }) => children,
+}))
+
 const noop = () => {}
 
 describe('CopyEditGroup', () => {

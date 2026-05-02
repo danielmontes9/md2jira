@@ -3,6 +3,47 @@ import { render, screen, fireEvent, waitFor, act, within } from '@testing-librar
 import { App } from '../src/App.js'
 import { PLACEHOLDER } from '../src/utils/markdown-url.js'
 
+// Replace CodeMirror with a native <textarea> so getByPlaceholderText works
+// and fireEvent.change triggers onChange correctly in jsdom.
+vi.mock('../src/hooks/useCodeMirrorEditor.js', async () => {
+  const { useEffect, useRef } = await import('react')
+  return {
+    useCodeMirrorEditor: ({
+      containerRef,
+      value,
+      onChange,
+      placeholderText = 'Paste your Markdown here...',
+    }: {
+      containerRef: { current: HTMLDivElement | null }
+      value: string
+      onChange: (value: string) => void
+      isDark?: boolean
+      placeholderText?: string
+      onSave?: () => void
+    }) => {
+      const onChangeRef = useRef(onChange)
+      useEffect(() => {
+        onChangeRef.current = onChange
+      }, [onChange])
+      useEffect(() => {
+        const container = containerRef.current
+        if (!container) return
+        let ta = container.querySelector<HTMLTextAreaElement>('textarea')
+        if (!ta) {
+          ta = document.createElement('textarea')
+          ta.placeholder = placeholderText
+          ta.addEventListener('change', (e) => {
+            onChangeRef.current((e.target as HTMLTextAreaElement).value)
+          })
+          container.appendChild(ta)
+        }
+        ta.value = value
+      })
+      return { undo: vi.fn(), redo: vi.fn(), openSearch: vi.fn() }
+    },
+  }
+})
+
 // Use vi.stubGlobal so vitest restores originals after this file's tests run,
 // preventing cross-file global pollution in shared worker pools.
 beforeAll(() => {
