@@ -321,3 +321,44 @@ test('Alt+Shift+A keyboard shortcut switches output to Jira Cloud (ADF)', async 
     'false'
   )
 })
+
+// ─── Language selector ────────────────────────────────────────────────────────
+
+test('Settings — language selector switches UI to Spanish', async ({ page }) => {
+  await page.goto('/')
+
+  // Open the Settings modal
+  await page.getByRole('button', { name: 'Open settings' }).click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog).toBeVisible()
+
+  // Select Español from the language radio group
+  await page.getByRole('radio', { name: 'Español' }).click()
+
+  // Close the modal
+  await page.keyboard.press('Escape')
+  await expect(dialog).not.toBeVisible()
+
+  // The "Copy for Jira" button should now show "Copiar para Jira" in Spanish
+  await expect(page.getByRole('button', { name: /copiar para jira/i }).first()).toBeVisible()
+})
+
+test('Settings — switching back to English restores English UI', async ({ page }) => {
+  await page.goto('/')
+
+  // Switch to Spanish first
+  await page.getByRole('button', { name: 'Open settings' }).click()
+  await page.getByRole('radio', { name: 'Español' }).click()
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('button', { name: /copiar para jira/i }).first()).toBeVisible()
+
+  // Switch back to English
+  await page.getByRole('button', { name: 'Open settings' }).click()
+  await page.getByRole('radio', { name: 'English' }).click()
+  await page.keyboard.press('Escape')
+
+  // English strings should be restored
+  await expect(
+    page.getByRole('button', { name: /copy as rich text for jira cloud/i }).first()
+  ).toBeVisible()
+})
