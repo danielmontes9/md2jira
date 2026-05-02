@@ -17,6 +17,13 @@
     "test:e2e:update-snapshots": "playwright test --project=visual --update-snapshots"
   },
   "dependencies": {
+    "@codemirror/commands": "^6.10.3",
+    "@codemirror/lang-markdown": "^6.5.0",
+    "@codemirror/language": "^6.12.3",
+    "@codemirror/search": "^6.7.0",
+    "@codemirror/state": "^6.6.0",
+    "@codemirror/view": "^6.41.1",
+    "@lezer/highlight": "^1.2.3",
     "@tiptap/extension-color": "^3.22.4",
     "@tiptap/extension-subscript": "^3.22.4",
     "@tiptap/extension-superscript": "^3.22.4",
