@@ -10,6 +10,7 @@
  */
 import { en } from './en.js'
 import { es } from './es.js'
+import { pt } from './pt.js'
 import type { StringKey } from './en.js'
 import { useSettings } from '../context/SettingsContext.js'
 
@@ -37,6 +38,6 @@ export function t(key: StringKey): string {
  */
 export function useT(): (key: StringKey) => string {
   const { locale } = useSettings()
-  const dict = locale === 'es' ? es : en
+  const dict = locale === 'es' ? es : locale === 'pt' ? pt : en
   return (key: StringKey) => dict[key]
 }

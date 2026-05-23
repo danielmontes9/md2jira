@@ -6,7 +6,7 @@ const LS_KEY = 'md2jira-settings'
 export type MaxHistoryEntries = 10 | 25 | 50
 
 /** Supported UI locales. */
-export type Locale = 'en' | 'es'
+export type Locale = 'en' | 'es' | 'pt'
 
 interface SettingsState {
   historyEnabled: boolean
@@ -33,7 +33,10 @@ function loadSettings(): SettingsState {
       historyEnabled:
         typeof parsed.historyEnabled === 'boolean' ? parsed.historyEnabled : DEFAULT.historyEnabled,
       maxHistoryEntries: mx === 10 || mx === 25 || mx === 50 ? mx : DEFAULT.maxHistoryEntries,
-      locale: parsed.locale === 'en' || parsed.locale === 'es' ? parsed.locale : DEFAULT.locale,
+      locale:
+        parsed.locale === 'en' || parsed.locale === 'es' || parsed.locale === 'pt'
+          ? parsed.locale
+          : DEFAULT.locale,
     }
   } catch {
     return DEFAULT

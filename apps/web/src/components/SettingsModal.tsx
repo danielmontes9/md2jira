@@ -74,7 +74,7 @@ export function SettingsModal({ onClose, theme, onToggleTheme, historyCount }: S
                   aria-labelledby={langId}
                   className="flex rounded-md border border-neutral-300 text-xs dark:border-neutral-700"
                 >
-                  {(['en', 'es'] as const).map((l, i) => (
+                  {(['en', 'es', 'pt'] as const).map((l, i) => (
                     <button
                       key={l}
                       type="button"
@@ -84,14 +84,16 @@ export function SettingsModal({ onClose, theme, onToggleTheme, historyCount }: S
                       className={`px-3 py-1 font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500 ${
                         i === 0
                           ? 'rounded-l-md'
-                          : 'rounded-r-md border-l border-neutral-300 dark:border-neutral-700'
+                          : i === 2
+                            ? 'rounded-r-md border-l border-neutral-300 dark:border-neutral-700'
+                            : 'border-l border-neutral-300 dark:border-neutral-700'
                       } ${
                         locale === l
                           ? 'bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-neutral-100'
                           : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200'
                       }`}
                     >
-                      {l === 'en' ? 'English' : 'Espa\u00f1ol'}
+                      {{ en: 'English', es: 'Espa\u00f1ol', pt: 'Portugu\u00eas' }[l]}
                     </button>
                   ))}
                 </div>
