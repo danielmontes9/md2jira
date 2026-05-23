@@ -99,4 +99,51 @@ export const es: Record<StringKey, string> = {
   wikiEditDesyncWarning:
     'Las ediciones de Wiki Markup son independientes \u2014 los cambios no se sincronizar\u00e1n con el Markdown original.',
   newDocumentSaved: 'Documento guardado en el historial.',
+
+  // ── Grupos del modal de atajos ────────────────────────────────────────────
+  scGroupFormatting: 'Formato',
+  scGroupStructure: 'Estructura',
+  scGroupLines: 'L\u00edneas',
+  scGroupEditor: 'Editor',
+  scGroupOutputFormat: 'Formato de salida',
+  scGroupWysiwyg: 'Editor WYSIWYG (solo en modo edici\u00f3n)',
+  closeShortcutsModal: 'Cerrar panel de atajos',
+
+  // ── Modal de informaci\u00f3n ─────────────────────────────────────────────────
+  infoSubtitle: 'Conversor Markdown \u2192 Jira de c\u00f3digo abierto',
+  infoDescription:
+    'md2jira convierte documentos Markdown en Jira Wiki Markup y Atlassian Document Format (ADF). Pega tu Markdown a la izquierda, obt\u00e9n contenido listo para Jira a la derecha \u2014 copia y pega directamente en cualquier issue, comentario o descripci\u00f3n de Jira Cloud.',
+  infoPackages: 'Paquetes',
+  infoLicense: 'Licencia MIT',
+  infoViewOnGithub: 'Ver en GitHub \u2192',
+  infoCoreDesc:
+    'Motor de conversi\u00f3n en TypeScript puro. Sin dependencias del navegador \u2014 funciona en Node.js, navegadores y extensiones de VSCode.',
+  infoCliDesc:
+    'Herramienta de l\u00ednea de comandos para convertir archivos Markdown desde la terminal.',
+  infoWebDesc:
+    'Esta aplicaci\u00f3n web \u2014 conversor en vivo de dos paneles con React 18 + Vite.',
+
+  // ── Encabezado ────────────────────────────────────────────────────────────
+  shareLink: 'Compartir enlace',
+  exportPdf: 'Exportar PDF',
+  tooLarge: 'Demasiado grande',
+  docTooLargeForUrl: 'Documento demasiado grande para compartir por URL',
+  documentHistory: 'Historial de documentos',
+  historyDisabledHint:
+    'Historial de documentos (desactivado \u2014 act\u00edvalo en Configuraci\u00f3n)',
+  shareOrExport: 'Compartir o exportar',
+  noContentToShare: 'No hay contenido para compartir o exportar a\u00fan',
+
+  // ── Barra de herramientas WYSIWYG ─────────────────────────────────────────
+  wysiwygBulletList: 'Lista con vi\u00f1etas',
+  wysiwygNumberedList: 'Lista numerada',
+  wysiwygTaskList: 'Lista de tareas',
+  wysiwygRemoveColor: 'Eliminar color',
+  wysiwygColorNote:
+    'El color es solo del editor y no aparecer\u00e1 en el Markdown exportado ni en el marcado de Jira.',
+  wysiwygSearchEmojis: 'Buscar emojis',
+  wysiwygEmojiPlaceholder:
+    'Buscar por categor\u00eda (Frecuentes, Personas, Objetos, S\u00edmbolos\u2026)',
+  wysiwygNoEmojis: 'No se encontraron emojis',
+  wysiwygLoading: 'Cargando\u2026',
 } as const

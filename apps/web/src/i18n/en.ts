@@ -107,6 +107,49 @@ export const en = {
   wikiEditDesyncWarning:
     'Wiki markup edits are independent \u2014 changes won\u2019t sync back to the Markdown source.',
   newDocumentSaved: 'Document saved to history.',
+
+  // ── Shortcuts modal groups ────────────────────────────────────────────────
+  scGroupFormatting: 'Formatting',
+  scGroupStructure: 'Structure',
+  scGroupLines: 'Lines',
+  scGroupEditor: 'Editor',
+  scGroupOutputFormat: 'Output format',
+  scGroupWysiwyg: 'WYSIWYG editor (Edit mode only)',
+  closeShortcutsModal: 'Close shortcuts panel',
+
+  // ── Info modal ────────────────────────────────────────────────────────────
+  infoSubtitle: 'Open-source Markdown \u2192 Jira converter',
+  infoDescription:
+    'md2jira converts Markdown documents into Jira Wiki Markup and Atlassian Document Format (ADF). Paste your Markdown on the left, get Jira-ready content on the right \u2014 copy and paste directly into any Jira Cloud issue, comment, or description.',
+  infoPackages: 'Packages',
+  infoLicense: 'MIT License',
+  infoViewOnGithub: 'View on GitHub \u2192',
+  infoCoreDesc:
+    'Pure TypeScript conversion engine. Zero browser dependencies \u2014 works in Node.js, browsers, and VSCode extensions.',
+  infoCliDesc: 'Command-line tool to convert Markdown files from your terminal.',
+  infoWebDesc: 'This web app \u2014 live two-panel converter built with React 18 + Vite.',
+
+  // ── Header ────────────────────────────────────────────────────────────────
+  shareLink: 'Share link',
+  exportPdf: 'Export PDF',
+  tooLarge: 'Too large',
+  docTooLargeForUrl: 'Document too large for URL sharing',
+  documentHistory: 'Document history',
+  historyDisabledHint: 'Document history (disabled \u2014 enable in Settings)',
+  shareOrExport: 'Share or export',
+  noContentToShare: 'No content to share or export yet',
+
+  // ── WYSIWYG toolbar ───────────────────────────────────────────────────────
+  wysiwygBulletList: 'Bullet list',
+  wysiwygNumberedList: 'Numbered list',
+  wysiwygTaskList: 'Task list',
+  wysiwygRemoveColor: 'Remove color',
+  wysiwygColorNote:
+    'Color is editor-only and won\u2019t appear in exported Markdown or Jira markup.',
+  wysiwygSearchEmojis: 'Search emojis',
+  wysiwygEmojiPlaceholder: 'Search by category (Frequent, People, Objects, Symbols\u2026)',
+  wysiwygNoEmojis: 'No emojis found',
+  wysiwygLoading: 'Loading\u2026',
 } as const
 
 export type StringKey = keyof typeof en
