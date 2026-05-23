@@ -480,6 +480,10 @@ export function useCodeMirrorEditor({
       viewRef.current = null
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // deps intentionally omitted: this effect creates the editor once on mount.
+    // `value` and `isDark` are accessed via refs in the listeners above, so they
+    // do not need to be listed here. Re-creating the view on every change would
+    // destroy and rebuild the entire editor, losing cursor position and history.
   }, []) // intentionally runs once on mount
 
   // Sync external value changes (file import, URL param, history restore, etc.)

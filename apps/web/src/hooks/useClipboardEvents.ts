@@ -11,6 +11,10 @@ import type { ToastType } from '../components/Toast.js'
  * - Intercepts native paste to strip rich-text and insert plain text only.
  * - Provides a `handleCopyMd` callback that writes markdown wrapped in a
  *   `<pre>` HTML blob so Jira's ProseMirror editor treats it as preformatted text.
+ *
+ * @deprecated No longer imported anywhere in `src/`. Clipboard handling was
+ * migrated into `useCodeMirrorEditor` when the textarea was replaced by the
+ * CodeMirror 6 editor. This hook can be deleted once confirmed unused.
  */
 export function useClipboardEvents(
   value: string,
