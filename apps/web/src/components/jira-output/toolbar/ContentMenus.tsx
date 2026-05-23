@@ -14,6 +14,7 @@ import {
   ChevronDown,
 } from './shared.js'
 import { IconListBullet } from '../../icons.js'
+import { useT } from '../../../i18n/index.js'
 
 // ── Lists Menu ──
 
@@ -24,6 +25,7 @@ interface ListsMenuProps extends ToolbarMenuProps {
 }
 
 export function ListsMenu({ exec, close, openKey, onOpen, activeFormats }: ListsMenuProps) {
+  const t = useT()
   return (
     <ToolbarDropdown
       dropKey="lists"
@@ -50,7 +52,7 @@ export function ListsMenu({ exec, close, openKey, onOpen, activeFormats }: Lists
           aria-checked={activeFormats.has('insertUnorderedList')}
           className={`${DROP_ITEM_CLS} justify-between ${activeFormats.has('insertUnorderedList') ? 'bg-neutral-100 dark:bg-neutral-800' : ''}`}
         >
-          <span>Bullet list</span>
+          <span>{t('wysiwygBulletList')}</span>
           <span className="text-xs text-neutral-400">{`${MOD_KEY}+Shift+8`}</span>
         </button>
         <button
@@ -64,7 +66,7 @@ export function ListsMenu({ exec, close, openKey, onOpen, activeFormats }: Lists
           aria-checked={activeFormats.has('insertOrderedList')}
           className={`${DROP_ITEM_CLS} justify-between ${activeFormats.has('insertOrderedList') ? 'bg-neutral-100 dark:bg-neutral-800' : ''}`}
         >
-          <span>Numbered list</span>
+          <span>{t('wysiwygNumberedList')}</span>
           <span className="text-xs text-neutral-400">{`${MOD_KEY}+Shift+7`}</span>
         </button>
         <button
@@ -78,7 +80,7 @@ export function ListsMenu({ exec, close, openKey, onOpen, activeFormats }: Lists
           aria-checked={activeFormats.has('toggleTaskList')}
           className={`${DROP_ITEM_CLS} justify-between ${activeFormats.has('toggleTaskList') ? 'bg-neutral-100 dark:bg-neutral-800' : ''}`}
         >
-          <span>Task list</span>
+          <span>{t('wysiwygTaskList')}</span>
           <span className="text-xs text-neutral-400">{`${MOD_KEY}+Shift+6`}</span>
         </button>
       </div>
@@ -95,6 +97,7 @@ interface ColorMenuProps extends ToolbarMenuProps {
 }
 
 export function ColorMenu({ exec, close, openKey, onOpen, activeColor }: ColorMenuProps) {
+  const t = useT()
   return (
     <ToolbarDropdown
       dropKey="color"
@@ -146,10 +149,10 @@ export function ColorMenu({ exec, close, openKey, onOpen, activeColor }: ColorMe
             aria-selected={!activeColor}
             className="w-full rounded py-1 text-xs text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
           >
-            Remove color
+            {t('wysiwygRemoveColor')}
           </button>
           <p className="mt-1.5 text-[10px] leading-tight text-neutral-400">
-            Color is editor-only and won&apos;t appear in exported Markdown or Jira markup.
+            {t('wysiwygColorNote')}
           </p>
         </div>
       </div>
@@ -167,6 +170,7 @@ interface EmojiMenuProps extends ToolbarMenuProps {
 export function EmojiMenu({ exec, close, openKey, onOpen }: EmojiMenuProps) {
   const [emojiSearch, setEmojiSearch] = useState('')
   const deferredSearch = useDeferredValue(emojiSearch)
+  const t = useT()
 
   // Lazy-load emoji data only when the picker first opens
   type EmojiCategoriesData = Record<string, readonly string[]>
@@ -214,8 +218,8 @@ export function EmojiMenu({ exec, close, openKey, onOpen }: EmojiMenuProps) {
       <div className={`${DROP_CLS} p-2 min-w-70 max-h-75 overflow-y-auto`}>
         <input
           type="text"
-          aria-label="Search emojis"
-          placeholder="Search by category (Frequent, People, Objects, Symbols…)"
+          aria-label={t('wysiwygSearchEmojis')}
+          placeholder={t('wysiwygEmojiPlaceholder')}
           value={emojiSearch}
           onChange={(e) => setEmojiSearch(e.target.value)}
           onMouseDown={(e) => e.stopPropagation()}
@@ -224,7 +228,9 @@ export function EmojiMenu({ exec, close, openKey, onOpen }: EmojiMenuProps) {
         {deferredSearch ? (
           <div className="flex flex-wrap gap-0.5">
             {filteredEmojis.length === 0 ? (
-              <p className="w-full py-2 text-center text-xs text-neutral-400">No emojis found</p>
+              <p className="w-full py-2 text-center text-xs text-neutral-400">
+                {t('wysiwygNoEmojis')}
+              </p>
             ) : (
               filteredEmojis.map((em) => (
                 <button
@@ -244,7 +250,7 @@ export function EmojiMenu({ exec, close, openKey, onOpen }: EmojiMenuProps) {
             )}
           </div>
         ) : emojiData === null ? (
-          <p className="py-2 text-center text-xs text-neutral-400">Loading...</p>
+          <p className="py-2 text-center text-xs text-neutral-400">{t('wysiwygLoading')}</p>
         ) : (
           Object.entries(emojiData).map(([cat, emojis]) => (
             <div key={cat} className="mb-2">

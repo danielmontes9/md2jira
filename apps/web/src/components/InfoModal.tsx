@@ -1,11 +1,13 @@
 import { Modal } from './Modal.js'
 import { IconInfoCircle, IconCloseOcticon, IconExternalLink } from './icons.js'
+import { useT } from '../i18n/index.js'
 
 interface InfoModalProps {
   onClose: () => void
 }
 
 export function InfoModal({ onClose }: InfoModalProps) {
+  const t = useT()
   return (
     <Modal onClose={onClose} ariaLabelledBy="info-modal-title">
       <div className="relative w-full max-w-lg rounded-2xl border border-neutral-200 bg-white p-6 shadow-2xl dark:border-neutral-700 dark:bg-neutral-900">
@@ -31,18 +33,13 @@ export function InfoModal({ onClose }: InfoModalProps) {
             >
               md2jira
             </h2>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">
-              Open-source Markdown → Jira converter
-            </p>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">{t('infoSubtitle')}</p>
           </div>
         </div>
 
         {/* Description */}
         <p className="mb-5 text-sm leading-relaxed text-neutral-600 dark:text-neutral-300">
-          md2jira converts Markdown documents into <strong>Jira Wiki Markup</strong> and{' '}
-          <strong>Atlassian Document Format (ADF)</strong>. Paste your Markdown on the left, get
-          Jira-ready content on the right — copy and paste directly into any Jira Cloud issue,
-          comment, or description.
+          {t('infoDescription')}
         </p>
 
         {/* Packages */}
@@ -92,14 +89,14 @@ export function InfoModal({ onClose }: InfoModalProps) {
 
         {/* Footer */}
         <div className="flex items-center justify-between border-t border-neutral-100 pt-4 dark:border-neutral-800">
-          <span className="text-xs text-neutral-400 dark:text-neutral-500">MIT License</span>
+          <span className="text-xs text-neutral-400 dark:text-neutral-500">{t('infoLicense')}</span>
           <a
             href="https://github.com/danielmontes9/md2jira"
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
           >
-            View on GitHub →
+            {t('infoViewOnGithub')}
           </a>
         </div>
       </div>

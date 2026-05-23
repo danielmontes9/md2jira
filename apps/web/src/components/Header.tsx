@@ -11,6 +11,7 @@ import {
 import { ShareModal } from './Modal.js'
 
 import { lazyNamed } from '../utils/lazy-named.js'
+import { useT } from '../i18n/index.js'
 
 const GITHUB_URL = 'https://github.com/danielmontes9/md2jira'
 
@@ -37,6 +38,7 @@ export const Header = memo(function Header({
   const [showExportMenu, setShowExportMenu] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const handleBmacError = useCallback(() => setBmacError(true), [])
+  const t = useT()
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -114,10 +116,10 @@ export const Header = memo(function Header({
                 type="button"
                 onClick={() => hasContent && setShowExportMenu((v) => !v)}
                 disabled={!hasContent}
-                aria-label="Share or export"
+                aria-label={t('shareOrExport')}
                 aria-haspopup="true"
                 aria-expanded={showExportMenu}
-                title={hasContent ? 'Share or export' : 'No content to share or export yet'}
+                title={hasContent ? t('shareOrExport') : t('noContentToShare')}
                 className={`flex items-center gap-0.5 rounded-md p-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500 ${
                   hasContent
                     ? 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200'
@@ -140,19 +142,19 @@ export const Header = memo(function Header({
                       className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-sm text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-700 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
                     >
                       <IconLink className="h-4 w-4 shrink-0" />
-                      Share link
+                      {t('shareLink')}
                     </button>
                   ) : (
                     <button
                       type="button"
                       disabled
-                      title="Document too large for URL sharing"
+                      title={t('docTooLargeForUrl')}
                       className="flex w-full cursor-not-allowed items-center gap-2.5 px-3 py-2.5 text-left text-sm text-neutral-400 dark:text-neutral-500"
                     >
                       <IconLinkOff className="h-4 w-4 shrink-0" />
-                      <span>Share link</span>
+                      <span>{t('shareLink')}</span>
                       <span className="ml-auto text-xs text-amber-500 dark:text-amber-400">
-                        Too large
+                        {t('tooLarge')}
                       </span>
                     </button>
                   )}
@@ -166,7 +168,7 @@ export const Header = memo(function Header({
                     className="flex w-full items-center gap-2.5 border-t border-neutral-100 px-3 py-2.5 text-left text-sm text-neutral-700 hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-700 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
                   >
                     <IconPrint className="h-4 w-4 shrink-0" />
-                    Export PDF
+                    {t('exportPdf')}
                   </button>
                 </div>
               )}
@@ -174,13 +176,9 @@ export const Header = memo(function Header({
             <button
               type="button"
               onClick={onToggleHistory}
-              aria-label={historyOpen ? 'Close document history' : 'Open document history'}
+              aria-label={historyOpen ? t('closeHistory') : t('documentHistory')}
               aria-pressed={historyOpen}
-              title={
-                historyEnabled
-                  ? 'Document history'
-                  : 'Document history (disabled — enable in Settings)'
-              }
+              title={historyEnabled ? t('documentHistory') : t('historyDisabledHint')}
               className={`rounded-md p-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500 ${
                 historyOpen
                   ? 'bg-neutral-100 text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100'
