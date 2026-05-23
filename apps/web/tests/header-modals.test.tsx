@@ -29,29 +29,29 @@ afterAll(() => {
 
 describe('Header', () => {
   it('renders the page title', () => {
-    render(<Header />)
+    renderWithSettings(<Header />)
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('md2jira-previewer')
   })
 
   it('has a settings button', () => {
-    render(<Header />)
+    renderWithSettings(<Header />)
     expect(screen.getByRole('button', { name: /open settings/i })).toBeInTheDocument()
   })
 
   it('calls onOpenSettings when settings button is clicked', () => {
     const onOpen = vi.fn()
-    render(<Header onOpenSettings={onOpen} />)
+    renderWithSettings(<Header onOpenSettings={onOpen} />)
     fireEvent.click(screen.getByRole('button', { name: /open settings/i }))
     expect(onOpen).toHaveBeenCalledOnce()
   })
 
   it('has a share/export button that is disabled when no content', () => {
-    render(<Header hasContent={false} />)
+    renderWithSettings(<Header hasContent={false} />)
     expect(screen.getByRole('button', { name: /share or export/i })).toBeDisabled()
   })
 
   it('GitHub link opens in new tab with rel noopener', () => {
-    render(<Header />)
+    renderWithSettings(<Header />)
     const link = screen.getByRole('link', { name: /view project on github/i })
     expect(link).toHaveAttribute('target', '_blank')
     expect(link).toHaveAttribute('rel', expect.stringContaining('noopener'))
@@ -60,18 +60,18 @@ describe('Header', () => {
 
 describe('InfoModal', () => {
   it('renders with accessible title', () => {
-    render(<InfoModal onClose={vi.fn()} />)
+    renderWithSettings(<InfoModal onClose={vi.fn()} />)
     expect(screen.getByText('md2jira')).toBeInTheDocument()
   })
 
   it('has a close button', () => {
-    render(<InfoModal onClose={vi.fn()} />)
+    renderWithSettings(<InfoModal onClose={vi.fn()} />)
     expect(screen.getByRole('button', { name: /close/i })).toBeInTheDocument()
   })
 
   it('calls onClose when close button is clicked', () => {
     const onClose = vi.fn()
-    render(<InfoModal onClose={onClose} />)
+    renderWithSettings(<InfoModal onClose={onClose} />)
     fireEvent.click(screen.getByRole('button', { name: /close/i }))
     expect(onClose).toHaveBeenCalledOnce()
   })
@@ -140,23 +140,23 @@ describe('ShortcutsModal', () => {
 
 describe('InfoModal — content', () => {
   it('renders the Open-source subtitle', () => {
-    render(<InfoModal onClose={vi.fn()} />)
+    renderWithSettings(<InfoModal onClose={vi.fn()} />)
     expect(screen.getByText(/open-source markdown.*jira converter/i)).toBeInTheDocument()
   })
 
   it('describes Jira Wiki Markup and ADF in the body', () => {
-    render(<InfoModal onClose={vi.fn()} />)
+    renderWithSettings(<InfoModal onClose={vi.fn()} />)
     expect(screen.getByText(/Jira Wiki Markup/)).toBeInTheDocument()
     expect(screen.getByText(/Atlassian Document Format/)).toBeInTheDocument()
   })
 
   it('lists the md2jira-core package', () => {
-    render(<InfoModal onClose={vi.fn()} />)
+    renderWithSettings(<InfoModal onClose={vi.fn()} />)
     expect(screen.getByText('md2jira-core')).toBeInTheDocument()
   })
 
   it('lists the md2jira-cli package', () => {
-    render(<InfoModal onClose={vi.fn()} />)
+    renderWithSettings(<InfoModal onClose={vi.fn()} />)
     expect(screen.getByText('md2jira-cli')).toBeInTheDocument()
   })
 })

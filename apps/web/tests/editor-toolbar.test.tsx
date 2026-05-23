@@ -1,6 +1,12 @@
 import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest'
 import { render, screen, fireEvent, within, waitFor } from '@testing-library/react'
+import type { ReactElement } from 'react'
 import { EditorToolbar } from '../src/components/jira-output/EditorToolbar.js'
+import { SettingsProvider } from '../src/context/SettingsContext.js'
+
+function renderWithSettings(ui: ReactElement) {
+  return render(<SettingsProvider>{ui}</SettingsProvider>)
+}
 
 // Use vi.stubGlobal so vitest restores originals after this file's tests run.
 beforeAll(() => {
@@ -28,7 +34,7 @@ describe('EditorToolbar', () => {
   })
 
   function renderToolbar(activeFormats: Set<string> = new Set(), activeBlock = 'p') {
-    return render(
+    return renderWithSettings(
       <EditorToolbar
         exec={execMock}
         insertHtml={insertHtmlMock}
