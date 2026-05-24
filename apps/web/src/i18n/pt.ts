@@ -159,4 +159,21 @@ export const pt: Record<StringKey, string> = {
   historyDeleteSelected: 'Excluir selecionados',
   historySelectAll: 'Selecionar tudo',
   historyDeselectAll: 'Desmarcar tudo',
+
+  // ── Hist\u00f3rico (adicional) ──────────────────────────────────────────────
+  historyEnableHint: 'Ative o hist\u00f3rico nas Configura\u00e7\u00f5es e comece a editar.',
+  historyNoMatch: 'Nenhum documento corresponde a',
+  historySelectModeAriaLabel: 'Entrar no modo de sele\u00e7\u00e3o em massa',
+
+  // ── Modal de configura\u00e7\u00f5es (adicional) ───────────────────────────────
+  settingsLanguageLabel: 'Idioma',
+  settingsLanguageDescription:
+    'Interface language \u00b7 Idioma de la interfaz \u00b7 Idioma da interface',
+  closeSettings: 'Fechar configura\u00e7\u00f5es',
+  settingsMaxEntriesDescription: 'Quantos documentos recentes manter no hist\u00f3rico.',
+  settingsAbout: 'Sobre este projeto',
+
+  // ── Painel de sa\u00edda / modo de edi\u00e7\u00e3o ────────────────────────────────
+  switchToViewMode: 'Mudar para modo de visualiza\u00e7\u00e3o',
+  switchToEditMode: 'Mudar para modo de edi\u00e7\u00e3o',
 } as const

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest'
+import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { HistorySidebar } from '../src/components/HistorySidebar.js'
 import type { HistoryEntry } from '../src/hooks/useDocumentHistory.js'
@@ -192,31 +192,33 @@ describe('HistorySidebar — select mode & bulk delete', () => {
 
   it('shows the Select button when history has entries', () => {
     render(<HistorySidebar {...baseProps} history={entries} />)
-    expect(screen.getByRole('button', { name: /^select$/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /enter bulk selection mode/i })).toBeInTheDocument()
   })
 
   it('does not show the Select button when history is empty', () => {
     render(<HistorySidebar {...baseProps} />)
-    expect(screen.queryByRole('button', { name: /^select$/i })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: /enter bulk selection mode/i })
+    ).not.toBeInTheDocument()
   })
 
   it('enters select mode and shows checkboxes when Select is clicked', () => {
     render(<HistorySidebar {...baseProps} history={entries} />)
-    fireEvent.click(screen.getByRole('button', { name: /^select$/i }))
+    fireEvent.click(screen.getByRole('button', { name: /enter bulk selection mode/i }))
     expect(screen.getByLabelText(/select "Doc One"/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/select "Doc Two"/i)).toBeInTheDocument()
   })
 
   it('shows Delete selected and Cancel buttons in select mode', () => {
     render(<HistorySidebar {...baseProps} history={entries} />)
-    fireEvent.click(screen.getByRole('button', { name: /^select$/i }))
+    fireEvent.click(screen.getByRole('button', { name: /enter bulk selection mode/i }))
     expect(screen.getByRole('button', { name: /delete selected/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /^cancel$/i })).toBeInTheDocument()
   })
 
   it('Delete selected is disabled when no entries are checked', () => {
     render(<HistorySidebar {...baseProps} history={entries} />)
-    fireEvent.click(screen.getByRole('button', { name: /^select$/i }))
+    fireEvent.click(screen.getByRole('button', { name: /enter bulk selection mode/i }))
     const deleteBtn = screen.getByRole('button', { name: /delete selected/i })
     expect(deleteBtn).toBeDisabled()
   })
@@ -224,7 +226,7 @@ describe('HistorySidebar — select mode & bulk delete', () => {
   it('calls onDeleteEntries with selected ids when Delete selected is clicked', () => {
     const onDeleteEntries = vi.fn()
     render(<HistorySidebar {...baseProps} history={entries} onDeleteEntries={onDeleteEntries} />)
-    fireEvent.click(screen.getByRole('button', { name: /^select$/i }))
+    fireEvent.click(screen.getByRole('button', { name: /enter bulk selection mode/i }))
     fireEvent.click(screen.getByLabelText(/select "Doc One"/i))
     const deleteBtn = screen.getByRole('button', { name: /delete selected/i })
     expect(deleteBtn).not.toBeDisabled()
@@ -235,7 +237,7 @@ describe('HistorySidebar — select mode & bulk delete', () => {
   it('falls back to calling onDeleteEntry for each id when onDeleteEntries is not provided', () => {
     const onDeleteEntry = vi.fn()
     render(<HistorySidebar {...baseProps} history={entries} onDeleteEntry={onDeleteEntry} />)
-    fireEvent.click(screen.getByRole('button', { name: /^select$/i }))
+    fireEvent.click(screen.getByRole('button', { name: /enter bulk selection mode/i }))
     fireEvent.click(screen.getByLabelText(/select "Doc Two"/i))
     fireEvent.click(screen.getByRole('button', { name: /delete selected/i }))
     expect(onDeleteEntry).toHaveBeenCalledWith('2')
@@ -243,7 +245,7 @@ describe('HistorySidebar — select mode & bulk delete', () => {
 
   it('exits select mode when Cancel is clicked', () => {
     render(<HistorySidebar {...baseProps} history={entries} />)
-    fireEvent.click(screen.getByRole('button', { name: /^select$/i }))
+    fireEvent.click(screen.getByRole('button', { name: /enter bulk selection mode/i }))
     fireEvent.click(screen.getByRole('button', { name: /^cancel$/i }))
     // Select mode should be gone — load buttons visible again
     expect(screen.getByRole('button', { name: 'Doc One' })).toBeInTheDocument()
@@ -252,7 +254,7 @@ describe('HistorySidebar — select mode & bulk delete', () => {
   it('exits select mode automatically after bulk delete', () => {
     const onDeleteEntries = vi.fn()
     render(<HistorySidebar {...baseProps} history={entries} onDeleteEntries={onDeleteEntries} />)
-    fireEvent.click(screen.getByRole('button', { name: /^select$/i }))
+    fireEvent.click(screen.getByRole('button', { name: /enter bulk selection mode/i }))
     fireEvent.click(screen.getByLabelText(/select "Doc One"/i))
     fireEvent.click(screen.getByRole('button', { name: /delete selected/i }))
     // After deletion the sidebar should return to normal mode
@@ -261,7 +263,7 @@ describe('HistorySidebar — select mode & bulk delete', () => {
 
   it('Select all button selects all filtered entries', () => {
     render(<HistorySidebar {...baseProps} history={entries} />)
-    fireEvent.click(screen.getByRole('button', { name: /^select$/i }))
+    fireEvent.click(screen.getByRole('button', { name: /enter bulk selection mode/i }))
     fireEvent.click(screen.getByRole('button', { name: /select all/i }))
     const deleteBtn = screen.getByRole('button', { name: /delete selected \(2\)/i })
     expect(deleteBtn).not.toBeDisabled()
@@ -269,7 +271,7 @@ describe('HistorySidebar — select mode & bulk delete', () => {
 
   it('Deselect all button clears all selections when all are selected', () => {
     render(<HistorySidebar {...baseProps} history={entries} />)
-    fireEvent.click(screen.getByRole('button', { name: /^select$/i }))
+    fireEvent.click(screen.getByRole('button', { name: /enter bulk selection mode/i }))
     // Select all
     fireEvent.click(screen.getByRole('button', { name: /select all/i }))
     // Now button should say "Deselect all"
@@ -282,10 +284,154 @@ describe('HistorySidebar — select mode & bulk delete', () => {
 
   it('shows selected count in Delete button label', () => {
     render(<HistorySidebar {...baseProps} history={entries} />)
-    fireEvent.click(screen.getByRole('button', { name: /^select$/i }))
+    fireEvent.click(screen.getByRole('button', { name: /enter bulk selection mode/i }))
     fireEvent.click(screen.getByLabelText(/select "Doc One"/i))
     expect(screen.getByRole('button', { name: /delete selected \(1\)/i })).toBeInTheDocument()
     fireEvent.click(screen.getByLabelText(/select "Doc Two"/i))
     expect(screen.getByRole('button', { name: /delete selected \(2\)/i })).toBeInTheDocument()
+  })
+})
+
+// ── Import / Export ──────────────────────────────────────────────────────────
+
+describe('HistorySidebar — import/export', () => {
+  const entries = [makeEntry('1', '# Doc One', 'Doc One'), makeEntry('2', '## Doc Two', 'Doc Two')]
+
+  beforeEach(() => localStorage.clear())
+
+  it('Export button triggers a download with the history JSON', () => {
+    // jsdom does not implement URL.createObjectURL/revokeObjectURL — assign stubs
+    const createObjectURL = vi.fn().mockReturnValue('blob:fake')
+    const revokeObjectURL = vi.fn()
+    Object.assign(URL, { createObjectURL, revokeObjectURL })
+    const anchorClick = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockReturnValue(undefined)
+
+    render(<HistorySidebar {...baseProps} history={entries} />)
+    fireEvent.click(screen.getByRole('button', { name: /export history/i }))
+
+    expect(createObjectURL).toHaveBeenCalledOnce()
+    expect(anchorClick).toHaveBeenCalledOnce()
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:fake')
+
+    anchorClick.mockRestore()
+    // restore originals (they were undefined in jsdom, so delete the assigned props)
+    delete (URL as unknown as Record<string, unknown>)['createObjectURL']
+    delete (URL as unknown as Record<string, unknown>)['revokeObjectURL']
+  })
+
+  it('Import button is always present regardless of history length', () => {
+    render(<HistorySidebar {...baseProps} history={[]} />)
+    expect(screen.getByRole('button', { name: /import history/i })).toBeInTheDocument()
+  })
+
+  it('Import merges new valid entries and ignores invalid ones', async () => {
+    const readTextSpy = vi.spyOn(FileReader.prototype, 'readAsText').mockImplementation(function (
+      this: FileReader
+    ) {
+      // Simulate async load: valid entry + several invalid ones
+      Promise.resolve().then(() => {
+        Object.defineProperty(this, 'result', {
+          configurable: true,
+          get: () =>
+            JSON.stringify([
+              { id: 'n1', title: 'New Valid', content: '# new', savedAt: 2_000_000 },
+              { id: 'bad1', title: null, content: '# bad', savedAt: 1 }, // null title
+              { id: 'bad2', title: 'ok' }, // missing content + savedAt
+              'not-an-object',
+            ]),
+        })
+        this.dispatchEvent(new ProgressEvent('load'))
+      })
+    })
+
+    render(<HistorySidebar {...baseProps} history={[makeEntry('existing', '# Old', 'Old')]} />)
+
+    // Trigger the hidden file input change
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement
+    const file = new File(['[]'], 'h.json', { type: 'application/json' })
+    fireEvent.change(input, { target: { files: [file] } })
+
+    // Wait for the FileReader onload simulation
+    await vi.waitFor(() => {
+      const stored = JSON.parse(localStorage.getItem('md2jira-doc-history') ?? '[]') as unknown[]
+      expect(stored.length).toBe(2) // 'n1' + 'existing'
+    })
+
+    const stored = JSON.parse(localStorage.getItem('md2jira-doc-history') ?? '[]') as Array<{
+      id: string
+    }>
+    expect(stored.map((e) => e.id)).toContain('n1')
+    expect(stored.map((e) => e.id)).toContain('existing')
+
+    readTextSpy.mockRestore()
+  })
+
+  it('Import respects maxHistoryEntries cap (mocked at 10) and does not exceed it', async () => {
+    // maxHistoryEntries is mocked to 10 in the vi.mock at the top of this file
+    const manyEntries = Array.from({ length: 20 }, (_, i) => ({
+      id: `n${i}`,
+      title: `Doc ${i}`,
+      content: `# Doc ${i}`,
+      savedAt: Date.now() + i,
+    }))
+
+    const readTextSpy = vi.spyOn(FileReader.prototype, 'readAsText').mockImplementation(function (
+      this: FileReader
+    ) {
+      Promise.resolve().then(() => {
+        Object.defineProperty(this, 'result', {
+          configurable: true,
+          get: () => JSON.stringify(manyEntries),
+        })
+        this.dispatchEvent(new ProgressEvent('load'))
+      })
+    })
+
+    render(<HistorySidebar {...baseProps} history={[]} />)
+
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement
+    const file = new File(['[]'], 'h.json', { type: 'application/json' })
+    fireEvent.change(input, { target: { files: [file] } })
+
+    await vi.waitFor(() => {
+      const stored = JSON.parse(localStorage.getItem('md2jira-doc-history') ?? '[]') as unknown[]
+      expect(stored.length).toBeLessThanOrEqual(10)
+    })
+
+    readTextSpy.mockRestore()
+  })
+
+  it('Import does not add duplicate ids that already exist in history', async () => {
+    const existing = makeEntry('dup', '# Dup', 'Dup')
+
+    const readTextSpy = vi.spyOn(FileReader.prototype, 'readAsText').mockImplementation(function (
+      this: FileReader
+    ) {
+      Promise.resolve().then(() => {
+        Object.defineProperty(this, 'result', {
+          configurable: true,
+          get: () =>
+            JSON.stringify([
+              { id: 'dup', title: 'Dup', content: '# Dup', savedAt: 1 }, // duplicate
+              { id: 'new1', title: 'New', content: '# New', savedAt: 2 },
+            ]),
+        })
+        this.dispatchEvent(new ProgressEvent('load'))
+      })
+    })
+
+    render(<HistorySidebar {...baseProps} history={[existing]} />)
+
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement
+    fireEvent.change(input, { target: { files: [new File(['[]'], 'h.json')] } })
+
+    await vi.waitFor(() => {
+      const stored = JSON.parse(localStorage.getItem('md2jira-doc-history') ?? '[]') as Array<{
+        id: string
+      }>
+      expect(stored.map((e) => e.id).filter((id) => id === 'dup')).toHaveLength(1)
+    })
+
+    readTextSpy.mockRestore()
   })
 })

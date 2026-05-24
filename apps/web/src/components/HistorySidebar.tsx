@@ -3,8 +3,21 @@ import type { KeyboardEvent as ReactKeyboardEvent, ChangeEvent } from 'react'
 import { IconHistory, IconClose, IconSearch } from './icons.js'
 import type { HistoryEntry } from '../hooks/useDocumentHistory.js'
 import { LS_KEY } from '../hooks/useDocumentHistory.js'
+import { useSettings } from '../context/SettingsContext.js'
 import { useT } from '../i18n/index.js'
 import type { StringKey } from '../i18n/en.js'
+
+/** Runtime type guard — rejects entries that are missing required fields or have wrong types. */
+function isValidEntry(entry: unknown): entry is HistoryEntry {
+  if (!entry || typeof entry !== 'object') return false
+  const e = entry as Record<string, unknown>
+  return (
+    typeof e['id'] === 'string' &&
+    typeof e['title'] === 'string' &&
+    typeof e['content'] === 'string' &&
+    typeof e['savedAt'] === 'number'
+  )
+}
 
 const FOCUSABLE_SELECTOR =
   'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
@@ -67,6 +80,7 @@ export const HistorySidebar = memo(function HistorySidebar({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const searchId = useId()
   const t = useT()
+  const { maxHistoryEntries } = useSettings()
 
   const activeId = currentMarkdown?.trim()
     ? history.find((e) => e.content === currentMarkdown)?.id
@@ -199,12 +213,13 @@ export const HistorySidebar = memo(function HistorySidebar({
       const reader = new FileReader()
       reader.onload = () => {
         try {
-          const parsed = JSON.parse(reader.result as string) as HistoryEntry[]
-          if (!Array.isArray(parsed)) return
+          const raw: unknown = JSON.parse(reader.result as string)
+          if (!Array.isArray(raw)) return
+          const parsed = raw.filter(isValidEntry)
           // Merge: keep existing entries not already in the imported set
           const existingIds = new Set(history.map((h) => h.id))
           const newEntries = parsed.filter((p) => !existingIds.has(p.id))
-          const merged = [...newEntries, ...history].slice(0, 50)
+          const merged = [...newEntries, ...history].slice(0, maxHistoryEntries)
           try {
             localStorage.setItem(LS_KEY, JSON.stringify(merged))
           } catch {
@@ -313,12 +328,12 @@ export const HistorySidebar = memo(function HistorySidebar({
               <p className="text-xs text-neutral-400 dark:text-neutral-500">
                 {t('noDocumentsYet')}
                 <br />
-                Enable history in Settings and start editing.
+                {t('historyEnableHint')}
               </p>
             </div>
           ) : filtered.length === 0 ? (
             <p className="py-10 text-center text-xs text-neutral-400 dark:text-neutral-500">
-              No documents match &ldquo;{query}&rdquo;.
+              {t('historyNoMatch')} &ldquo;{query}&rdquo;.
             </p>
           ) : (
             <div className="flex flex-col gap-4">
@@ -500,6 +515,7 @@ export const HistorySidebar = memo(function HistorySidebar({
                   <button
                     type="button"
                     onClick={() => setSelectMode(true)}
+                    aria-label={t('historySelectModeAriaLabel')}
                     className="rounded px-2.5 py-1 text-xs text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
                   >
                     {t('historySelectMode')}

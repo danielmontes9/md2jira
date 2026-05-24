@@ -27,6 +27,7 @@ export const MarkdownInput = memo(function MarkdownInput({
   const [copiedMd, setCopiedMd] = useState(false)
   const [confirmNew, setConfirmNew] = useState(false)
   const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const confirmNewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const addToast = useToast()
   const t = useT()
 
@@ -34,6 +35,21 @@ export const MarkdownInput = memo(function MarkdownInput({
   useEffect(() => {
     if (value === '' && confirmNew) setConfirmNew(false)
   }, [value, confirmNew])
+
+  // Auto-dismiss the "New" confirmation after 5 s if the user doesn't act
+  useEffect(() => {
+    if (!confirmNew) {
+      if (confirmNewTimerRef.current !== null) {
+        clearTimeout(confirmNewTimerRef.current)
+        confirmNewTimerRef.current = null
+      }
+      return
+    }
+    confirmNewTimerRef.current = setTimeout(() => setConfirmNew(false), 5_000)
+    return () => {
+      if (confirmNewTimerRef.current !== null) clearTimeout(confirmNewTimerRef.current)
+    }
+  }, [confirmNew])
 
   const { undo, redo, openSearch } = useCodeMirrorEditor({
     containerRef,

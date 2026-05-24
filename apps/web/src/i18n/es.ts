@@ -159,4 +159,21 @@ export const es: Record<StringKey, string> = {
   historyDeleteSelected: 'Eliminar seleccionados',
   historySelectAll: 'Seleccionar todo',
   historyDeselectAll: 'Deseleccionar todo',
+
+  // ── Historial (adicional) ─────────────────────────────────────────────────
+  historyEnableHint: 'Activa el historial en Configuraci\u00f3n y empieza a editar.',
+  historyNoMatch: 'No hay documentos que coincidan con',
+  historySelectModeAriaLabel: 'Entrar en modo de selecci\u00f3n m\u00faltiple',
+
+  // ── Modal de configuraci\u00f3n (adicional) ──────────────────────────────────
+  settingsLanguageLabel: 'Idioma',
+  settingsLanguageDescription:
+    'Interface language \u00b7 Idioma de la interfaz \u00b7 Idioma da interface',
+  closeSettings: 'Cerrar configuraci\u00f3n',
+  settingsMaxEntriesDescription: 'Cu\u00e1ntos documentos recientes conservar en el historial.',
+  settingsAbout: 'Acerca de este proyecto',
+
+  // ── Panel de salida / modo edici\u00f3n ─────────────────────────────────────
+  switchToViewMode: 'Cambiar a modo visualizaci\u00f3n',
+  switchToEditMode: 'Cambiar a modo edici\u00f3n',
 } as const

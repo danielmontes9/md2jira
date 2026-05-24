@@ -42,7 +42,7 @@ export const CopyEditGroup = memo(function CopyEditGroup({
         <button
           type="button"
           onClick={onToggleEdit}
-          title={editMode ? 'Switch to view mode' : 'Switch to edit mode'}
+          title={editMode ? t('switchToViewMode') : t('switchToEditMode')}
           aria-pressed={editMode}
           className={`whitespace-nowrap rounded-r-md border-l px-3 py-1 font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500 ${
             editMode

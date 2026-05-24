@@ -163,6 +163,23 @@ export const en = {
   historyDeleteSelected: 'Delete selected',
   historySelectAll: 'Select all',
   historyDeselectAll: 'Deselect all',
+
+  // ── History sidebar (additional) ──────────────────────────────────────────
+  historyEnableHint: 'Enable history in Settings and start editing.',
+  historyNoMatch: 'No documents match',
+  historySelectModeAriaLabel: 'Enter bulk selection mode',
+
+  // ── Settings modal (additional) ───────────────────────────────────────────
+  settingsLanguageLabel: 'Language',
+  settingsLanguageDescription:
+    'Interface language \u00b7 Idioma de la interfaz \u00b7 Idioma da interface',
+  closeSettings: 'Close settings',
+  settingsMaxEntriesDescription: 'How many recent documents to keep in history.',
+  settingsAbout: 'About this project',
+
+  // ── Output panel / edit mode ──────────────────────────────────────────────
+  switchToViewMode: 'Switch to view mode',
+  switchToEditMode: 'Switch to edit mode',
 } as const
 
 export type StringKey = keyof typeof en

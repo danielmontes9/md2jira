@@ -47,7 +47,7 @@ export function SettingsModal({ onClose, theme, onToggleTheme, historyCount }: S
               type="button"
               onClick={onClose}
               className="rounded p-1 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
-              aria-label="Close settings"
+              aria-label={t('closeSettings')}
             >
               <IconClose className="h-4 w-4" />
             </button>
@@ -63,10 +63,10 @@ export function SettingsModal({ onClose, theme, onToggleTheme, historyCount }: S
                     id={langId}
                     className="text-sm font-medium text-neutral-900 dark:text-neutral-100"
                   >
-                    Language
+                    {t('settingsLanguageLabel')}
                   </span>
                   <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                    Interface language / Idioma de la interfaz.
+                    {t('settingsLanguageDescription')}
                   </p>
                 </div>
                 <div
@@ -175,7 +175,7 @@ export function SettingsModal({ onClose, theme, onToggleTheme, historyCount }: S
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex flex-col gap-0.5">
                     <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
-                      Max saved documents
+                      {t('maxEntriesLabel')}
                       {historyCount !== undefined && (
                         <span className="ml-1.5 text-xs font-normal text-neutral-400 dark:text-neutral-500">
                           ({historyCount} saved)
@@ -183,7 +183,7 @@ export function SettingsModal({ onClose, theme, onToggleTheme, historyCount }: S
                       )}
                     </span>
                     <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                      How many recent documents to keep in history.
+                      {t('settingsMaxEntriesDescription')}
                     </p>
                   </div>
                   <div
@@ -224,7 +224,7 @@ export function SettingsModal({ onClose, theme, onToggleTheme, historyCount }: S
                 className="flex w-full items-center gap-2 text-sm text-neutral-700 hover:text-blue-600 dark:text-neutral-300 dark:hover:text-blue-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
               >
                 <IconInfoCircle className="h-4 w-4 shrink-0" />
-                About this project
+                {t('settingsAbout')}
               </button>
             </section>
           </div>
