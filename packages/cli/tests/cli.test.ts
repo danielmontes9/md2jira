@@ -48,7 +48,8 @@ This is *bold* and _italic_ text.
 
 {code:language=js}
 console.log('hello')
-{code}`
+{code}
+`
 
 beforeAll(async () => {
   await mkdir(FIXTURES_DIR, { recursive: true })
@@ -141,7 +142,7 @@ describe('md2jira CLI', () => {
   it('defaults to wiki format when --format is omitted', async () => {
     const { stdout, exitCode } = await run([], { stdin: '# Title\n' })
     expect(exitCode).toBe(0)
-    expect(stdout).toBe('h1. Title')
+    expect(stdout).toBe('h1. Title\n')
   })
 
   it('shows --format option in help', async () => {
@@ -155,7 +156,7 @@ describe('md2jira CLI', () => {
     await writeFile(bomPath, '\uFEFF# BOM Test\n', 'utf-8')
     const { stdout, exitCode } = await run([bomPath])
     expect(exitCode).toBe(0)
-    expect(stdout).toBe('h1. BOM Test')
+    expect(stdout).toBe('h1. BOM Test\n')
     await unlink(bomPath).catch(() => {})
   })
 
@@ -199,6 +200,7 @@ describe('--format validation', () => {
     expect(stderr).toContain('xml')
     expect(stderr).toContain('wiki')
     expect(stderr).toContain('adf')
+    expect(stderr).toContain('confluence')
   })
 
   it('accepts format case-insensitively (ADF)', async () => {
@@ -346,6 +348,107 @@ describe('-o / --output edge cases', () => {
     const { stderr, exitCode } = await run([resolve(FIXTURES_DIR, 'sample.md'), '-o', badPath])
     expect(exitCode).toBe(1)
     expect(stderr).toMatch(/ENOENT|no such file/i)
+  })
+})
+
+describe('--format confluence', () => {
+  it('outputs Confluence Storage Format XHTML for headings and paragraphs', async () => {
+    const md = '# Hello\n\nWorld\n'
+    const { stdout, exitCode } = await run(['--format', 'confluence'], { stdin: md })
+    expect(exitCode).toBe(0)
+    expect(stdout).toContain('<h1>Hello</h1>')
+    expect(stdout).toContain('<p>World</p>')
+  })
+
+  it('accepts -f confluence as short alias', async () => {
+    const { stdout, exitCode } = await run(['-f', 'confluence'], { stdin: '# Title\n' })
+    expect(exitCode).toBe(0)
+    expect(stdout).toContain('<h1>Title</h1>')
+  })
+
+  it('accepts --format CONFLUENCE case-insensitively', async () => {
+    const { stdout, exitCode } = await run(['--format', 'CONFLUENCE'], { stdin: '# Hi\n' })
+    expect(exitCode).toBe(0)
+    expect(stdout).toContain('<h1>Hi</h1>')
+  })
+
+  it('converts inline formatting to HTML tags', async () => {
+    const md = '**bold** and _italic_ and ~~strike~~\n'
+    const { stdout, exitCode } = await run(['--format', 'confluence'], { stdin: md })
+    expect(exitCode).toBe(0)
+    expect(stdout).toContain('<strong>bold</strong>')
+    expect(stdout).toContain('<em>italic</em>')
+    expect(stdout).toContain('<del>strike</del>')
+  })
+
+  it('converts code blocks to ac:structured-macro', async () => {
+    const md = '```js\nconsole.log("hello")\n```\n'
+    const { stdout, exitCode } = await run(['--format', 'confluence'], { stdin: md })
+    expect(exitCode).toBe(0)
+    expect(stdout).toContain('ac:name="code"')
+    expect(stdout).toContain('language')
+    expect(stdout).toContain('js')
+    expect(stdout).toContain('console.log("hello")')
+  })
+
+  it('converts lists to <ul>/<li> elements', async () => {
+    const md = '- Apple\n- Banana\n'
+    const { stdout, exitCode } = await run(['--format', 'confluence'], { stdin: md })
+    expect(exitCode).toBe(0)
+    expect(stdout).toContain('<ul>')
+    expect(stdout).toContain('<li>Apple</li>')
+    expect(stdout).toContain('<li>Banana</li>')
+  })
+
+  it('converts tables to XHTML table elements', async () => {
+    const md = '| A | B |\n|---|---|\n| 1 | 2 |\n'
+    const { stdout, exitCode } = await run(['--format', 'confluence'], { stdin: md })
+    expect(exitCode).toBe(0)
+    expect(stdout).toContain('<table>')
+    expect(stdout).toContain('<th>A</th>')
+    expect(stdout).toContain('<th>B</th>')
+    expect(stdout).toContain('<td>1</td>')
+  })
+
+  it('converts GFM NOTE alert to Confluence note macro', async () => {
+    const md = '> [!NOTE]\n> Note content\n'
+    const { stdout, exitCode } = await run(['--format', 'confluence'], { stdin: md })
+    expect(exitCode).toBe(0)
+    expect(stdout).toContain('ac:name="note"')
+    expect(stdout).toContain('Note content')
+  })
+
+  it('converts GFM WARNING alert to Confluence warning macro', async () => {
+    const md = '> [!WARNING]\n> Careful here\n'
+    const { stdout, exitCode } = await run(['--format', 'confluence'], { stdin: md })
+    expect(exitCode).toBe(0)
+    expect(stdout).toContain('ac:name="warning"')
+  })
+
+  it('returns empty output for empty input', async () => {
+    const { stdout, exitCode } = await run(['--format', 'confluence'], { stdin: '' })
+    expect(exitCode).toBe(0)
+    expect(stdout).toBe('')
+  })
+
+  it('works with --base-url for relative links', async () => {
+    const md = '[page](/wiki/page)\n'
+    const { stdout, exitCode } = await run(
+      ['--format', 'confluence', '--base-url', 'https://company.atlassian.net'],
+      { stdin: md }
+    )
+    expect(exitCode).toBe(0)
+    expect(stdout).toContain('https://company.atlassian.net/wiki/page')
+  })
+
+  it('suppresses panel transform with --disable panel, rendering plain <blockquote>', async () => {
+    const md = '> [!NOTE]\n> Note content\n'
+    const { stdout, exitCode } = await run(['--format', 'confluence', '--disable', 'panel'], {
+      stdin: md,
+    })
+    expect(exitCode).toBe(0)
+    expect(stdout).not.toContain('ac:name="note"')
+    expect(stdout).toContain('<blockquote>')
   })
 })
 

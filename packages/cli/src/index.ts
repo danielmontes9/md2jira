@@ -4,7 +4,7 @@ import { readFile, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { createInterface } from 'node:readline'
 import { Command } from 'commander'
-import { convert, convertToAdf } from 'md2jira-core'
+import { convert, convertToAdf, convertToConfluence } from 'md2jira-core'
 import type { ConvertOptions } from 'md2jira-core'
 
 const require = createRequire(import.meta.url)
@@ -22,7 +22,7 @@ const VALID_TRANSFORMS = new Set([
 ])
 
 /** Valid output format names accepted by --format. */
-const VALID_FORMATS = new Set(['wiki', 'adf'])
+const VALID_FORMATS = new Set(['wiki', 'adf', 'confluence'])
 
 /** Collector for --disable: supports both comma-separated and repeated flags. Deduplicates. */
 function collectTransforms(val: string, prev: string[]): string[] {
@@ -37,11 +37,17 @@ const program = new Command()
 
 program
   .name('md2jira')
-  .description('Convert Markdown to Jira Wiki Markup or Atlassian Document Format (ADF)')
+  .description(
+    'Convert Markdown to Jira Wiki Markup, Atlassian Document Format (ADF), or Confluence Storage Format'
+  )
   .version(version)
   .argument('[input]', 'Input Markdown file (omit to read from stdin)')
   .option('-o, --output <file>', 'Output file (omit to write to stdout)')
-  .option('-f, --format <format>', 'Output format: "wiki" (default) or "adf"', 'wiki')
+  .option(
+    '-f, --format <format>',
+    'Output format: "wiki" (default), "adf", or "confluence"',
+    'wiki'
+  )
   .option(
     '--base-url <url>',
     'Base URL prepended to relative links (e.g. https://company.atlassian.net/wiki)'
@@ -60,7 +66,9 @@ program
       // Validate --format before touching stdin/file so we fail fast.
       const fmt = options.format.toLowerCase()
       if (!VALID_FORMATS.has(fmt)) {
-        process.stderr.write(`Error: unknown format "${options.format}". Valid values: wiki, adf\n`)
+        process.stderr.write(
+          `Error: unknown format "${options.format}". Valid values: wiki, adf, confluence\n`
+        )
         process.exit(1)
       }
 
@@ -104,14 +112,18 @@ program
       let result: string
       if (fmt === 'adf') {
         result = JSON.stringify(convertToAdf(markdown, convertOptions), null, 2)
+      } else if (fmt === 'confluence') {
+        result = convertToConfluence(markdown, convertOptions)
       } else {
         result = convert(markdown, convertOptions)
       }
 
+      // Ensure a trailing newline so shell prompts appear on a fresh line.
+      const output = result && !result.endsWith('\n') ? result + '\n' : result
       if (options.output) {
-        await writeFile(resolve(options.output), result, 'utf-8')
+        await writeFile(resolve(options.output), output, 'utf-8')
       } else {
-        process.stdout.write(result)
+        process.stdout.write(output)
       }
     }
   )
