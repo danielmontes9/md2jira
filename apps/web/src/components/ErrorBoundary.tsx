@@ -5,6 +5,12 @@ interface Props {
   fallback?: ReactNode
   /** Optional error reporter — called in componentDidCatch. Integrate Sentry or similar here. */
   onError?: (error: Error, info: ErrorInfo) => void
+  /** Translated prefix shown before the error message (defaults to 'Render error'). */
+  renderErrorLabel?: string
+  /** Translated retry button text; receives the remaining retry count (defaults to English). */
+  retryLabel?: (remaining: number) => string
+  /** Translated label shown when all retries are exhausted (defaults to English). */
+  maxRetriesLabel?: string
 }
 
 interface State {
@@ -81,24 +87,28 @@ export class ErrorBoundary extends Component<Props, State> {
   override render(): ReactNode {
     if (this.state.hasError) {
       if (this.props.fallback) return this.props.fallback
+      const renderErrorLabel = this.props.renderErrorLabel ?? 'Render error'
+      const retryLabel = this.props.retryLabel ?? ((n: number) => `Retry (${n} remaining)`)
+      const maxRetriesLabel =
+        this.props.maxRetriesLabel ?? 'Maximum retries reached. Please reload the page.'
       return (
         <div
           role="alert"
           className="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-sm text-red-600 dark:text-red-400"
         >
-          <span>Render error: {this.state.message}</span>
+          <span>
+            {renderErrorLabel}: {this.state.message}
+          </span>
           {this.state.retryCount < ErrorBoundary.MAX_RETRIES ? (
             <button
               type="button"
               onClick={this.handleRetry}
               className="rounded-md border border-red-300 px-3 py-1 text-xs font-medium text-red-700 transition-colors hover:bg-red-50 dark:border-red-700 dark:text-red-300 dark:hover:bg-red-950 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-red-500"
             >
-              Retry ({ErrorBoundary.MAX_RETRIES - this.state.retryCount} remaining)
+              {retryLabel(ErrorBoundary.MAX_RETRIES - this.state.retryCount)}
             </button>
           ) : (
-            <span className="text-xs text-red-400">
-              Maximum retries reached. Please reload the page.
-            </span>
+            <span className="text-xs text-red-400">{maxRetriesLabel}</span>
           )}
         </div>
       )

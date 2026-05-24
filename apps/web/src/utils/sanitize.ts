@@ -17,6 +17,7 @@ import('dompurify')
   .then((m) => {
     _DOMPurify = m.default
   })
+  /* v8 ignore next 3 -- DOMPurify is a bundled local module; this catch is a defense-in-depth guard */
   .catch(() => {
     // DOMPurify failed to load (e.g. strict CSP). stripTags fallback remains.
   })
@@ -27,11 +28,13 @@ import('dompurify')
  * attributes containing literal '>' (e.g. <img src="x>">) are handled
  * correctly and no residual markup leaks into the output.
  */
-function stripTags(html: string): string {
+export function stripTags(html: string): string {
   return html.replace(/<(?:[^>"']|"[^"]*"|'[^']*')*>/g, '')
 }
 
 /** Sanitize HTML with DOMPurify, falling back to tag-stripping if unavailable. */
 export function sanitize(html: string): string {
-  return _DOMPurify ? _DOMPurify.sanitize(html) : stripTags(html)
+  if (_DOMPurify) return _DOMPurify.sanitize(html)
+  /* v8 ignore next -- DOMPurify is always loaded in tests; this is the bare fallback */
+  return stripTags(html)
 }

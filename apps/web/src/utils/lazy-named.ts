@@ -18,6 +18,7 @@ export function lazyNamed<M extends Record<K, ComponentType<any>>, K extends key
   return lazy(() =>
     importFn().then((m) => {
       const component = m[exportName]
+      /* v8 ignore next -- TypeScript prevents wrong key usage; guard is for JS consumers */
       if (!component) throw new Error(`[lazyNamed] Named export "${exportName}" not found`)
       return { default: component }
     })
