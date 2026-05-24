@@ -1,3 +1,10 @@
+# [2.1.0](https://github.com/danielmontes9/md2jira/compare/v2.0.0...v2.1.0) (2026-05-24)
+
+
+### Features
+
+* **web:** expand i18n catalog with WYSIWYG, a11y, and shortcut labels ([bfb359b](https://github.com/danielmontes9/md2jira/commit/bfb359bd9f7390aaa76b9dd045981ca4d7ce84b9))
+
 # [2.0.0](https://github.com/danielmontes9/md2jira/compare/v1.4.1...v2.0.0) (2026-05-24)
 
 
