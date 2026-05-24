@@ -171,3 +171,67 @@ describe('useDocumentHistory — cross-tab sync', () => {
     expect(result.current.history).toHaveLength(0)
   })
 })
+
+// ── deleteEntries ─────────────────────────────────────────────────────────────
+
+describe('useDocumentHistory — deleteEntries', () => {
+  it('removes multiple entries atomically', () => {
+    let md = '# Doc A'
+    const { result, rerender } = renderHook(
+      ({ markdown }) => useDocumentHistory({ markdown, enabled: true }),
+      { initialProps: { markdown: md } }
+    )
+    act(() => result.current.saveNow())
+    md = '# Doc B'
+    rerender({ markdown: md })
+    act(() => result.current.saveNow())
+    expect(result.current.history).toHaveLength(2)
+
+    const ids = result.current.history.map((e) => e.id)
+    act(() => result.current.deleteEntries(ids))
+    expect(result.current.history).toHaveLength(0)
+  })
+
+  it('removes only the specified ids and leaves the rest', () => {
+    let md = '# Doc A'
+    const { result, rerender } = renderHook(
+      ({ markdown }) => useDocumentHistory({ markdown, enabled: true }),
+      { initialProps: { markdown: md } }
+    )
+    act(() => result.current.saveNow())
+    md = '# Doc B'
+    rerender({ markdown: md })
+    act(() => result.current.saveNow())
+    expect(result.current.history).toHaveLength(2)
+
+    const idToRemove = result.current.history[0]!.id
+    act(() => result.current.deleteEntries([idToRemove]))
+    expect(result.current.history).toHaveLength(1)
+    expect(result.current.history[0]?.id).not.toBe(idToRemove)
+  })
+
+  it('is a no-op when the ids array is empty', () => {
+    const { result } = renderHook(() => useDocumentHistory({ markdown: '# Stay', enabled: true }))
+    act(() => result.current.saveNow())
+    act(() => result.current.deleteEntries([]))
+    expect(result.current.history).toHaveLength(1)
+  })
+
+  it('persists the removal to localStorage', () => {
+    let md = '# A'
+    const { result, rerender } = renderHook(
+      ({ markdown }) => useDocumentHistory({ markdown, enabled: true }),
+      { initialProps: { markdown: md } }
+    )
+    act(() => result.current.saveNow())
+    md = '# B'
+    rerender({ markdown: md })
+    act(() => result.current.saveNow())
+
+    const ids = result.current.history.map((e) => e.id)
+    act(() => result.current.deleteEntries(ids))
+
+    const stored = JSON.parse(localStorage.getItem(LS_KEY) ?? '[]') as unknown[]
+    expect(stored).toHaveLength(0)
+  })
+})

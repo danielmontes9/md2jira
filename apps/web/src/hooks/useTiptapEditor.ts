@@ -283,10 +283,17 @@ export function useTiptapEditor({
     ? (activeEditor.getAttributes('textStyle').color as string | undefined)
     : undefined
 
-  const isInTable = activeEditor?.isActive?.('table') ?? false
-  const hasLossyMarks = activeEditor
-    ? hasColorMarks(activeEditor.state.doc) || hasUnderlineMarks(activeEditor.state.doc)
-    : false
+  const isInTable = activeEditor?.isActive('table') ?? false
+  const hasLossyMarks = useMemo(
+    () =>
+      activeEditor
+        ? hasColorMarks(activeEditor.state.doc) || hasUnderlineMarks(activeEditor.state.doc)
+        : false,
+    // activeEditor.state.doc is a new immutable reference on every ProseMirror transaction,
+    // so this memoizes correctly: recomputes on doc changes, skips parent re-renders.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [activeEditor?.state.doc]
+  )
 
   return {
     editor: activeEditor,

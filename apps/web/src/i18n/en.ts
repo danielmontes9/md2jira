@@ -161,6 +161,8 @@ export const en = {
   historySelectMode: 'Select',
   historyCancelSelect: 'Cancel',
   historyDeleteSelected: 'Delete selected',
+  historySelectAll: 'Select all',
+  historyDeselectAll: 'Deselect all',
 } as const
 
 export type StringKey = keyof typeof en

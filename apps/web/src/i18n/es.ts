@@ -157,4 +157,6 @@ export const es: Record<StringKey, string> = {
   historySelectMode: 'Seleccionar',
   historyCancelSelect: 'Cancelar',
   historyDeleteSelected: 'Eliminar seleccionados',
+  historySelectAll: 'Seleccionar todo',
+  historyDeselectAll: 'Deseleccionar todo',
 } as const

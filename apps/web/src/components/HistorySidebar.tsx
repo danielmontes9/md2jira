@@ -147,6 +147,14 @@ export const HistorySidebar = memo(function HistorySidebar({
     setSelectedIds(new Set())
   }, [])
 
+  const handleToggleSelectAll = useCallback(() => {
+    if (selectedIds.size === filtered.length) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(filtered.map((e) => e.id)))
+    }
+  }, [selectedIds.size, filtered])
+
   const handleDeleteSelected = useCallback(() => {
     if (selectedIds.size === 0) return
     const ids = Array.from(selectedIds)
@@ -448,6 +456,15 @@ export const HistorySidebar = memo(function HistorySidebar({
               >
                 {t('historyDeleteSelected')}
                 {selectedIds.size > 0 ? ` (${selectedIds.size})` : ''}
+              </button>
+              <button
+                type="button"
+                onClick={handleToggleSelectAll}
+                className="rounded px-2.5 py-1 text-xs text-neutral-500 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
+              >
+                {selectedIds.size === filtered.length && filtered.length > 0
+                  ? t('historyDeselectAll')
+                  : t('historySelectAll')}
               </button>
               <button
                 type="button"

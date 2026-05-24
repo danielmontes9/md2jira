@@ -377,4 +377,124 @@ describe('EditorToolbar', () => {
     fireEvent.keyDown(menu, { key: 'ArrowUp' })
     expect(document.activeElement).toBe(items[items.length - 1])
   })
+
+  // ── hasLossyMarks badge ───────────────────────────────────────────────────
+
+  it('does not render the "Lost in Jira" badge when hasLossyMarks is false', () => {
+    renderToolbar()
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    expect(screen.queryByText('Lost in Jira')).not.toBeInTheDocument()
+  })
+
+  it('renders the "Lost in Jira" status badge when hasLossyMarks is true', () => {
+    renderWithSettings(
+      <EditorToolbar
+        exec={execMock}
+        insertHtml={insertHtmlMock}
+        activeBlock="p"
+        activeFormats={new Set()}
+        activeColor={undefined}
+        hasLossyMarks={true}
+      />
+    )
+    const badge = screen.getByRole('status')
+    expect(badge).toBeInTheDocument()
+    expect(badge).toHaveAttribute('aria-live', 'polite')
+    expect(screen.getByText('Lost in Jira')).toBeInTheDocument()
+  })
+
+  it('badge is rendered outside the scrollable button area', () => {
+    renderWithSettings(
+      <EditorToolbar
+        exec={execMock}
+        insertHtml={insertHtmlMock}
+        activeBlock="p"
+        activeFormats={new Set()}
+        activeColor={undefined}
+        hasLossyMarks={true}
+      />
+    )
+    const toolbar = screen.getByRole('toolbar')
+    const badge = screen.getByRole('status')
+    // The badge must be a direct child of the toolbar wrapper, not inside
+    // the scrollable flex div (first child of toolbar).
+    const scrollableDiv = toolbar.firstElementChild
+    expect(scrollableDiv?.contains(badge)).toBe(false)
+    expect(toolbar.contains(badge)).toBe(true)
+  })
+
+  // ── TableMenu ─────────────────────────────────────────────────────────────
+
+  it('does not render the Table options button when isInTable is false', () => {
+    renderToolbar()
+    expect(screen.queryByRole('button', { name: 'Table options' })).not.toBeInTheDocument()
+  })
+
+  it('renders the Table options button when isInTable is true', () => {
+    renderWithSettings(
+      <EditorToolbar
+        exec={execMock}
+        insertHtml={insertHtmlMock}
+        activeBlock="p"
+        activeFormats={new Set()}
+        activeColor={undefined}
+        isInTable={true}
+      />
+    )
+    expect(screen.getByRole('button', { name: 'Table options' })).toBeInTheDocument()
+  })
+
+  it('TableMenu opens and shows row/column/table operations', () => {
+    renderWithSettings(
+      <EditorToolbar
+        exec={execMock}
+        insertHtml={insertHtmlMock}
+        activeBlock="p"
+        activeFormats={new Set()}
+        activeColor={undefined}
+        isInTable={true}
+      />
+    )
+    const tableBtn = screen.getByRole('button', { name: 'Table options' })
+    fireEvent.mouseDown(tableBtn)
+    expect(screen.getByText('Add row below')).toBeInTheDocument()
+    expect(screen.getByText('Add row above')).toBeInTheDocument()
+    expect(screen.getByText('Add column right')).toBeInTheDocument()
+    expect(screen.getByText('Add column left')).toBeInTheDocument()
+    expect(screen.getByText('Delete row')).toBeInTheDocument()
+    expect(screen.getByText('Delete column')).toBeInTheDocument()
+    expect(screen.getByText('Delete table')).toBeInTheDocument()
+  })
+
+  it('TableMenu "Add row below" calls exec("addRowAfter")', () => {
+    renderWithSettings(
+      <EditorToolbar
+        exec={execMock}
+        insertHtml={insertHtmlMock}
+        activeBlock="p"
+        activeFormats={new Set()}
+        activeColor={undefined}
+        isInTable={true}
+      />
+    )
+    fireEvent.mouseDown(screen.getByRole('button', { name: 'Table options' }))
+    fireEvent.mouseDown(screen.getByText('Add row below'))
+    expect(execMock).toHaveBeenCalledWith('addRowAfter')
+  })
+
+  it('TableMenu "Delete table" calls exec("deleteTable")', () => {
+    renderWithSettings(
+      <EditorToolbar
+        exec={execMock}
+        insertHtml={insertHtmlMock}
+        activeBlock="p"
+        activeFormats={new Set()}
+        activeColor={undefined}
+        isInTable={true}
+      />
+    )
+    fireEvent.mouseDown(screen.getByRole('button', { name: 'Table options' }))
+    fireEvent.mouseDown(screen.getByText('Delete table'))
+    expect(execMock).toHaveBeenCalledWith('deleteTable')
+  })
 })

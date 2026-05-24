@@ -184,3 +184,108 @@ describe('HistorySidebar — ARIA', () => {
     expect(aside).toHaveAttribute('aria-modal', 'true')
   })
 })
+
+// ── Select mode & bulk delete ─────────────────────────────────────────────────
+
+describe('HistorySidebar — select mode & bulk delete', () => {
+  const entries = [makeEntry('1', '# Doc One', 'Doc One'), makeEntry('2', '## Doc Two', 'Doc Two')]
+
+  it('shows the Select button when history has entries', () => {
+    render(<HistorySidebar {...baseProps} history={entries} />)
+    expect(screen.getByRole('button', { name: /^select$/i })).toBeInTheDocument()
+  })
+
+  it('does not show the Select button when history is empty', () => {
+    render(<HistorySidebar {...baseProps} />)
+    expect(screen.queryByRole('button', { name: /^select$/i })).not.toBeInTheDocument()
+  })
+
+  it('enters select mode and shows checkboxes when Select is clicked', () => {
+    render(<HistorySidebar {...baseProps} history={entries} />)
+    fireEvent.click(screen.getByRole('button', { name: /^select$/i }))
+    expect(screen.getByLabelText(/select "Doc One"/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/select "Doc Two"/i)).toBeInTheDocument()
+  })
+
+  it('shows Delete selected and Cancel buttons in select mode', () => {
+    render(<HistorySidebar {...baseProps} history={entries} />)
+    fireEvent.click(screen.getByRole('button', { name: /^select$/i }))
+    expect(screen.getByRole('button', { name: /delete selected/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^cancel$/i })).toBeInTheDocument()
+  })
+
+  it('Delete selected is disabled when no entries are checked', () => {
+    render(<HistorySidebar {...baseProps} history={entries} />)
+    fireEvent.click(screen.getByRole('button', { name: /^select$/i }))
+    const deleteBtn = screen.getByRole('button', { name: /delete selected/i })
+    expect(deleteBtn).toBeDisabled()
+  })
+
+  it('calls onDeleteEntries with selected ids when Delete selected is clicked', () => {
+    const onDeleteEntries = vi.fn()
+    render(<HistorySidebar {...baseProps} history={entries} onDeleteEntries={onDeleteEntries} />)
+    fireEvent.click(screen.getByRole('button', { name: /^select$/i }))
+    fireEvent.click(screen.getByLabelText(/select "Doc One"/i))
+    const deleteBtn = screen.getByRole('button', { name: /delete selected/i })
+    expect(deleteBtn).not.toBeDisabled()
+    fireEvent.click(deleteBtn)
+    expect(onDeleteEntries).toHaveBeenCalledWith(['1'])
+  })
+
+  it('falls back to calling onDeleteEntry for each id when onDeleteEntries is not provided', () => {
+    const onDeleteEntry = vi.fn()
+    render(<HistorySidebar {...baseProps} history={entries} onDeleteEntry={onDeleteEntry} />)
+    fireEvent.click(screen.getByRole('button', { name: /^select$/i }))
+    fireEvent.click(screen.getByLabelText(/select "Doc Two"/i))
+    fireEvent.click(screen.getByRole('button', { name: /delete selected/i }))
+    expect(onDeleteEntry).toHaveBeenCalledWith('2')
+  })
+
+  it('exits select mode when Cancel is clicked', () => {
+    render(<HistorySidebar {...baseProps} history={entries} />)
+    fireEvent.click(screen.getByRole('button', { name: /^select$/i }))
+    fireEvent.click(screen.getByRole('button', { name: /^cancel$/i }))
+    // Select mode should be gone — load buttons visible again
+    expect(screen.getByRole('button', { name: 'Doc One' })).toBeInTheDocument()
+  })
+
+  it('exits select mode automatically after bulk delete', () => {
+    const onDeleteEntries = vi.fn()
+    render(<HistorySidebar {...baseProps} history={entries} onDeleteEntries={onDeleteEntries} />)
+    fireEvent.click(screen.getByRole('button', { name: /^select$/i }))
+    fireEvent.click(screen.getByLabelText(/select "Doc One"/i))
+    fireEvent.click(screen.getByRole('button', { name: /delete selected/i }))
+    // After deletion the sidebar should return to normal mode
+    expect(screen.queryByRole('button', { name: /^cancel$/i })).not.toBeInTheDocument()
+  })
+
+  it('Select all button selects all filtered entries', () => {
+    render(<HistorySidebar {...baseProps} history={entries} />)
+    fireEvent.click(screen.getByRole('button', { name: /^select$/i }))
+    fireEvent.click(screen.getByRole('button', { name: /select all/i }))
+    const deleteBtn = screen.getByRole('button', { name: /delete selected \(2\)/i })
+    expect(deleteBtn).not.toBeDisabled()
+  })
+
+  it('Deselect all button clears all selections when all are selected', () => {
+    render(<HistorySidebar {...baseProps} history={entries} />)
+    fireEvent.click(screen.getByRole('button', { name: /^select$/i }))
+    // Select all
+    fireEvent.click(screen.getByRole('button', { name: /select all/i }))
+    // Now button should say "Deselect all"
+    expect(screen.getByRole('button', { name: /deselect all/i })).toBeInTheDocument()
+    // Click deselect all
+    fireEvent.click(screen.getByRole('button', { name: /deselect all/i }))
+    // Delete selected should be disabled again
+    expect(screen.getByRole('button', { name: /delete selected$/i })).toBeDisabled()
+  })
+
+  it('shows selected count in Delete button label', () => {
+    render(<HistorySidebar {...baseProps} history={entries} />)
+    fireEvent.click(screen.getByRole('button', { name: /^select$/i }))
+    fireEvent.click(screen.getByLabelText(/select "Doc One"/i))
+    expect(screen.getByRole('button', { name: /delete selected \(1\)/i })).toBeInTheDocument()
+    fireEvent.click(screen.getByLabelText(/select "Doc Two"/i))
+    expect(screen.getByRole('button', { name: /delete selected \(2\)/i })).toBeInTheDocument()
+  })
+})

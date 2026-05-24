@@ -84,125 +84,127 @@ export const EditorToolbar = memo(function EditorToolbar({
       role="toolbar"
       aria-label="Text formatting"
       onKeyDown={handleToolbarKeyDown}
-      className="flex overflow-x-auto items-center gap-0.5 border-b border-neutral-200 bg-white px-2 py-1.5 dark:border-neutral-800 dark:bg-neutral-900"
+      className="flex items-center border-b border-neutral-200 bg-white px-2 py-1.5 dark:border-neutral-800 dark:bg-neutral-900"
     >
-      <TextStyleMenu {...menuProps} activeBlock={activeBlock} />
+      <div className="flex flex-nowrap overflow-x-auto items-center gap-0.5 flex-1 min-w-0">
+        <TextStyleMenu {...menuProps} activeBlock={activeBlock} />
 
-      <div className="mx-1.5 h-5 w-px bg-neutral-200 dark:bg-neutral-700" />
+        <div className="mx-1.5 h-5 w-px bg-neutral-200 dark:bg-neutral-700" />
 
-      {/* Bold, Italic, Underline, Strikethrough — individual visible buttons like Jira */}
-      {(
-        [
-          { cmd: 'bold', label: 'Bold', shortcut: `${MOD_KEY}+B`, icon: 'B', cls: 'font-bold' },
-          { cmd: 'italic', label: 'Italic', shortcut: `${MOD_KEY}+I`, icon: 'I', cls: 'italic' },
-          {
-            cmd: 'underline',
-            label: 'Underline',
-            shortcut: `${MOD_KEY}+U`,
-            icon: 'U',
-            cls: 'underline',
-          },
-          {
-            cmd: 'strikeThrough',
-            label: 'Strikethrough',
-            shortcut: `${MOD_KEY}+Shift+S`,
-            icon: 'S',
-            cls: 'line-through',
-          },
-        ] as const
-      ).map(({ cmd, label, shortcut, icon, cls }) => (
+        {/* Bold, Italic, Underline, Strikethrough — individual visible buttons like Jira */}
+        {(
+          [
+            { cmd: 'bold', label: 'Bold', shortcut: `${MOD_KEY}+B`, icon: 'B', cls: 'font-bold' },
+            { cmd: 'italic', label: 'Italic', shortcut: `${MOD_KEY}+I`, icon: 'I', cls: 'italic' },
+            {
+              cmd: 'underline',
+              label: 'Underline',
+              shortcut: `${MOD_KEY}+U`,
+              icon: 'U',
+              cls: 'underline',
+            },
+            {
+              cmd: 'strikeThrough',
+              label: 'Strikethrough',
+              shortcut: `${MOD_KEY}+Shift+S`,
+              icon: 'S',
+              cls: 'line-through',
+            },
+          ] as const
+        ).map(({ cmd, label, shortcut, icon, cls }) => (
+          <button
+            key={cmd}
+            type="button"
+            onMouseDown={(e) => {
+              e.preventDefault()
+              exec(cmd)
+            }}
+            title={`${label} (${shortcut})`}
+            aria-label={`${label} (${shortcut})`}
+            aria-pressed={activeFormats.has(cmd)}
+            className={`${BTN_CLS} ${activeFormats.has(cmd) ? 'bg-blue-50 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400' : ''}`}
+          >
+            <span className={`text-sm ${cls}`}>{icon}</span>
+          </button>
+        ))}
+
+        {/* Inline code */}
         <button
-          key={cmd}
           type="button"
           onMouseDown={(e) => {
             e.preventDefault()
-            exec(cmd)
+            exec('toggleCode')
           }}
-          title={`${label} (${shortcut})`}
-          aria-label={`${label} (${shortcut})`}
-          aria-pressed={activeFormats.has(cmd)}
-          className={`${BTN_CLS} ${activeFormats.has(cmd) ? 'bg-blue-50 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400' : ''}`}
+          title={`Inline code (${MOD_KEY}+Shift+K)`}
+          aria-label={`Inline code (${MOD_KEY}+Shift+K)`}
+          aria-pressed={activeFormats.has('code')}
+          className={`${BTN_CLS} ${activeFormats.has('code') ? 'bg-blue-50 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400' : ''}`}
         >
-          <span className={`text-sm ${cls}`}>{icon}</span>
+          <span className="font-mono text-xs">{'{}'}</span>
         </button>
-      ))}
 
-      {/* Inline code */}
-      <button
-        type="button"
-        onMouseDown={(e) => {
-          e.preventDefault()
-          exec('toggleCode')
-        }}
-        title={`Inline code (${MOD_KEY}+Shift+K)`}
-        aria-label={`Inline code (${MOD_KEY}+Shift+K)`}
-        aria-pressed={activeFormats.has('code')}
-        className={`${BTN_CLS} ${activeFormats.has('code') ? 'bg-blue-50 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400' : ''}`}
-      >
-        <span className="font-mono text-xs">{'{}'}</span>
-      </button>
+        <FormatMenu {...menuProps} activeFormats={activeFormats} />
+        <ListsMenu {...menuProps} activeFormats={activeFormats} />
+        <ColorMenu {...menuProps} activeColor={activeColor} />
 
-      <FormatMenu {...menuProps} activeFormats={activeFormats} />
-      <ListsMenu {...menuProps} activeFormats={activeFormats} />
-      <ColorMenu {...menuProps} activeColor={activeColor} />
+        <div className="mx-1.5 h-5 w-px bg-neutral-200 dark:bg-neutral-700" />
 
-      <div className="mx-1.5 h-5 w-px bg-neutral-200 dark:bg-neutral-700" />
+        {/* Code snippet */}
+        <button
+          type="button"
+          onMouseDown={(e) => {
+            e.preventDefault()
+            exec('toggleCodeBlock')
+          }}
+          title="Code snippet"
+          aria-label="Code snippet"
+          aria-pressed={activeBlock === 'pre'}
+          className={`${BTN_CLS} ${activeBlock === 'pre' ? 'bg-blue-50 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400' : ''}`}
+        >
+          <IconCodeBrackets />
+        </button>
 
-      {/* Code snippet */}
-      <button
-        type="button"
-        onMouseDown={(e) => {
-          e.preventDefault()
-          exec('toggleCodeBlock')
-        }}
-        title="Code snippet"
-        aria-label="Code snippet"
-        aria-pressed={activeBlock === 'pre'}
-        className={`${BTN_CLS} ${activeBlock === 'pre' ? 'bg-blue-50 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400' : ''}`}
-      >
-        <IconCodeBrackets />
-      </button>
+        <EmojiMenu {...menuProps} />
+        <InsertMenu {...menuProps} insertHtml={insertHtml} />
+        <TableMenu {...menuProps} isInTable={isInTable} />
 
-      <EmojiMenu {...menuProps} />
-      <InsertMenu {...menuProps} insertHtml={insertHtml} />
-      <TableMenu {...menuProps} isInTable={isInTable} />
+        <div className="mx-1.5 h-5 w-px bg-neutral-200 dark:bg-neutral-700" />
 
-      <div className="mx-1.5 h-5 w-px bg-neutral-200 dark:bg-neutral-700" />
+        {/* Undo */}
+        <button
+          type="button"
+          onMouseDown={(e) => {
+            e.preventDefault()
+            exec('undo')
+          }}
+          title={`Undo (${MOD_KEY}+Z)`}
+          aria-label={`Undo (${MOD_KEY}+Z)`}
+          className={BTN_CLS}
+        >
+          <IconUndo />
+        </button>
 
-      {/* Undo */}
-      <button
-        type="button"
-        onMouseDown={(e) => {
-          e.preventDefault()
-          exec('undo')
-        }}
-        title={`Undo (${MOD_KEY}+Z)`}
-        aria-label={`Undo (${MOD_KEY}+Z)`}
-        className={BTN_CLS}
-      >
-        <IconUndo />
-      </button>
-
-      {/* Redo */}
-      <button
-        type="button"
-        onMouseDown={(e) => {
-          e.preventDefault()
-          exec('redo')
-        }}
-        title={`Redo (${MOD_KEY}+Y)`}
-        aria-label={`Redo (${MOD_KEY}+Y)`}
-        className={BTN_CLS}
-      >
-        <IconRedo />
-      </button>
+        {/* Redo */}
+        <button
+          type="button"
+          onMouseDown={(e) => {
+            e.preventDefault()
+            exec('redo')
+          }}
+          title={`Redo (${MOD_KEY}+Y)`}
+          aria-label={`Redo (${MOD_KEY}+Y)`}
+          className={BTN_CLS}
+        >
+          <IconRedo />
+        </button>
+      </div>
 
       {hasLossyMarks && (
         <span
           role="status"
           aria-live="polite"
           title="Underline and color formatting will not appear in the Jira Wiki output"
-          className="ml-1 flex shrink-0 items-center gap-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-600 dark:bg-amber-950/30 dark:text-amber-400"
+          className="ml-2 flex shrink-0 items-center gap-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-600 dark:bg-amber-950/30 dark:text-amber-400"
         >
           <span aria-hidden>⚠</span>
           <span>Lost in Jira</span>
