@@ -83,7 +83,7 @@ export function FormatMenu({ exec, close, openKey, onOpen, activeFormats }: Form
       openKey={openKey}
       onOpen={onOpen}
       onClose={close}
-      ariaLabel="Format text"
+      ariaLabel="More formatting"
       trigger={
         <span className="text-sm font-medium tracking-widest" aria-hidden>
           ···

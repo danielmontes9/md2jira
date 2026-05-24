@@ -59,7 +59,7 @@ function AppContent() {
   const [showHistory, setShowHistory] = useState(false)
   const { historyEnabled, maxHistoryEntries } = useSettings()
   const addToast = useToast()
-  const { history, loadEntry, deleteEntry, clearHistory, saveNow, renameEntry } =
+  const { history, loadEntry, deleteEntry, deleteEntries, clearHistory, saveNow, renameEntry } =
     useDocumentHistory({
       markdown,
       enabled: historyEnabled,
@@ -429,6 +429,7 @@ function AppContent() {
             }
           }}
           onDeleteEntry={deleteEntry}
+          onDeleteEntries={deleteEntries}
           onClearHistory={clearHistory}
           onClose={() => setShowHistory(false)}
           onRenameEntry={renameEntry}

@@ -150,6 +150,17 @@ export const en = {
   wysiwygEmojiPlaceholder: 'Search by category (Frequent, People, Objects, Symbols\u2026)',
   wysiwygNoEmojis: 'No emojis found',
   wysiwygLoading: 'Loading\u2026',
+  wysiwygTableOptions: 'Table options',
+  wysiwygTableAddRowBelow: 'Add row below',
+  wysiwygTableAddRowAbove: 'Add row above',
+  wysiwygTableAddColRight: 'Add column right',
+  wysiwygTableAddColLeft: 'Add column left',
+  wysiwygTableDeleteRow: 'Delete row',
+  wysiwygTableDeleteCol: 'Delete column',
+  wysiwygTableDelete: 'Delete table',
+  historySelectMode: 'Select',
+  historyCancelSelect: 'Cancel',
+  historyDeleteSelected: 'Delete selected',
 } as const
 
 export type StringKey = keyof typeof en

@@ -83,6 +83,27 @@ export function execTiptapCommand(editor: Editor, cmd: string, arg?: string): vo
     case 'toggleCodeBlock':
       chain.toggleCodeBlock().run()
       break
+    case 'addRowAfter':
+      chain.addRowAfter().run()
+      break
+    case 'addRowBefore':
+      chain.addRowBefore().run()
+      break
+    case 'addColumnAfter':
+      chain.addColumnAfter().run()
+      break
+    case 'addColumnBefore':
+      chain.addColumnBefore().run()
+      break
+    case 'deleteRow':
+      chain.deleteRow().run()
+      break
+    case 'deleteColumn':
+      chain.deleteColumn().run()
+      break
+    case 'deleteTable':
+      chain.deleteTable().run()
+      break
     case 'insertText':
       if (arg) chain.insertContent(arg).run()
       break

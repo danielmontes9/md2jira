@@ -87,7 +87,7 @@ export const MarkdownInput = memo(function MarkdownInput({
       <div
         className={`@container flex min-h-0 flex-1 flex-col bg-white transition-colors dark:bg-neutral-900 ${
           isDragging
-            ? 'outline-2 outline-blue-400 dark:outline-blue-500 bg-blue-50/40 dark:bg-blue-950/20'
+            ? 'ring-2 ring-blue-400 dark:ring-blue-500 bg-blue-50/40 dark:bg-blue-950/20'
             : ''
         }`}
         onDragOver={handleDragOver}

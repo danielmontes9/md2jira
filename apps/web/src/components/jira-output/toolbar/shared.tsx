@@ -8,7 +8,7 @@ export { IconChevronDown as ChevronDown, IconCheckFill as CheckIcon }
 
 // ── Types ──
 
-export type DropKey = 'textStyle' | 'format' | 'lists' | 'color' | 'emoji' | 'insert'
+export type DropKey = 'textStyle' | 'format' | 'lists' | 'color' | 'emoji' | 'insert' | 'table'
 
 export interface ToolbarMenuProps {
   exec: (cmd: string, arg?: string) => void

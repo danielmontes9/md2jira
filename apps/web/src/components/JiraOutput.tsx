@@ -57,7 +57,16 @@ export const JiraOutput = memo(function JiraOutput({
   // Only initialize TipTap when ADF format is active — saves resources in wiki mode
   const shouldCreate = import.meta.env.VITE_ENABLE_WYSIWYG !== 'false' && format === 'adf'
 
-  const { editor, activeBlock, activeFormats, activeColor, exec, insertHtml } = useTiptapEditor({
+  const {
+    editor,
+    activeBlock,
+    activeFormats,
+    activeColor,
+    isInTable,
+    hasLossyMarks,
+    exec,
+    insertHtml,
+  } = useTiptapEditor({
     previewHtml,
     onMarkdownChange,
     shouldCreate,
@@ -139,6 +148,8 @@ export const JiraOutput = memo(function JiraOutput({
                 activeBlock={activeBlock}
                 activeFormats={activeFormats}
                 activeColor={activeColor}
+                isInTable={isInTable}
+                hasLossyMarks={hasLossyMarks}
               />
             </Suspense>
           </div>

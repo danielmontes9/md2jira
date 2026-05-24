@@ -103,13 +103,13 @@ describe('EditorToolbar', () => {
 
   it('FormatMenu trigger has aria-haspopup="menu"', () => {
     renderToolbar()
-    const bBtn = screen.getByRole('button', { name: 'Format text' })
+    const bBtn = screen.getByRole('button', { name: 'More formatting' })
     expect(bBtn).toHaveAttribute('aria-haspopup', 'menu')
   })
 
   it('FormatMenu (···) opens and shows Subscript but not Bold or Italic', () => {
     renderToolbar()
-    const moreBtn = screen.getByRole('button', { name: 'Format text' })
+    const moreBtn = screen.getByRole('button', { name: 'More formatting' })
     // Bold and Italic are now individual toolbar buttons, not in this dropdown
     fireEvent.mouseDown(moreBtn)
     expect(screen.getByText('Subscript')).toBeInTheDocument()

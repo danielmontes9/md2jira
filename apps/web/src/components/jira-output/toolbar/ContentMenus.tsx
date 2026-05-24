@@ -13,7 +13,7 @@ import {
   ToolbarDropdown,
   ChevronDown,
 } from './shared.js'
-import { IconListBullet, IconListOrdered, IconListChecks } from '../../icons.js'
+import { IconListBullet, IconListOrdered, IconListChecks, IconTable } from '../../icons.js'
 import { useT } from '../../../i18n/index.js'
 
 // ── Lists Menu ──
@@ -427,6 +427,122 @@ export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertM
             <div>Divider</div>
             <div className="text-xs text-neutral-400">Insert a dividing line</div>
           </div>
+        </button>
+      </div>
+    </ToolbarDropdown>
+  )
+}
+
+// ── Table Menu ──
+
+interface TableMenuProps extends ToolbarMenuProps {
+  openKey: DropKey | null
+  onOpen: (key: DropKey) => void
+  isInTable: boolean
+}
+
+export function TableMenu({ exec, close, openKey, onOpen, isInTable }: TableMenuProps) {
+  const t = useT()
+  if (!isInTable) return null
+  return (
+    <ToolbarDropdown
+      dropKey="table"
+      openKey={openKey}
+      onOpen={onOpen}
+      onClose={close}
+      ariaLabel={t('wysiwygTableOptions')}
+      trigger={
+        <>
+          <IconTable aria-hidden />
+          <ChevronDown />
+        </>
+      }
+    >
+      <div className={`${DROP_CLS} min-w-44`}>
+        <button
+          type="button"
+          role="menuitem"
+          onMouseDown={(e) => {
+            e.preventDefault()
+            exec('addRowAfter')
+            close()
+          }}
+          className={DROP_ITEM_CLS}
+        >
+          {t('wysiwygTableAddRowBelow')}
+        </button>
+        <button
+          type="button"
+          role="menuitem"
+          onMouseDown={(e) => {
+            e.preventDefault()
+            exec('addRowBefore')
+            close()
+          }}
+          className={DROP_ITEM_CLS}
+        >
+          {t('wysiwygTableAddRowAbove')}
+        </button>
+        <button
+          type="button"
+          role="menuitem"
+          onMouseDown={(e) => {
+            e.preventDefault()
+            exec('addColumnAfter')
+            close()
+          }}
+          className={DROP_ITEM_CLS}
+        >
+          {t('wysiwygTableAddColRight')}
+        </button>
+        <button
+          type="button"
+          role="menuitem"
+          onMouseDown={(e) => {
+            e.preventDefault()
+            exec('addColumnBefore')
+            close()
+          }}
+          className={DROP_ITEM_CLS}
+        >
+          {t('wysiwygTableAddColLeft')}
+        </button>
+        <div className="my-1 border-t border-neutral-100 dark:border-neutral-800" />
+        <button
+          type="button"
+          role="menuitem"
+          onMouseDown={(e) => {
+            e.preventDefault()
+            exec('deleteRow')
+            close()
+          }}
+          className={`${DROP_ITEM_CLS} text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30`}
+        >
+          {t('wysiwygTableDeleteRow')}
+        </button>
+        <button
+          type="button"
+          role="menuitem"
+          onMouseDown={(e) => {
+            e.preventDefault()
+            exec('deleteColumn')
+            close()
+          }}
+          className={`${DROP_ITEM_CLS} text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30`}
+        >
+          {t('wysiwygTableDeleteCol')}
+        </button>
+        <button
+          type="button"
+          role="menuitem"
+          onMouseDown={(e) => {
+            e.preventDefault()
+            exec('deleteTable')
+            close()
+          }}
+          className={`${DROP_ITEM_CLS} text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30`}
+        >
+          {t('wysiwygTableDelete')}
         </button>
       </div>
     </ToolbarDropdown>

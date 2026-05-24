@@ -1,4 +1,4 @@
-﻿import { memo, useRef, useEffect, useState, useCallback, useId } from 'react'
+import { memo, useRef, useEffect, useState, useCallback, useId } from 'react'
 import type { KeyboardEvent as ReactKeyboardEvent, ChangeEvent } from 'react'
 import { IconHistory, IconClose, IconSearch } from './icons.js'
 import type { HistoryEntry } from '../hooks/useDocumentHistory.js'
@@ -14,6 +14,7 @@ interface HistorySidebarProps {
   currentMarkdown?: string
   onLoadEntry: (id: string) => void
   onDeleteEntry: (id: string) => void
+  onDeleteEntries?: (ids: string[]) => void
   onClearHistory: () => void
   onClose: () => void
   /** Called when the user renames an entry in-sidebar. */
@@ -51,6 +52,7 @@ export const HistorySidebar = memo(function HistorySidebar({
   currentMarkdown,
   onLoadEntry,
   onDeleteEntry,
+  onDeleteEntries,
   onClearHistory,
   onClose,
   onRenameEntry,
@@ -61,6 +63,8 @@ export const HistorySidebar = memo(function HistorySidebar({
   const [query, setQuery] = useState('')
   const [renamingId, setRenamingId] = useState<string | null>(null)
   const [renameValue, setRenameValue] = useState('')
+  const [selectMode, setSelectMode] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const searchId = useId()
   const t = useT()
 
@@ -128,6 +132,31 @@ export const HistorySidebar = memo(function HistorySidebar({
     setRenamingId(entry.id)
     setRenameValue(entry.title)
   }, [])
+
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }, [])
+
+  const exitSelectMode = useCallback(() => {
+    setSelectMode(false)
+    setSelectedIds(new Set())
+  }, [])
+
+  const handleDeleteSelected = useCallback(() => {
+    if (selectedIds.size === 0) return
+    const ids = Array.from(selectedIds)
+    if (onDeleteEntries) {
+      onDeleteEntries(ids)
+    } else {
+      ids.forEach((id) => onDeleteEntry(id))
+    }
+    exitSelectMode()
+  }, [selectedIds, onDeleteEntries, onDeleteEntry, exitSelectMode])
 
   const commitRename = useCallback(
     (id: string) => {
@@ -294,17 +323,33 @@ export const HistorySidebar = memo(function HistorySidebar({
                     {grouped[group]!.map((entry) => {
                       const isActive = entry.id === activeId
                       const isRenaming = entry.id === renamingId
+                      const isSelected = selectedIds.has(entry.id)
                       return (
                         <li
                           key={entry.id}
                           className={`group flex flex-col rounded-lg border px-3 py-2.5 transition-colors ${
-                            isActive
-                              ? 'border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-950/40'
-                              : 'border-neutral-100 bg-neutral-50 hover:border-blue-200 hover:bg-blue-50/50 dark:border-neutral-800 dark:bg-neutral-800/40 dark:hover:border-blue-900 dark:hover:bg-blue-950/30'
+                            isSelected
+                              ? 'border-blue-400 bg-blue-50 dark:border-blue-600 dark:bg-blue-950/40'
+                              : isActive
+                                ? 'border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-950/40'
+                                : 'border-neutral-100 bg-neutral-50 hover:border-blue-200 hover:bg-blue-50/50 dark:border-neutral-800 dark:bg-neutral-800/40 dark:hover:border-blue-900 dark:hover:bg-blue-950/30'
                           }`}
                         >
                           <div className="flex items-start justify-between gap-1">
-                            {isRenaming ? (
+                            {selectMode ? (
+                              <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-2">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={() => toggleSelect(entry.id)}
+                                  className="h-3.5 w-3.5 shrink-0 rounded border-neutral-300 text-blue-600 focus:ring-blue-500 dark:border-neutral-600"
+                                  aria-label={`Select "${entry.title}"`}
+                                />
+                                <span className="min-w-0 truncate text-sm font-medium text-neutral-800 dark:text-neutral-200">
+                                  {entry.title}
+                                </span>
+                              </label>
+                            ) : isRenaming ? (
                               <input
                                 type="text"
                                 value={renameValue}
@@ -343,7 +388,7 @@ export const HistorySidebar = memo(function HistorySidebar({
                                 {entry.title}
                               </button>
                             )}
-                            {!isRenaming && (
+                            {!isRenaming && !selectMode && (
                               <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
                                 <button
                                   type="button"
@@ -393,65 +438,93 @@ export const HistorySidebar = memo(function HistorySidebar({
 
         {/* ── Footer actions ── */}
         <div className="shrink-0 border-t border-neutral-200 px-3 py-2.5 dark:border-neutral-800">
-          <div className="flex items-center gap-1.5">
-            {/* Import — always available */}
-            <button
-              type="button"
-              onClick={() => importInputRef.current?.click()}
-              title="Import history from JSON"
-              className="rounded px-2.5 py-1 text-xs text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
-              aria-label="Import history"
-            >
-              {t('historyImport')}
-            </button>
-            {history.length > 0 && (
-              <>
-                <button
-                  type="button"
-                  onClick={handleExport}
-                  title="Export history as JSON"
-                  className="rounded px-2.5 py-1 text-xs text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
-                  aria-label="Export history"
-                >
-                  {t('historyExport')}
-                </button>
-                <div className="ml-auto">
-                  {confirmClear ? (
-                    <div className="flex items-center gap-1">
-                      <span className="text-xs text-neutral-500 dark:text-neutral-400">
-                        {t('clearAllPrompt')}
-                      </span>
+          {selectMode ? (
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={handleDeleteSelected}
+                disabled={selectedIds.size === 0}
+                className="rounded px-2.5 py-1 text-xs font-medium text-red-500 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 dark:text-red-400 dark:hover:bg-red-950/30 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
+              >
+                {t('historyDeleteSelected')}
+                {selectedIds.size > 0 ? ` (${selectedIds.size})` : ''}
+              </button>
+              <button
+                type="button"
+                onClick={exitSelectMode}
+                className="rounded px-2.5 py-1 text-xs text-neutral-500 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
+              >
+                {t('historyCancelSelect')}
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5">
+              {/* Import — always available */}
+              <button
+                type="button"
+                onClick={() => importInputRef.current?.click()}
+                title="Import history from JSON"
+                className="rounded px-2.5 py-1 text-xs text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
+                aria-label="Import history"
+              >
+                {t('historyImport')}
+              </button>
+              {history.length > 0 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleExport}
+                    title="Export history as JSON"
+                    className="rounded px-2.5 py-1 text-xs text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
+                    aria-label="Export history"
+                  >
+                    {t('historyExport')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectMode(true)}
+                    className="rounded px-2.5 py-1 text-xs text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
+                  >
+                    {t('historySelectMode')}
+                  </button>
+                  <div className="ml-auto">
+                    {confirmClear ? (
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                          {t('clearAllPrompt')}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onClearHistory()
+                            setConfirmClear(false)
+                          }}
+                          className="rounded px-2 py-0.5 text-xs font-medium text-red-500 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
+                        >
+                          {t('clearEditorYes')}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setConfirmClear(false)}
+                          className="rounded px-2 py-0.5 text-xs text-neutral-400 hover:bg-neutral-100 dark:text-neutral-500 dark:hover:bg-neutral-800 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
+                        >
+                          {t('clearEditorNo')}
+                        </button>
+                      </div>
+                    ) : (
                       <button
                         type="button"
-                        onClick={() => {
-                          onClearHistory()
-                          setConfirmClear(false)
-                        }}
-                        className="rounded px-2 py-0.5 text-xs font-medium text-red-500 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
+                        onClick={() => setConfirmClear(true)}
+                        className="rounded px-2.5 py-1 text-xs text-neutral-500 hover:bg-neutral-100 hover:text-red-500 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-red-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
                       >
-                        {t('clearEditorYes')}
+                        {t('clearAll')}
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => setConfirmClear(false)}
-                        className="rounded px-2 py-0.5 text-xs text-neutral-400 hover:bg-neutral-100 dark:text-neutral-500 dark:hover:bg-neutral-800 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
-                      >
-                        {t('clearEditorNo')}
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => setConfirmClear(true)}
-                      className="rounded px-2.5 py-1 text-xs text-neutral-500 hover:bg-neutral-100 hover:text-red-500 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-red-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
-                    >
-                      {t('clearAll')}
-                    </button>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
         </div>
       </aside>
     </>

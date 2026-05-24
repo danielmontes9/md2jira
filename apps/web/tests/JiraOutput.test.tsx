@@ -23,6 +23,8 @@ const stubEditorState = {
   activeBlock: 'p',
   activeFormats: new Set<string>(),
   activeColor: undefined,
+  isInTable: false,
+  hasLossyMarks: false,
   exec: vi.fn(),
   insertHtml: vi.fn(),
 }

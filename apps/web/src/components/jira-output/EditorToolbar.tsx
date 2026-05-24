@@ -3,7 +3,7 @@ import type { KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { MOD_KEY } from '../../utils/keyboard.js'
 import { type DropKey, BTN_CLS } from './toolbar/shared.js'
 import { TextStyleMenu, FormatMenu } from './toolbar/FormatMenus.js'
-import { ListsMenu, ColorMenu, EmojiMenu, InsertMenu } from './toolbar/ContentMenus.js'
+import { ListsMenu, ColorMenu, EmojiMenu, InsertMenu, TableMenu } from './toolbar/ContentMenus.js'
 import { IconCodeBrackets, IconUndo, IconRedo } from '../icons.js'
 
 interface EditorToolbarProps {
@@ -12,6 +12,8 @@ interface EditorToolbarProps {
   activeBlock: string
   activeFormats: Set<string>
   activeColor: string | undefined
+  isInTable?: boolean
+  hasLossyMarks?: boolean
 }
 
 /**
@@ -24,6 +26,8 @@ export const EditorToolbar = memo(function EditorToolbar({
   activeBlock,
   activeFormats,
   activeColor,
+  isInTable = false,
+  hasLossyMarks = false,
 }: EditorToolbarProps) {
   const toolbarRef = useRef<HTMLDivElement>(null)
   const [openKey, setOpenKey] = useState<DropKey | null>(null)
@@ -80,7 +84,7 @@ export const EditorToolbar = memo(function EditorToolbar({
       role="toolbar"
       aria-label="Text formatting"
       onKeyDown={handleToolbarKeyDown}
-      className="flex flex-wrap items-center gap-0.5 border-b border-neutral-200 bg-white px-2 py-1.5 dark:border-neutral-800 dark:bg-neutral-900"
+      className="flex overflow-x-auto items-center gap-0.5 border-b border-neutral-200 bg-white px-2 py-1.5 dark:border-neutral-800 dark:bg-neutral-900"
     >
       <TextStyleMenu {...menuProps} activeBlock={activeBlock} />
 
@@ -161,6 +165,7 @@ export const EditorToolbar = memo(function EditorToolbar({
 
       <EmojiMenu {...menuProps} />
       <InsertMenu {...menuProps} insertHtml={insertHtml} />
+      <TableMenu {...menuProps} isInTable={isInTable} />
 
       <div className="mx-1.5 h-5 w-px bg-neutral-200 dark:bg-neutral-700" />
 
@@ -191,6 +196,18 @@ export const EditorToolbar = memo(function EditorToolbar({
       >
         <IconRedo />
       </button>
+
+      {hasLossyMarks && (
+        <span
+          role="status"
+          aria-live="polite"
+          title="Underline and color formatting will not appear in the Jira Wiki output"
+          className="ml-1 flex shrink-0 items-center gap-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-600 dark:bg-amber-950/30 dark:text-amber-400"
+        >
+          <span aria-hidden>⚠</span>
+          <span>Lost in Jira</span>
+        </span>
+      )}
     </div>
   )
 })

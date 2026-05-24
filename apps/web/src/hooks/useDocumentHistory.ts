@@ -48,6 +48,7 @@ interface UseDocumentHistoryReturn {
   history: HistoryEntry[]
   loadEntry: (id: string) => string | null
   deleteEntry: (id: string) => void
+  deleteEntries: (ids: string[]) => void
   clearHistory: () => void
   saveNow: () => void
   renameEntry: (id: string, newTitle: string) => void
@@ -120,6 +121,15 @@ export function useDocumentHistory({
     })
   }, [])
 
+  const deleteEntries = useCallback((ids: string[]) => {
+    const idSet = new Set(ids)
+    setHistory((prev) => {
+      const updated = prev.filter((e) => !idSet.has(e.id))
+      saveHistory(updated)
+      return updated
+    })
+  }, [])
+
   const clearHistory = useCallback(() => {
     setHistory([])
     try {
@@ -155,5 +165,5 @@ export function useDocumentHistory({
     })
   }, [])
 
-  return { history, loadEntry, deleteEntry, clearHistory, saveNow, renameEntry }
+  return { history, loadEntry, deleteEntry, deleteEntries, clearHistory, saveNow, renameEntry }
 }

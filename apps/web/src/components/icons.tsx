@@ -289,6 +289,18 @@ export function IconListChecks({ className = 'h-4 w-4' }: IconProps) {
   )
 }
 
+/** Table grid icon — used for the Table menu trigger in the WYSIWYG toolbar. */
+export function IconTable({ className = 'h-4 w-4' }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" {...STROKE}>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <line x1="3" y1="9" x2="21" y2="9" />
+      <line x1="3" y1="15" x2="21" y2="15" />
+      <line x1="9" y1="9" x2="9" y2="21" />
+    </svg>
+  )
+}
+
 /** Gear / settings — used for the Settings button in the Header. */
 export function IconSettings({ className = 'h-5 w-5' }: IconProps) {
   return (

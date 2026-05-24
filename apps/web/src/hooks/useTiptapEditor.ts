@@ -92,6 +92,10 @@ export interface TiptapEditorState {
   activeFormats: Set<string>
   /** Currently active text color, or undefined if none. */
   activeColor: string | undefined
+  /** True when the cursor is inside a table cell. */
+  isInTable: boolean
+  /** True when the doc contains underline or color marks that will be stripped in Jira output. */
+  hasLossyMarks: boolean
   /** Execute a formatting command by name. */
   exec: (cmd: string, arg?: string) => void
   /** Insert sanitized HTML at the current cursor position. */
@@ -279,11 +283,18 @@ export function useTiptapEditor({
     ? (activeEditor.getAttributes('textStyle').color as string | undefined)
     : undefined
 
+  const isInTable = activeEditor?.isActive?.('table') ?? false
+  const hasLossyMarks = activeEditor
+    ? hasColorMarks(activeEditor.state.doc) || hasUnderlineMarks(activeEditor.state.doc)
+    : false
+
   return {
     editor: activeEditor,
     activeBlock,
     activeFormats,
     activeColor,
+    isInTable,
+    hasLossyMarks,
     exec,
     insertHtml,
   }
