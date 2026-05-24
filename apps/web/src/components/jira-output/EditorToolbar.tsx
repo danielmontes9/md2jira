@@ -55,7 +55,10 @@ export const EditorToolbar = memo(function EditorToolbar({
     document.addEventListener(
       'mousedown',
       (e: MouseEvent) => {
-        if (toolbarRef.current && !toolbarRef.current.contains(e.target as Node)) close()
+        const target = e.target as Element
+        const inToolbar = toolbarRef.current?.contains(target) ?? false
+        const inPortal = !!target.closest?.('[data-toolbar-portal]')
+        if (!inToolbar && !inPortal) close()
       },
       { signal: ac.signal }
     )
@@ -77,14 +80,69 @@ export const EditorToolbar = memo(function EditorToolbar({
       role="toolbar"
       aria-label="Text formatting"
       onKeyDown={handleToolbarKeyDown}
-      className="flex flex-wrap items-center gap-px border-b border-neutral-200 bg-neutral-50 px-2 py-1 dark:border-neutral-800 dark:bg-neutral-950"
+      className="flex flex-wrap items-center gap-0.5 border-b border-neutral-200 bg-white px-2 py-1.5 dark:border-neutral-800 dark:bg-neutral-950"
     >
       <TextStyleMenu {...menuProps} activeBlock={activeBlock} />
+
+      <div className="mx-1.5 h-5 w-px bg-neutral-200 dark:bg-neutral-700" />
+
+      {/* Bold, Italic, Underline, Strikethrough — individual visible buttons like Jira */}
+      {(
+        [
+          { cmd: 'bold', label: 'Bold', shortcut: `${MOD_KEY}+B`, icon: 'B', cls: 'font-bold' },
+          { cmd: 'italic', label: 'Italic', shortcut: `${MOD_KEY}+I`, icon: 'I', cls: 'italic' },
+          {
+            cmd: 'underline',
+            label: 'Underline',
+            shortcut: `${MOD_KEY}+U`,
+            icon: 'U',
+            cls: 'underline',
+          },
+          {
+            cmd: 'strikeThrough',
+            label: 'Strikethrough',
+            shortcut: `${MOD_KEY}+Shift+S`,
+            icon: 'S',
+            cls: 'line-through',
+          },
+        ] as const
+      ).map(({ cmd, label, shortcut, icon, cls }) => (
+        <button
+          key={cmd}
+          type="button"
+          onMouseDown={(e) => {
+            e.preventDefault()
+            exec(cmd)
+          }}
+          title={`${label} (${shortcut})`}
+          aria-label={`${label} (${shortcut})`}
+          aria-pressed={activeFormats.has(cmd)}
+          className={`${BTN_CLS} ${activeFormats.has(cmd) ? 'bg-blue-50 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400' : ''}`}
+        >
+          <span className={`text-sm ${cls}`}>{icon}</span>
+        </button>
+      ))}
+
+      {/* Inline code */}
+      <button
+        type="button"
+        onMouseDown={(e) => {
+          e.preventDefault()
+          exec('toggleCode')
+        }}
+        title={`Inline code (${MOD_KEY}+Shift+K)`}
+        aria-label={`Inline code (${MOD_KEY}+Shift+K)`}
+        aria-pressed={activeFormats.has('code')}
+        className={`${BTN_CLS} ${activeFormats.has('code') ? 'bg-blue-50 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400' : ''}`}
+      >
+        <span className="font-mono text-xs">{'{}'}</span>
+      </button>
+
       <FormatMenu {...menuProps} activeFormats={activeFormats} />
       <ListsMenu {...menuProps} activeFormats={activeFormats} />
       <ColorMenu {...menuProps} activeColor={activeColor} />
 
-      <div className="mx-1 h-4 w-px bg-neutral-200 dark:bg-neutral-700" />
+      <div className="mx-1.5 h-5 w-px bg-neutral-200 dark:bg-neutral-700" />
 
       {/* Code snippet */}
       <button
@@ -96,7 +154,7 @@ export const EditorToolbar = memo(function EditorToolbar({
         title="Code snippet"
         aria-label="Code snippet"
         aria-pressed={activeBlock === 'pre'}
-        className={`${BTN_CLS} ${activeBlock === 'pre' ? 'bg-neutral-100 dark:bg-neutral-800' : ''}`}
+        className={`${BTN_CLS} ${activeBlock === 'pre' ? 'bg-blue-50 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400' : ''}`}
       >
         <IconCodeBrackets />
       </button>
@@ -104,7 +162,7 @@ export const EditorToolbar = memo(function EditorToolbar({
       <EmojiMenu {...menuProps} />
       <InsertMenu {...menuProps} insertHtml={insertHtml} />
 
-      <div className="mx-1 h-4 w-px bg-neutral-200 dark:bg-neutral-700" />
+      <div className="mx-1.5 h-5 w-px bg-neutral-200 dark:bg-neutral-700" />
 
       {/* Undo */}
       <button

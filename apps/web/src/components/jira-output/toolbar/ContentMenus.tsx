@@ -13,7 +13,7 @@ import {
   ToolbarDropdown,
   ChevronDown,
 } from './shared.js'
-import { IconListBullet } from '../../icons.js'
+import { IconListBullet, IconListOrdered, IconListChecks } from '../../icons.js'
 import { useT } from '../../../i18n/index.js'
 
 // ── Lists Menu ──
@@ -50,9 +50,12 @@ export function ListsMenu({ exec, close, openKey, onOpen, activeFormats }: Lists
             close()
           }}
           aria-checked={activeFormats.has('insertUnorderedList')}
-          className={`${DROP_ITEM_CLS} justify-between ${activeFormats.has('insertUnorderedList') ? 'bg-neutral-100 dark:bg-neutral-800' : ''}`}
+          className={`${DROP_ITEM_CLS} justify-between ${activeFormats.has('insertUnorderedList') ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-300' : ''}`}
         >
-          <span>{t('wysiwygBulletList')}</span>
+          <span className="flex items-center gap-2">
+            <IconListBullet className="h-3.5 w-3.5 shrink-0" />
+            {t('wysiwygBulletList')}
+          </span>
           <span className="text-xs text-neutral-400">{`${MOD_KEY}+Shift+8`}</span>
         </button>
         <button
@@ -64,9 +67,12 @@ export function ListsMenu({ exec, close, openKey, onOpen, activeFormats }: Lists
             close()
           }}
           aria-checked={activeFormats.has('insertOrderedList')}
-          className={`${DROP_ITEM_CLS} justify-between ${activeFormats.has('insertOrderedList') ? 'bg-neutral-100 dark:bg-neutral-800' : ''}`}
+          className={`${DROP_ITEM_CLS} justify-between ${activeFormats.has('insertOrderedList') ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-300' : ''}`}
         >
-          <span>{t('wysiwygNumberedList')}</span>
+          <span className="flex items-center gap-2">
+            <IconListOrdered className="h-3.5 w-3.5 shrink-0" />
+            {t('wysiwygNumberedList')}
+          </span>
           <span className="text-xs text-neutral-400">{`${MOD_KEY}+Shift+7`}</span>
         </button>
         <button
@@ -78,9 +84,12 @@ export function ListsMenu({ exec, close, openKey, onOpen, activeFormats }: Lists
             close()
           }}
           aria-checked={activeFormats.has('toggleTaskList')}
-          className={`${DROP_ITEM_CLS} justify-between ${activeFormats.has('toggleTaskList') ? 'bg-neutral-100 dark:bg-neutral-800' : ''}`}
+          className={`${DROP_ITEM_CLS} justify-between ${activeFormats.has('toggleTaskList') ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-300' : ''}`}
         >
-          <span>{t('wysiwygTaskList')}</span>
+          <span className="flex items-center gap-2">
+            <IconListChecks className="h-3.5 w-3.5 shrink-0" />
+            {t('wysiwygTaskList')}
+          </span>
           <span className="text-xs text-neutral-400">{`${MOD_KEY}+Shift+6`}</span>
         </button>
       </div>
@@ -107,9 +116,16 @@ export function ColorMenu({ exec, close, openKey, onOpen, activeColor }: ColorMe
       menuRole="listbox"
       ariaLabel="Text color"
       trigger={
-        <span className="relative select-none font-bold leading-none" aria-hidden>
+        <span
+          className="relative select-none font-bold leading-none"
+          aria-hidden
+          style={activeColor ? { color: activeColor } : undefined}
+        >
           A
-          <span className="absolute -bottom-0.5 left-0 right-0 h-0.5 rounded bg-blue-600" />
+          <span
+            className="absolute -bottom-0.5 left-0 right-0 h-0.5 rounded"
+            style={{ background: activeColor ?? '#2563eb' }}
+          />
         </span>
       }
     >
@@ -296,9 +312,12 @@ export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertM
       onClose={close}
       ariaLabel="Insert elements"
       trigger={
-        <span className="font-bold rounded-full" aria-hidden>
-          +
-        </span>
+        <>
+          <span className="text-sm font-bold leading-none" aria-hidden>
+            +
+          </span>
+          <ChevronDown />
+        </>
       }
     >
       <div className={`${DROP_CLS} min-w-66.25`}>

@@ -78,23 +78,23 @@ describe('EditorToolbar', () => {
 
   it('TextStyleMenu trigger has aria-haspopup="menu"', () => {
     renderToolbar()
-    const ttBtn = screen.getByText('Tt').closest('button')
+    const ttBtn = screen.getByRole('button', { name: 'Text styles' })
     expect(ttBtn).toHaveAttribute('aria-haspopup', 'menu')
   })
 
   it('TextStyleMenu opens on mousedown and shows heading options', () => {
     renderToolbar()
-    const ttBtn = screen.getByText('Tt').closest('button')!
+    const ttBtn = screen.getByRole('button', { name: 'Text styles' })
     expect(screen.queryByText('Heading 1')).not.toBeInTheDocument()
     fireEvent.mouseDown(ttBtn)
     expect(screen.getByText('Heading 1')).toBeInTheDocument()
     expect(screen.getByText('Heading 2')).toBeInTheDocument()
-    expect(screen.getByText('Normal text')).toBeInTheDocument()
+    expect(screen.getAllByText('Normal text').length).toBeGreaterThan(0)
   })
 
   it('TextStyleMenu calls exec("formatBlock", "H1") when Heading 1 is selected', () => {
     renderToolbar()
-    const ttBtn = screen.getByText('Tt').closest('button')!
+    const ttBtn = screen.getByRole('button', { name: 'Text styles' })
     fireEvent.mouseDown(ttBtn)
     const h1Option = screen.getByText('Heading 1')
     fireEvent.mouseDown(h1Option)
@@ -107,21 +107,20 @@ describe('EditorToolbar', () => {
     expect(bBtn).toHaveAttribute('aria-haspopup', 'menu')
   })
 
-  it('FormatMenu opens on mousedown and shows Bold and Italic options', () => {
+  it('FormatMenu (···) opens and shows Subscript but not Bold or Italic', () => {
     renderToolbar()
-    const bBtn = screen.getByRole('button', { name: 'Format text' })
+    const moreBtn = screen.getByRole('button', { name: 'Format text' })
+    // Bold and Italic are now individual toolbar buttons, not in this dropdown
+    fireEvent.mouseDown(moreBtn)
+    expect(screen.getByText('Subscript')).toBeInTheDocument()
     expect(screen.queryByText('Bold')).not.toBeInTheDocument()
-    fireEvent.mouseDown(bBtn)
-    expect(screen.getByText('Bold')).toBeInTheDocument()
-    expect(screen.getByText('Italic')).toBeInTheDocument()
+    expect(screen.queryByText('Italic')).not.toBeInTheDocument()
   })
 
-  it('FormatMenu calls exec("bold") when Bold is selected', () => {
+  it('Bold button calls exec("bold") on mousedown', () => {
     renderToolbar()
-    const bBtn = screen.getByRole('button', { name: 'Format text' })
-    fireEvent.mouseDown(bBtn)
-    const boldItem = screen.getByText('Bold')
-    fireEvent.mouseDown(boldItem)
+    const boldBtn = screen.getByRole('button', { name: /^Bold/ })
+    fireEvent.mouseDown(boldBtn)
     expect(execMock).toHaveBeenCalledWith('bold')
   })
 
@@ -255,20 +254,16 @@ describe('EditorToolbar', () => {
     expect(codeBtn).toHaveAttribute('aria-pressed', 'false')
   })
 
-  it('FormatMenu Bold item has aria-checked="true" when bold is in activeFormats', () => {
+  it('Bold button has aria-pressed="true" when bold is in activeFormats', () => {
     renderToolbar(new Set(['bold']))
-    const bBtn = screen.getByRole('button', { name: 'Format text' })
-    fireEvent.mouseDown(bBtn)
-    const boldItem = screen.getByText('Bold').closest('button')!
-    expect(boldItem).toHaveAttribute('aria-checked', 'true')
+    const boldBtn = screen.getByRole('button', { name: /^Bold/ })
+    expect(boldBtn).toHaveAttribute('aria-pressed', 'true')
   })
 
-  it('FormatMenu Bold item has aria-checked="false" when bold is not in activeFormats', () => {
+  it('Bold button has aria-pressed="false" when bold is not in activeFormats', () => {
     renderToolbar(new Set())
-    const bBtn = screen.getByRole('button', { name: 'Format text' })
-    fireEvent.mouseDown(bBtn)
-    const boldItem = screen.getByText('Bold').closest('button')!
-    expect(boldItem).toHaveAttribute('aria-checked', 'false')
+    const boldBtn = screen.getByRole('button', { name: /^Bold/ })
+    expect(boldBtn).toHaveAttribute('aria-pressed', 'false')
   })
 
   it('ListsMenu Bullet list item has aria-checked="true" when bullet list is active', () => {
@@ -292,7 +287,7 @@ describe('EditorToolbar', () => {
 
   it('dropdown closes when focus leaves it (blur with external relatedTarget)', () => {
     renderToolbar()
-    const ttBtn = screen.getByText('Tt').closest('button')!
+    const ttBtn = screen.getByRole('button', { name: 'Text styles' })
     fireEvent.mouseDown(ttBtn)
     // Dropdown is open — Heading 1 should be in the document
     expect(screen.getByText('Heading 1')).toBeInTheDocument()
@@ -305,7 +300,7 @@ describe('EditorToolbar', () => {
 
   it('TextStyleMenu returns focus to trigger button on Escape', () => {
     renderToolbar()
-    const ttBtn = screen.getByText('Tt').closest('button')!
+    const ttBtn = screen.getByRole('button', { name: 'Text styles' })
     fireEvent.mouseDown(ttBtn)
     expect(screen.getByText('Heading 1')).toBeInTheDocument()
     // Fire Escape on the open menu panel (onKeyDown is on the menu div)
@@ -319,7 +314,7 @@ describe('EditorToolbar', () => {
 
   it('TextStyleMenu returns focus to trigger button on Tab', () => {
     renderToolbar()
-    const ttBtn = screen.getByText('Tt').closest('button')!
+    const ttBtn = screen.getByRole('button', { name: 'Text styles' })
     fireEvent.mouseDown(ttBtn)
     expect(screen.getByText('Heading 1')).toBeInTheDocument()
     const menus = screen.getAllByRole('menu')
@@ -360,7 +355,7 @@ describe('EditorToolbar', () => {
 
   it('TextStyleMenu ArrowDown moves focus to the next menu item', () => {
     renderToolbar()
-    const ttBtn = screen.getByText('Tt').closest('button')!
+    const ttBtn = screen.getByRole('button', { name: 'Text styles' })
     fireEvent.mouseDown(ttBtn)
     const menu = screen.getAllByRole('menu')[0]!
     const items = Array.from(menu.querySelectorAll<HTMLElement>('button'))
@@ -373,7 +368,7 @@ describe('EditorToolbar', () => {
 
   it('TextStyleMenu ArrowUp from the first item wraps to the last item', () => {
     renderToolbar()
-    const ttBtn = screen.getByText('Tt').closest('button')!
+    const ttBtn = screen.getByRole('button', { name: 'Text styles' })
     fireEvent.mouseDown(ttBtn)
     const menu = screen.getAllByRole('menu')[0]!
     const items = Array.from(menu.querySelectorAll<HTMLElement>('button'))

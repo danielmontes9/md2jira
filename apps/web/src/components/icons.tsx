@@ -243,6 +243,52 @@ export function IconListBullet({ className = 'h-4 w-4' }: IconProps) {
   )
 }
 
+/** Ordered (numbered) list — used in the Lists menu items. */
+export function IconListOrdered({ className = 'h-4 w-4' }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      aria-hidden="true"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <line x1="10" y1="6" x2="21" y2="6" />
+      <line x1="10" y1="12" x2="21" y2="12" />
+      <line x1="10" y1="18" x2="21" y2="18" />
+      <path d="M4 6h1v4" strokeWidth={1.8} />
+      <path d="M4 10h2" strokeWidth={1.8} />
+      <path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1" strokeWidth={1.8} />
+    </svg>
+  )
+}
+
+/** Task / checklist — used in the Lists menu items. */
+export function IconListChecks({ className = 'h-4 w-4' }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      aria-hidden="true"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <line x1="10" y1="6" x2="21" y2="6" />
+      <line x1="10" y1="12" x2="21" y2="12" />
+      <line x1="10" y1="18" x2="21" y2="18" />
+      <polyline points="3 6 4 7 6 5" />
+      <polyline points="3 12 4 13 6 11" />
+      <polyline points="3 18 4 19 6 17" />
+    </svg>
+  )
+}
+
 /** Gear / settings — used for the Settings button in the Header. */
 export function IconSettings({ className = 'h-5 w-5' }: IconProps) {
   return (

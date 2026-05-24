@@ -1,4 +1,3 @@
-import { MOD_KEY } from '../../../utils/keyboard.js'
 import {
   type DropKey,
   type ToolbarMenuProps,
@@ -20,6 +19,8 @@ interface TextStyleMenuProps extends ToolbarMenuProps {
 }
 
 export function TextStyleMenu({ exec, close, openKey, onOpen, activeBlock }: TextStyleMenuProps) {
+  const currentLabel =
+    TEXT_STYLES.find((s) => s.tag.toLowerCase() === activeBlock)?.label ?? 'Normal'
   return (
     <ToolbarDropdown
       dropKey="textStyle"
@@ -29,8 +30,8 @@ export function TextStyleMenu({ exec, close, openKey, onOpen, activeBlock }: Tex
       ariaLabel="Text styles"
       trigger={
         <>
-          <span className="font-mono font-bold" aria-hidden>
-            Tt
+          <span className="max-w-24 truncate font-medium" aria-hidden>
+            {currentLabel}
           </span>
           <ChevronDown />
         </>
@@ -50,7 +51,7 @@ export function TextStyleMenu({ exec, close, openKey, onOpen, activeBlock }: Tex
                 exec('formatBlock', tag)
                 close()
               }}
-              className={`flex w-full items-center justify-between px-4 py-1.5 text-left hover:bg-neutral-100 dark:hover:bg-neutral-800 ${cls} ${isActive ? 'bg-neutral-100 dark:bg-neutral-800' : ''}`}
+              className={`flex w-full items-center justify-between px-4 py-1.5 text-left transition-colors duration-75 hover:bg-neutral-100 dark:hover:bg-neutral-800 ${cls} ${isActive ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-300' : ''}`}
             >
               <span>{label}</span>
               {isActive && <CheckIcon />}
@@ -71,6 +72,11 @@ interface FormatMenuProps extends ToolbarMenuProps {
 }
 
 export function FormatMenu({ exec, close, openKey, onOpen, activeFormats }: FormatMenuProps) {
+  // Only the less-common formats live in this "more" dropdown.
+  // Bold / Italic / Underline / Strikethrough are now individual toolbar buttons.
+  const EXTRA_ITEMS = FORMAT_ITEMS.filter((f) =>
+    ['subscript', 'superscript', 'removeFormat'].includes(f.cmd)
+  )
   return (
     <ToolbarDropdown
       dropKey="format"
@@ -79,16 +85,13 @@ export function FormatMenu({ exec, close, openKey, onOpen, activeFormats }: Form
       onClose={close}
       ariaLabel="Format text"
       trigger={
-        <>
-          <span className="font-bold" aria-hidden>
-            B
-          </span>
-          <ChevronDown />
-        </>
+        <span className="text-sm font-medium tracking-widest" aria-hidden>
+          ···
+        </span>
       }
     >
       <div className={`${DROP_CLS} min-w-53.75`}>
-        {FORMAT_ITEMS.map(({ label, shortcut, iconCls, icon, cmd }) => {
+        {EXTRA_ITEMS.map(({ label, shortcut, iconCls, icon, cmd }) => {
           const isActive = activeFormats.has(cmd)
           return (
             <button
@@ -101,7 +104,7 @@ export function FormatMenu({ exec, close, openKey, onOpen, activeFormats }: Form
                 exec(cmd)
                 close()
               }}
-              className={`${DROP_ITEM_CLS} justify-between ${isActive ? 'bg-neutral-100 dark:bg-neutral-800' : ''}`}
+              className={`${DROP_ITEM_CLS} justify-between ${isActive ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-300' : ''}`}
             >
               <span className="flex items-center gap-2">
                 <span className={`w-5 text-center ${iconCls}`}>{icon}</span>
@@ -114,29 +117,9 @@ export function FormatMenu({ exec, close, openKey, onOpen, activeFormats }: Form
             </button>
           )
         })}
-        <button
-          type="button"
-          role="menuitemcheckbox"
-          aria-checked={activeFormats.has('code')}
-          onMouseDown={(e) => {
-            e.preventDefault()
-            exec('toggleCode')
-            close()
-          }}
-          className={`${DROP_ITEM_CLS} justify-between ${activeFormats.has('code') ? 'bg-neutral-100 dark:bg-neutral-800' : ''}`}
-        >
-          <span className="flex items-center gap-2">
-            <span className="w-5 text-center font-mono text-xs">{'{}'}</span>
-            Code
-          </span>
-          <span className="flex items-center gap-2">
-            {activeFormats.has('code') && <CheckIcon />}
-            <span className="text-xs text-neutral-400">{`${MOD_KEY}+Shift+K`}</span>
-          </span>
-        </button>
         <p className="mt-1.5 border-t border-neutral-100 px-4 pt-2 pb-1.5 text-[10px] leading-tight text-neutral-400 dark:border-neutral-800">
-          Underline, subscript and superscript are editor-only — they serialize to HTML tags in
-          exported Markdown.
+          Subscript and superscript are editor-only — they serialize to HTML tags in exported
+          Markdown.
         </p>
       </div>
     </ToolbarDropdown>

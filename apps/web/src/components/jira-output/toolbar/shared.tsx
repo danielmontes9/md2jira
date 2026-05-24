@@ -1,4 +1,5 @@
-import { useRef, useEffect, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
+import { useRef, useEffect, useLayoutEffect, useState, type ReactNode } from 'react'
 import { MOD_KEY } from '../../../utils/keyboard.js'
 import { IconChevronDown, IconCheckFill } from '../../icons.js'
 
@@ -17,13 +18,13 @@ export interface ToolbarMenuProps {
 // ── Constants ──
 
 export const DROP_CLS =
-  'absolute left-0 top-full z-50 mt-1 min-w-max rounded-lg border border-neutral-200 bg-white shadow-lg dark:border-neutral-700 dark:bg-neutral-900'
+  'min-w-max rounded-xl border border-neutral-200/80 bg-white shadow-xl dark:border-neutral-700/80 dark:bg-neutral-900'
 
 export const BTN_CLS =
-  'relative flex h-7 items-center gap-0.5 rounded px-1.5 text-xs text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800 select-none focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500'
+  'relative flex h-8 items-center gap-0.5 rounded-md px-1.5 text-xs text-neutral-600 transition-colors duration-100 hover:bg-neutral-200/70 dark:text-neutral-400 dark:hover:bg-neutral-700/60 select-none focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500'
 
 export const DROP_ITEM_CLS =
-  'flex w-full items-center px-4 py-1.5 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-blue-500'
+  'flex w-full items-center px-4 py-1.5 text-sm transition-colors duration-75 hover:bg-neutral-100 dark:hover:bg-neutral-800 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-blue-500'
 
 export const TEXT_STYLES: { label: string; tag: string; cls: string }[] = [
   { label: 'Normal text', tag: 'p', cls: 'text-sm' },
@@ -89,6 +90,18 @@ export function ToolbarDropdown({
   const isOpen = openKey === dropKey
   const menuRef = useRef<HTMLDivElement | null>(null)
   const triggerRef = useRef<HTMLButtonElement | null>(null)
+  const [dropPos, setDropPos] = useState<{ top: number; left: number } | null>(null)
+
+  // Compute fixed position from trigger bounding rect when the dropdown opens.
+  // position:fixed lets the panel escape the overflow:hidden animation wrapper in JiraOutput.
+  useLayoutEffect(() => {
+    if (!isOpen || !triggerRef.current) {
+      setDropPos(null)
+      return
+    }
+    const rect = triggerRef.current.getBoundingClientRect()
+    setDropPos({ top: rect.bottom + 4, left: rect.left })
+  }, [isOpen])
 
   // When the dropdown opens via keyboard, focus the first interactive item.
   useEffect(() => {
@@ -140,7 +153,12 @@ export function ToolbarDropdown({
       data-toolbar
       onBlur={(e) => {
         const related = e.relatedTarget
-        if (!(related instanceof Node) || !e.currentTarget.contains(related)) onClose()
+        if (!(related instanceof Node)) {
+          onClose()
+          return
+        }
+        const inMenu = menuRef.current?.contains(related) ?? false
+        if (!e.currentTarget.contains(related) && !inMenu) onClose()
       }}
     >
       <button
@@ -168,11 +186,20 @@ export function ToolbarDropdown({
       >
         {trigger}
       </button>
-      {isOpen && (
-        <div ref={menuRef} role={menuRole} onKeyDown={handleDropdownKeyDown}>
-          {children}
-        </div>
-      )}
+      {isOpen &&
+        dropPos !== null &&
+        createPortal(
+          <div
+            ref={menuRef}
+            role={menuRole}
+            onKeyDown={handleDropdownKeyDown}
+            data-toolbar-portal
+            style={{ position: 'fixed', top: dropPos.top, left: dropPos.left, zIndex: 9999 }}
+          >
+            {children}
+          </div>,
+          document.body
+        )}
     </div>
   )
 }
