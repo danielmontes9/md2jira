@@ -4,6 +4,7 @@
  */
 export { convert } from './converter.js'
 export { convertToAdf } from './adf-converter.js'
+export { convertToConfluence } from './confluence-converter.js'
 export type { ConvertOptions } from './utils.js'
 export type {
   AdfDocument,
