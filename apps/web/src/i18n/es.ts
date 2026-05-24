@@ -186,4 +186,10 @@ export const es: Record<StringKey, string> = {
   saveToHistory: 'Guardar documento en el historial',
   importHistory: 'Importar historial',
   exportHistory: 'Exportar historial',
+  importUnsupportedType: 'Tipo de archivo no compatible. Use un archivo .md, .txt o .text.',
+  importFileTooLarge: 'Archivo demasiado grande. Tama\u00f1o m\u00e1ximo permitido: 1 MB.',
+  importReadError: 'No se pudo leer el archivo. Puede estar da\u00f1ado o inaccesible.',
+  dismissToast: 'Cerrar notificaci\u00f3n',
+  close: 'Cerrar',
+  historySavedCount: 'guardados',
 } as const

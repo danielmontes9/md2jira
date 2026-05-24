@@ -2,6 +2,7 @@ import { useState, memo, Suspense, useCallback, useEffect } from 'react'
 import { useTiptapEditor } from '../hooks/useTiptapEditor.js'
 import { useJiraCopy } from '../hooks/useJiraCopy.js'
 import { useToast } from '../context/ToastContext.js'
+import { useT } from '../i18n/index.js'
 import { JiraOutputHeader } from './jira-output/JiraOutputHeader.js'
 import { JiraOutputContent } from './jira-output/JiraOutputContent.js'
 import { lazyNamed } from '../utils/lazy-named.js'
@@ -34,14 +35,15 @@ export const JiraOutput = memo(function JiraOutput({
   const [editMode, setEditMode] = useState(false)
   const [wikiDraft, setWikiDraft] = useState(value)
   const addToast = useToast()
+  const t = useT()
 
   const onColorWarning = useCallback(() => {
-    addToast('Color formatting is not supported in Jira output and will be removed.', 'warning')
-  }, [addToast])
+    addToast(t('colorWarning'), 'warning')
+  }, [addToast, t])
 
   const onUnderlineWarning = useCallback(() => {
-    addToast('Underline formatting is not supported in Jira output and will be removed.', 'warning')
-  }, [addToast])
+    addToast(t('underlineWarning'), 'warning')
+  }, [addToast, t])
 
   // Reset view mode to 'preview' and exit edit mode when switching away from ADF
   useEffect(() => {
@@ -76,7 +78,9 @@ export const JiraOutput = memo(function JiraOutput({
 
   // Use wikiDraft as the clipboard source when in wiki edit mode
   const copyValue = format === 'wiki' && editMode ? wikiDraft : value
-  const { copied, handleCopy } = useJiraCopy(copyValue, format, editor)
+  const { copied, handleCopy } = useJiraCopy(copyValue, format, editor, {
+    clipboardFailMessage: t('clipboardFail'),
+  })
 
   // ADF-specific edit check (TipTap); wiki uses a plain textarea instead
   const adfCanEdit =
@@ -96,13 +100,10 @@ export const JiraOutput = memo(function JiraOutput({
   // their edits won't sync back to the Markdown source.
   const handleToggleEdit = useCallback(() => {
     if (format === 'wiki' && !editMode) {
-      addToast(
-        'Wiki markup edits are independent — changes won\u2019t sync back to the Markdown source.',
-        'warning'
-      )
+      addToast(t('wikiEditDesyncWarning'), 'warning')
     }
     setEditMode((v) => !v)
-  }, [format, editMode, addToast])
+  }, [format, editMode, addToast, t])
 
   return (
     <div className="@container flex min-h-0 flex-1 flex-col bg-white dark:bg-neutral-900">
@@ -122,12 +123,12 @@ export const JiraOutput = memo(function JiraOutput({
 
       {format === 'adf' && viewMode === 'code' && (
         <div className="border-b border-neutral-200 bg-neutral-50 px-4 py-1.5 text-xs text-neutral-400 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-500">
-          Copies as rich text — paste directly into Jira Cloud comments
+          {t('adfCodeHint')}
         </div>
       )}
       {format === 'wiki' && (
         <div className="border-b border-neutral-200 bg-neutral-50 px-4 py-1.5 text-xs text-neutral-400 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-500">
-          Raw Wiki Markup — copy and paste into Jira Server/Data Center
+          {t('wikiCodeHint')}
         </div>
       )}
 
@@ -174,6 +175,7 @@ export const JiraOutput = memo(function JiraOutput({
           editMode={editMode}
           isPending={isPending}
           isLoadingPreview={isLoadingPreview ?? false}
+          renderingPreviewLabel={t('renderingPreview')}
           wikiDraft={wikiDraft}
           onWikiDraftChange={setWikiDraft}
         />

@@ -4,10 +4,11 @@ import type { ReactNode } from 'react'
 import { createElement } from 'react'
 import { useJiraCopy } from '../src/hooks/useJiraCopy.js'
 import { ToastProvider } from '../src/context/ToastContext.js'
+import { SettingsProvider } from '../src/context/SettingsContext.js'
 import type { Editor } from '@tiptap/react'
 
 function wrapper({ children }: { children: ReactNode }) {
-  return createElement(ToastProvider, null, children)
+  return createElement(SettingsProvider, null, createElement(ToastProvider, null, children))
 }
 
 /** Minimal mock of TipTap Editor with getHTML() */

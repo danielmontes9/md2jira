@@ -8,6 +8,7 @@
  *   3. If you need React context or pluralisation, swap this file for
  *      react-i18next — the call-site API (`t('key')`) stays identical.
  */
+import { useCallback } from 'react'
 import { en } from './en.js'
 import { es } from './es.js'
 import { pt } from './pt.js'
@@ -39,5 +40,5 @@ export function t(key: StringKey): string {
 export function useT(): (key: StringKey) => string {
   const { locale } = useSettings()
   const dict = locale === 'es' ? es : locale === 'pt' ? pt : en
-  return (key: StringKey) => dict[key]
+  return useCallback((key: StringKey) => dict[key], [dict])
 }

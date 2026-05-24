@@ -178,7 +178,7 @@ export function SettingsModal({ onClose, theme, onToggleTheme, historyCount }: S
                       {t('maxEntriesLabel')}
                       {historyCount !== undefined && (
                         <span className="ml-1.5 text-xs font-normal text-neutral-400 dark:text-neutral-500">
-                          ({historyCount} saved)
+                          ({historyCount} {t('historySavedCount')})
                         </span>
                       )}
                     </span>
@@ -188,7 +188,7 @@ export function SettingsModal({ onClose, theme, onToggleTheme, historyCount }: S
                   </div>
                   <div
                     role="radiogroup"
-                    aria-label="Max saved documents"
+                    aria-label={t('maxEntriesLabel')}
                     className="flex rounded-md border border-neutral-300 text-xs dark:border-neutral-700"
                   >
                     {([10, 25, 50] as const).map((n, i) => (

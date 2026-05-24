@@ -191,6 +191,14 @@ export const en = {
   saveToHistory: 'Save document to history',
   importHistory: 'Import history',
   exportHistory: 'Export history',
+  // ── File import validation & toast ─────────────────────────────────────────
+  importUnsupportedType: 'Unsupported file type. Please use a .md, .txt, or .text file.',
+  importFileTooLarge: 'File too large. Maximum allowed size is 1 MB.',
+  importReadError: 'Could not read the file. It may be corrupted or inaccessible.',
+  // ── Generic modal / notification labels ───────────────────────────────────
+  dismissToast: 'Dismiss notification',
+  close: 'Close',
+  historySavedCount: 'saved',
 } as const
 
 export type StringKey = keyof typeof en

@@ -2,6 +2,7 @@ import { createContext, useContext, useCallback, useState, useRef, type ReactNod
 import { createPortal } from 'react-dom'
 import { ToastContainer } from '../components/Toast.js'
 import type { ToastType } from '../components/Toast.js'
+import { useT } from '../i18n/index.js'
 
 interface ToastContextValue {
   addToast: (message: string, type?: ToastType) => void
@@ -27,10 +28,15 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setToasts((prev) => prev.filter((t) => t.id !== id))
   }, [])
 
+  const t = useT()
+
   return (
     <ToastContext.Provider value={{ addToast }}>
       {children}
-      {createPortal(<ToastContainer toasts={toasts} onClose={removeToast} />, document.body)}
+      {createPortal(
+        <ToastContainer toasts={toasts} onClose={removeToast} dismissLabel={t('dismissToast')} />,
+        document.body
+      )}
     </ToastContext.Provider>
   )
 }

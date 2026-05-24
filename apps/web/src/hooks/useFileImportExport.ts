@@ -8,6 +8,13 @@ import {
 } from 'react'
 import type { ToastType } from '../components/Toast.js'
 
+export interface FileImportMessages {
+  unsupportedType?: string
+  tooLarge?: string
+  readError?: string
+  importedPrefix?: string
+}
+
 export interface FileImportExportState {
   fileInputRef: RefObject<HTMLInputElement>
   handleImport: () => void
@@ -30,16 +37,21 @@ const MAX_FILE_SIZE = 1_048_576
 function readValidatedFile(
   file: File,
   onSuccess: (text: string, fileName: string) => void,
-  onError: (msg: string) => void
+  onError: (msg: string) => void,
+  errMsgs?: Pick<FileImportMessages, 'unsupportedType' | 'tooLarge' | 'readError'>
 ): void {
   const ext = file.name.slice(file.name.lastIndexOf('.')).toLowerCase()
   if (!ALLOWED_EXTENSIONS.includes(ext)) {
-    onError(`Unsupported file type "${ext}". Please use a .md, .txt, or .text file.`)
+    onError(
+      errMsgs?.unsupportedType ??
+        `Unsupported file type "${ext}". Please use a .md, .txt, or .text file.`
+    )
     return
   }
   if (file.size > MAX_FILE_SIZE) {
     onError(
-      `File is too large (${(file.size / 1_048_576).toFixed(1)} MB). Maximum allowed size is 1 MB.`
+      errMsgs?.tooLarge ??
+        `File is too large (${(file.size / 1_048_576).toFixed(1)} MB). Maximum allowed size is 1 MB.`
     )
     return
   }
@@ -49,7 +61,7 @@ function readValidatedFile(
     if (typeof text === 'string') onSuccess(text, file.name)
   }
   reader.onerror = () => {
-    onError('Could not read the file. It may be corrupted or inaccessible.')
+    onError(errMsgs?.readError ?? 'Could not read the file. It may be corrupted or inaccessible.')
   }
   reader.readAsText(file)
 }
@@ -58,7 +70,8 @@ function readValidatedFile(
 export function useFileImportExport(
   value: string,
   onChange: (v: string) => void,
-  addToast: (msg: string, type: ToastType) => void
+  addToast: (msg: string, type: ToastType) => void,
+  messages?: FileImportMessages
 ): FileImportExportState {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -77,12 +90,13 @@ export function useFileImportExport(
         file,
         (text, fileName) => {
           onChange(text)
-          addToast(`Imported "${fileName}"`, 'success')
+          addToast(`${messages?.importedPrefix ?? 'Imported'} "${fileName}"`, 'success')
         },
-        (msg) => addToast(msg, 'error')
+        (msg) => addToast(msg, 'error'),
+        messages
       )
     },
-    [onChange, addToast]
+    [onChange, addToast, messages]
   )
 
   const handleExport = useCallback(() => {
@@ -127,12 +141,13 @@ export function useFileImportExport(
         file,
         (text, fileName) => {
           onChange(text)
-          addToast(`Imported "${fileName}"`, 'success')
+          addToast(`${messages?.importedPrefix ?? 'Imported'} "${fileName}"`, 'success')
         },
-        (msg) => addToast(msg, 'error')
+        (msg) => addToast(msg, 'error'),
+        messages
       )
     },
-    [onChange, addToast]
+    [onChange, addToast, messages]
   )
 
   return {

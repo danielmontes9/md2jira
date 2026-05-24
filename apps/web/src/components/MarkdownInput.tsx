@@ -69,7 +69,12 @@ export const MarkdownInput = memo(function MarkdownInput({
     handleDragLeave,
     handleDrop,
     isDragging,
-  } = useFileImportExport(value, onChange, addToast)
+  } = useFileImportExport(value, onChange, addToast, {
+    unsupportedType: t('importUnsupportedType'),
+    tooLarge: t('importFileTooLarge'),
+    readError: t('importReadError'),
+    importedPrefix: t('importSuccess'),
+  })
 
   const handleCopyMd = useCallback(async () => {
     try {

@@ -14,6 +14,7 @@ interface ToastProps {
   type?: ToastType
   onClose: () => void
   duration?: number
+  dismissLabel?: string
 }
 
 const styles: Record<ToastType, string> = {
@@ -33,7 +34,13 @@ const icons: Record<ToastType, ReactElement> = {
   warning: <IconWarningTriangle />,
 }
 
-export function Toast({ message, type = 'info', onClose, duration = 7000 }: ToastProps) {
+export function Toast({
+  message,
+  type = 'info',
+  onClose,
+  duration = 7000,
+  dismissLabel = 'Dismiss',
+}: ToastProps) {
   const [visible, setVisible] = useState(false)
   const innerTimerRef = useRef<ReturnType<typeof setTimeout>>()
 
@@ -67,7 +74,7 @@ export function Toast({ message, type = 'info', onClose, duration = 7000 }: Toas
           innerTimerRef.current = setTimeout(onClose, 200)
         }}
         className="ml-1 shrink-0 rounded opacity-60 transition-opacity hover:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
-        aria-label="Dismiss"
+        aria-label={dismissLabel}
       >
         <IconClose className="h-3.5 w-3.5" />
       </button>
@@ -79,14 +86,21 @@ export function Toast({ message, type = 'info', onClose, duration = 7000 }: Toas
 interface ToastContainerProps {
   toasts: { id: number; message: string; type: ToastType }[]
   onClose: (id: number) => void
+  dismissLabel?: string
 }
 
-export function ToastContainer({ toasts, onClose }: ToastContainerProps) {
+export function ToastContainer({ toasts, onClose, dismissLabel }: ToastContainerProps) {
   if (toasts.length === 0) return null
   return (
     <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2" aria-label="Notifications">
       {toasts.map((t) => (
-        <Toast key={t.id} message={t.message} type={t.type} onClose={() => onClose(t.id)} />
+        <Toast
+          key={t.id}
+          message={t.message}
+          type={t.type}
+          onClose={() => onClose(t.id)}
+          dismissLabel={dismissLabel ?? 'Dismiss'}
+        />
       ))}
     </div>
   )

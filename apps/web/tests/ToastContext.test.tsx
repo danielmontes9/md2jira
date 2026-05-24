@@ -4,9 +4,14 @@ import { createElement } from 'react'
 import { renderHook } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { ToastProvider, useToast } from '../src/context/ToastContext.js'
+import { SettingsProvider } from '../src/context/SettingsContext.js'
 
 function wrapper({ children }: { children: ReactNode }) {
-  return createElement(ToastProvider, null, children)
+  return createElement(SettingsProvider, null, createElement(ToastProvider, null, children))
+}
+
+function withProviders(element: ReactNode) {
+  return createElement(SettingsProvider, null, createElement(ToastProvider, null, element))
 }
 
 describe('ToastContext', () => {
@@ -27,7 +32,7 @@ describe('ToastContext', () => {
       return <button onClick={() => addToast('Hello toast')}>trigger</button>
     }
 
-    render(createElement(ToastProvider, null, createElement(TestConsumer)))
+    render(withProviders(createElement(TestConsumer)))
 
     await act(async () => {
       screen.getByRole('button', { name: 'trigger' }).click()
@@ -47,7 +52,7 @@ describe('ToastContext', () => {
       )
     }
 
-    render(createElement(ToastProvider, null, createElement(TestConsumer)))
+    render(withProviders(createElement(TestConsumer)))
 
     await act(async () => {
       screen.getByRole('button', { name: 'first' }).click()
@@ -74,7 +79,7 @@ describe('ToastContext', () => {
       )
     }
 
-    render(createElement(ToastProvider, null, createElement(TestConsumer)))
+    render(withProviders(createElement(TestConsumer)))
 
     await act(async () => {
       screen.getByRole('button', { name: 'trigger' }).click()

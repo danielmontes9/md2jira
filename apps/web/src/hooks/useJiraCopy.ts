@@ -20,7 +20,8 @@ export interface JiraCopyState {
 export function useJiraCopy(
   value: string,
   format: OutputFormat,
-  editor: Editor | null
+  editor: Editor | null,
+  options?: { clipboardFailMessage?: string }
 ): JiraCopyState {
   const [copied, setCopied] = useState(false)
   const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -58,7 +59,7 @@ export function useJiraCopy(
       try {
         await navigator.clipboard.writeText(valueRef.current)
       } catch {
-        addToast('Failed to copy to clipboard', 'error')
+        addToast(options?.clipboardFailMessage ?? 'Failed to copy to clipboard', 'error')
         return
       }
     }

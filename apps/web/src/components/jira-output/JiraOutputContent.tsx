@@ -15,6 +15,8 @@ interface JiraOutputContentProps {
   isPending?: boolean | undefined
   /** True while the ADF worker renders the first HTML for this session. */
   isLoadingPreview?: boolean
+  /** Accessible label for the loading spinner text. */
+  renderingPreviewLabel?: string
   /** Locally-edited Wiki Markup draft (only relevant in wiki edit mode). */
   wikiDraft?: string
   onWikiDraftChange?: (v: string) => void
@@ -39,6 +41,7 @@ export function JiraOutputContent({
   editMode,
   isPending,
   isLoadingPreview,
+  renderingPreviewLabel = 'Rendering preview\u2026',
   wikiDraft,
   onWikiDraftChange,
 }: JiraOutputContentProps) {
@@ -107,7 +110,7 @@ export function JiraOutputContent({
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
             />
           </svg>
-          <p className="text-sm text-neutral-400 dark:text-neutral-500">Rendering preview…</p>
+          <p className="text-sm text-neutral-400 dark:text-neutral-500">{renderingPreviewLabel}</p>
         </div>
       )
     }
