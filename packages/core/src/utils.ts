@@ -1,6 +1,18 @@
 import type { TableRow } from 'mdast'
 
 /**
+ * Resolves a URL against a base URL when the URL is relative (starts with '/').
+ * Shared by the Jira Wiki, ADF, and Confluence inline transform layers so
+ * the resolution logic is defined exactly once.
+ */
+export function resolveUrl(url: string, baseUrl?: string): string {
+  if (baseUrl && url.startsWith('/')) {
+    return baseUrl.replace(/\/$/, '') + url
+  }
+  return url
+}
+
+/**
  * Returns true when an unknown remark node carries a string `.value` field.
  * Shared between converter.ts and adf-converter.ts to avoid duplicating the
  * inline `as { value: unknown }` cast in each default-case fallback.

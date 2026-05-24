@@ -1,4 +1,5 @@
 import type { Strong, Emphasis, Delete, InlineCode, Link, PhrasingContent } from 'mdast'
+import { resolveUrl } from '../utils.js'
 
 export function convertInlineChildren(children: PhrasingContent[], baseUrl?: string): string {
   return children.map((child) => convertInlineNode(child, baseUrl)).join('')
@@ -22,6 +23,9 @@ export function convertInlineNode(node: PhrasingContent, baseUrl?: string): stri
       return '\n'
     case 'image':
       // Out of scope - ignore silently
+      return ''
+    case 'html':
+      // HTML passthrough is out of scope — ignore silently per AGENTS.md
       return ''
     default:
       return ''
@@ -48,8 +52,7 @@ export function transformInlineCode(node: InlineCode): string {
 }
 
 export function transformLink(node: Link, baseUrl?: string): string {
-  const resolvedUrl =
-    baseUrl && node.url.startsWith('/') ? baseUrl.replace(/\/$/, '') + node.url : node.url
+  const resolvedUrl = resolveUrl(node.url, baseUrl)
   const text = convertInlineChildren(node.children, baseUrl)
   if (!text) {
     return `[${resolvedUrl}]`
