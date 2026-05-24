@@ -1,4 +1,4 @@
-/**
+﻿/**
  * English UI string constants — single source of truth for every user-facing
  * string in the web app.
  *
@@ -172,7 +172,7 @@ export const en = {
   // ── Settings modal (additional) ───────────────────────────────────────────
   settingsLanguageLabel: 'Language',
   settingsLanguageDescription:
-    'Interface language \u00b7 Idioma de la interfaz \u00b7 Idioma da interface',
+    'Interface language \u00b7 Idioma de la interfaz \u00b7 Idioma da interface \u00b7 Langue de l\u2019interface',
   closeSettings: 'Close settings',
   settingsMaxEntriesDescription: 'How many recent documents to keep in history.',
   settingsAbout: 'About this project',
@@ -199,6 +199,7 @@ export const en = {
   dismissToast: 'Dismiss notification',
   close: 'Close',
   historySavedCount: 'saved',
+  historySavedCountOne: 'saved',
   // ── Structural panel / region labels ──────────────────────────────────────
   switchPanel: 'Switch panel',
   mainContent: 'Main content',
@@ -214,6 +215,119 @@ export const en = {
   selectEntryLabel: 'Select "{title}"',
   renameEntryAction: 'Rename "{title}"',
   deleteEntryLabel: 'Delete "{title}" from history',
+  // ── Aria labels not previously translated ─────────────────────────────────
+  markdownInputSection: 'Markdown input',
+  resizePanels: 'Resize panels',
+  editActions: 'Edit actions',
+  findReplace: 'Find / Replace',
+  switchToLightMode: 'Switch to light mode',
+  switchToDarkMode: 'Switch to dark mode',
+  copyAndEditGroup: 'Copy and edit',
+  textFormattingToolbar: 'Text formatting',
+  codeSnippetButton: 'Code snippet',
+  renderingJiraPreview: 'Rendering Jira preview',
+  jiraContentEditor: 'Jira content editor',
+  wikiMarkupEditor: 'Wiki Markup editor',
+  wikiMarkupPreview: 'Wiki markup preview',
+  viewModeGroup: 'View mode',
+  // ── WYSIWYG toolbar — formatting buttons ─────────────────────────────────
+  wysiwygBold: 'Bold',
+  wysiwygItalic: 'Italic',
+  wysiwygUnderline: 'Underline',
+  wysiwygStrikethrough: 'Strikethrough',
+  wysiwygInlineCode: 'Inline code',
+  wysiwygSubscript: 'Subscript',
+  wysiwygSuperscript: 'Superscript',
+  wysiwygClearFormatting: 'Clear formatting',
+  // ── WYSIWYG toolbar — dropdown labels ────────────────────────────────────
+  wysiwygTextStyles: 'Text styles',
+  wysiwygMoreFormatting: 'More formatting',
+  wysiwygLists: 'Lists',
+  wysiwygTextColor: 'Text color',
+  wysiwygEmoji: 'Emoji',
+  wysiwygInsertElements: 'Insert elements',
+  // ── WYSIWYG toolbar — text style items ───────────────────────────────────
+  wysiwygNormalText: 'Normal text',
+  wysiwygHeading1: 'Heading 1',
+  wysiwygHeading2: 'Heading 2',
+  wysiwygHeading3: 'Heading 3',
+  wysiwygHeading4: 'Heading 4',
+  wysiwygHeading5: 'Heading 5',
+  wysiwygHeading6: 'Heading 6',
+  // ── WYSIWYG toolbar — Insert menu items ──────────────────────────────────
+  wysiwygActionItem: 'Action item',
+  wysiwygActionItemDesc: 'Create and assign action items',
+  wysiwygMention: 'Mention',
+  wysiwygMentionDesc: 'Insert @mention \u2014 cursor lands after the @ symbol',
+  wysiwygInsertTable: 'Table',
+  wysiwygInsertTableDesc: 'Insert a table',
+  wysiwygInfoPanel: 'Info panel',
+  wysiwygInfoPanelDesc: 'Highlight information in a color panel',
+  wysiwygQuote: 'Quote',
+  wysiwygQuoteDesc: 'Insert a quote or reference',
+  wysiwygDecision: 'Decision',
+  wysiwygDecisionDesc: 'Capture decisions to track them',
+  wysiwygDivider: 'Divider',
+  wysiwygDividerDesc: 'Insert a dividing line',
+  // ── WYSIWYG — lossy-format warning ───────────────────────────────────────
+  lostInJira: 'Lost in Jira',
+  lostInJiraTooltip: 'Underline and color formatting will not appear in the Jira Wiki output',
+  // ── Code view region labels ───────────────────────────────────────────────
+  adfCodeLabel: 'ADF JSON code',
+  wikiCodeLabel: 'Wiki markup code',
+  // ── Skip link ─────────────────────────────────────────────────────────────
+  skipToMainContent: 'Skip to main content',
+  // ── Tooltip titles ────────────────────────────────────────────────────────
+  newDocumentTitle: 'New document (clears editor)',
+  importHistoryTitle: 'Import history from JSON',
+  exportHistoryTitle: 'Export history as JSON',
+  // ── Character count ───────────────────────────────────────────────────────
+  charsLabel: 'chars',
+  // ── Share modal ───────────────────────────────────────────────────────────
+  shareDocumentTitle: 'Share document',
+  shareDocumentDesc: 'Share this link so others can view your converted Markdown document.',
+  copyLinkToShare: 'Copy link to share',
+  // ── Keyboard shortcuts — shortcut labels ──────────────────────────────────
+  scLabelBold: 'Bold',
+  scLabelItalic: 'Italic',
+  scLabelInsertLink: 'Insert link',
+  scLabelInlineCode: 'Inline code',
+  scLabelStrikethrough: 'Strikethrough',
+  scLabelCycleHeading: 'Cycle heading (h1 \u2192 h2 \u2192 h3 \u2192 none)',
+  scLabelToggleBulletList: 'Toggle bullet list',
+  scLabelToggleNumberedList: 'Toggle numbered list',
+  scLabelToggleBlockquote: 'Toggle blockquote',
+  scLabelInsertCodeBlock: 'Insert code block \u26a0 may conflict with DevTools on Chrome/Edge',
+  scLabelInsertBlankLine: 'Insert blank line below',
+  scLabelMoveLineUp: 'Move line up',
+  scLabelMoveLineDown: 'Move line down',
+  scLabelDuplicateLine: 'Duplicate line',
+  scLabelIndent: 'Indent (2 spaces)',
+  scLabelDedent: 'Dedent (remove 2 spaces)',
+  scLabelAutoContinueList: 'Auto-continue list item',
+  scLabelSaveHistory: 'Save to history',
+  scLabelSaveHistoryDisabled: 'Save to history (enable in Settings)',
+  scLabelSwitchAdf: 'Switch to Jira Cloud (ADF)',
+  scLabelSwitchWiki: 'Switch to Wiki Markup',
+  scLabelToggleHistory: 'Toggle document history',
+  scLabelNewDocument: 'New document (saves to history first)',
+  scLabelUnderline: 'Underline',
+  scLabelUndo: 'Undo',
+  scLabelRedo: 'Redo',
+  scLabelOrderedList: 'Ordered list',
+  scLabelBulletList: 'Bullet list',
+  scLabelBlockquote: 'Blockquote',
+  // ── Format menu — footnote ────────────────────────────────────────────────
+  wysiwygSubSupNote:
+    'Subscript and superscript are editor-only \u2014 they serialize to HTML tags in exported Markdown.',
+  renderError: 'Render error',
+  retriesRemaining: 'remaining',
+  retriesRemainingOne: 'remaining',
+  maxRetriesLabel: 'Maximum retries reached. Please reload the page.',
+  buyMeACoffee: '☕ Buy me a coffee',
+  // ── Screen reader live region announcements ───────────────────────────────
+  editModeEnabled: 'Edit mode enabled',
+  copiedToClipboard: 'Copied to clipboard',
 } as const
 
 export type StringKey = keyof typeof en

@@ -1,4 +1,4 @@
-import type { StringKey } from './en.js'
+﻿import type { StringKey } from './en.js'
 
 export const pt: Record<StringKey, string> = {
   // ── App shell ─────────────────────────────────────────────────────────────
@@ -168,7 +168,7 @@ export const pt: Record<StringKey, string> = {
   // ── Modal de configura\u00e7\u00f5es (adicional) ───────────────────────────────
   settingsLanguageLabel: 'Idioma',
   settingsLanguageDescription:
-    'Interface language \u00b7 Idioma de la interfaz \u00b7 Idioma da interface',
+    'Interface language \u00b7 Idioma de la interfaz \u00b7 Idioma da interface \u00b7 Langue de l\u2019interface',
   closeSettings: 'Fechar configura\u00e7\u00f5es',
   settingsMaxEntriesDescription: 'Quantos documentos recentes manter no hist\u00f3rico.',
   settingsAbout: 'Sobre este projeto',
@@ -188,10 +188,12 @@ export const pt: Record<StringKey, string> = {
   exportHistory: 'Exportar hist\u00f3rico',
   importUnsupportedType: 'Tipo de arquivo n\u00e3o suportado. Use um arquivo .md, .txt ou .text.',
   importFileTooLarge: 'Arquivo muito grande. Tamanho m\u00e1ximo permitido: 1 MB.',
-  importReadError: 'N\u00e3o foi poss\u00edvel ler o arquivo. Pode estar corrompido ou inacess\u00edvel.',
+  importReadError:
+    'N\u00e3o foi poss\u00edvel ler o arquivo. Pode estar corrompido ou inacess\u00edvel.',
   dismissToast: 'Fechar notifica\u00e7\u00e3o',
   close: 'Fechar',
   historySavedCount: 'salvos',
+  historySavedCountOne: 'salvo',
   switchPanel: 'Alternar painel',
   mainContent: 'Conte\u00fado principal',
   jiraOutputPanel: 'Sa\u00edda do Jira',
@@ -204,4 +206,121 @@ export const pt: Record<StringKey, string> = {
   selectEntryLabel: 'Selecionar "{title}"',
   renameEntryAction: 'Renomear "{title}"',
   deleteEntryLabel: 'Excluir "{title}" do hist\u00f3rico',
+  // ── R\u00f3tulos aria n\u00e3o traduzidos anteriormente ─────────────────────────────
+  markdownInputSection: 'Entrada de Markdown',
+  resizePanels: 'Redimensionar pain\u00e9is',
+  editActions: 'A\u00e7\u00f5es de edi\u00e7\u00e3o',
+  findReplace: 'Localizar / Substituir',
+  switchToLightMode: 'Mudar para modo claro',
+  switchToDarkMode: 'Mudar para modo escuro',
+  copyAndEditGroup: 'Copiar e editar',
+  textFormattingToolbar: 'Formata\u00e7\u00e3o de texto',
+  codeSnippetButton: 'Trecho de c\u00f3digo',
+  renderingJiraPreview: 'Renderizando pr\u00e9via do Jira',
+  jiraContentEditor: 'Editor de conte\u00fado Jira',
+  wikiMarkupEditor: 'Editor de Wiki Markup',
+  wikiMarkupPreview: 'Pr\u00e9-visualiza\u00e7\u00e3o de Wiki Markup',
+  viewModeGroup: 'Modo de visualiza\u00e7\u00e3o',
+  // ── WYSIWYG toolbar — bot\u00f5es de formata\u00e7\u00e3o ──────────────────────────────
+  wysiwygBold: 'Negrito',
+  wysiwygItalic: 'It\u00e1lico',
+  wysiwygUnderline: 'Sublinhado',
+  wysiwygStrikethrough: 'Tachado',
+  wysiwygInlineCode: 'C\u00f3digo inline',
+  wysiwygSubscript: 'Subscrito',
+  wysiwygSuperscript: 'Sobrescrito',
+  wysiwygClearFormatting: 'Limpar formata\u00e7\u00e3o',
+  // ── WYSIWYG toolbar — r\u00f3tulos de menu ────────────────────────────────────
+  wysiwygTextStyles: 'Estilos de texto',
+  wysiwygMoreFormatting: 'Mais formata\u00e7\u00e3o',
+  wysiwygLists: 'Listas',
+  wysiwygTextColor: 'Cor do texto',
+  wysiwygEmoji: 'Emoji',
+  wysiwygInsertElements: 'Inserir elementos',
+  // ── WYSIWYG toolbar — estilos de texto ───────────────────────────────────
+  wysiwygNormalText: 'Texto normal',
+  wysiwygHeading1: 'T\u00edtulo 1',
+  wysiwygHeading2: 'T\u00edtulo 2',
+  wysiwygHeading3: 'T\u00edtulo 3',
+  wysiwygHeading4: 'T\u00edtulo 4',
+  wysiwygHeading5: 'T\u00edtulo 5',
+  wysiwygHeading6: 'T\u00edtulo 6',
+  // ── WYSIWYG toolbar — itens do menu Inserir ──────────────────────────────
+  wysiwygActionItem: 'Item de a\u00e7\u00e3o',
+  wysiwygActionItemDesc: 'Criar e atribuir itens de a\u00e7\u00e3o',
+  wysiwygMention: 'Men\u00e7\u00e3o',
+  wysiwygMentionDesc: 'Inserir @men\u00e7\u00e3o \u2014 cursor fica ap\u00f3s o s\u00edmbolo @',
+  wysiwygInsertTable: 'Tabela',
+  wysiwygInsertTableDesc: 'Inserir uma tabela',
+  wysiwygInfoPanel: 'Painel de informa\u00e7\u00f5es',
+  wysiwygInfoPanelDesc: 'Destacar informa\u00e7\u00f5es em um painel colorido',
+  wysiwygQuote: 'Cita\u00e7\u00e3o',
+  wysiwygQuoteDesc: 'Inserir uma cita\u00e7\u00e3o ou refer\u00eancia',
+  wysiwygDecision: 'Decis\u00e3o',
+  wysiwygDecisionDesc: 'Registrar decis\u00f5es para acompanhamento',
+  wysiwygDivider: 'Divisor',
+  wysiwygDividerDesc: 'Inserir uma linha divis\u00f3ria',
+  // ── WYSIWYG — aviso de formato perdido ────────────────────────────────────
+  lostInJira: 'Perdido no Jira',
+  lostInJiraTooltip:
+    'A formata\u00e7\u00e3o de sublinhado e cor n\u00e3o aparecer\u00e1 na sa\u00edda do Jira Wiki',
+  // ── R\u00f3tulos de regi\u00e3o de visualiza\u00e7\u00e3o de c\u00f3digo ─────────────────────
+  adfCodeLabel: 'C\u00f3digo ADF JSON',
+  wikiCodeLabel: 'C\u00f3digo Wiki Markup',
+  // ── Link de pular ─────────────────────────────────────────────────────────
+  skipToMainContent: 'Ir para o conte\u00fado principal',
+  // ── T\u00edtulos de tooltip ──────────────────────────────────────────────────
+  newDocumentTitle: 'Novo documento (limpa o editor)',
+  importHistoryTitle: 'Importar hist\u00f3rico de JSON',
+  exportHistoryTitle: 'Exportar hist\u00f3rico como JSON',
+  // ── Contador de caracteres ────────────────────────────────────────────────
+  charsLabel: 'car.',
+  // ── Modal de compartilhamento ─────────────────────────────────────────────
+  shareDocumentTitle: 'Compartilhar documento',
+  shareDocumentDesc:
+    'Compartilhe este link para que outros possam visualizar seu documento Markdown convertido.',
+  copyLinkToShare: 'Copiar link para compartilhar',
+  // ── Atalhos de teclado \u2014 r\u00f3tulos de a\u00e7\u00f5es ──────────────────────────────────────
+  scLabelBold: 'Negrito',
+  scLabelItalic: 'It\u00e1lico',
+  scLabelInsertLink: 'Inserir link',
+  scLabelInlineCode: 'C\u00f3digo inline',
+  scLabelStrikethrough: 'Tachado',
+  scLabelCycleHeading: 'Alternar t\u00edtulo (h1 \u2192 h2 \u2192 h3 \u2192 nenhum)',
+  scLabelToggleBulletList: 'Alternar lista com marcadores',
+  scLabelToggleNumberedList: 'Alternar lista numerada',
+  scLabelToggleBlockquote: 'Alternar cita\u00e7\u00e3o em bloco',
+  scLabelInsertCodeBlock:
+    'Inserir bloco de c\u00f3digo \u26a0 pode conflitar com DevTools no Chrome/Edge',
+  scLabelInsertBlankLine: 'Inserir linha em branco abaixo',
+  scLabelMoveLineUp: 'Mover linha para cima',
+  scLabelMoveLineDown: 'Mover linha para baixo',
+  scLabelDuplicateLine: 'Duplicar linha',
+  scLabelIndent: 'Indentar (2 espa\u00e7os)',
+  scLabelDedent: 'Desindentar (remover 2 espa\u00e7os)',
+  scLabelAutoContinueList: 'Continuar item de lista automaticamente',
+  scLabelSaveHistory: 'Salvar no hist\u00f3rico',
+  scLabelSaveHistoryDisabled: 'Salvar no hist\u00f3rico (ativar nas Configura\u00e7\u00f5es)',
+  scLabelSwitchAdf: 'Alternar para Jira Cloud (ADF)',
+  scLabelSwitchWiki: 'Alternar para Wiki Markup',
+  scLabelToggleHistory: 'Mostrar/ocultar hist\u00f3rico de documentos',
+  scLabelNewDocument: 'Novo documento (salva no hist\u00f3rico primeiro)',
+  scLabelUnderline: 'Sublinhado',
+  scLabelUndo: 'Desfazer',
+  scLabelRedo: 'Refazer',
+  scLabelOrderedList: 'Lista ordenada',
+  scLabelBulletList: 'Lista com marcadores',
+  scLabelBlockquote: 'Cita\u00e7\u00e3o em bloco',
+  // ── Menu de formato \u2014 nota de rodap\u00e9 ────────────────────────────────────────
+  wysiwygSubSupNote:
+    'Subscrito e sobrescrito s\u00e3o apenas do editor \u2014 serializam como tags HTML no Markdown exportado.',
+  renderError: 'Erro de renderiza\u00e7\u00e3o',
+  retriesRemaining: 'restantes',
+  retriesRemainingOne: 'restante',
+  maxRetriesLabel:
+    'N\u00famero m\u00e1ximo de tentativas atingido. Por favor, recarregue a p\u00e1gina.',
+  buyMeACoffee: '\u2615 Me pague um caf\u00e9',
+  // ── An\u00fancios de regi\u00e3o aria-live ──────────────────────────────────────────
+  editModeEnabled: 'Modo de edi\u00e7\u00e3o ativado',
+  copiedToClipboard: 'Copiado para a \u00e1rea de transfer\u00eancia',
 } as const

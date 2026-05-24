@@ -1,4 +1,4 @@
-import type { StringKey } from './en.js'
+﻿import type { StringKey } from './en.js'
 
 export const es: Record<StringKey, string> = {
   // ── App shell ───────────────────────────────────────────────────────────────
@@ -168,7 +168,7 @@ export const es: Record<StringKey, string> = {
   // ── Modal de configuraci\u00f3n (adicional) ──────────────────────────────────
   settingsLanguageLabel: 'Idioma',
   settingsLanguageDescription:
-    'Interface language \u00b7 Idioma de la interfaz \u00b7 Idioma da interface',
+    'Interface language \u00b7 Idioma de la interfaz \u00b7 Idioma da interface \u00b7 Langue de l\u2019interface',
   closeSettings: 'Cerrar configuraci\u00f3n',
   settingsMaxEntriesDescription: 'Cu\u00e1ntos documentos recientes conservar en el historial.',
   settingsAbout: 'Acerca de este proyecto',
@@ -192,6 +192,7 @@ export const es: Record<StringKey, string> = {
   dismissToast: 'Cerrar notificaci\u00f3n',
   close: 'Cerrar',
   historySavedCount: 'guardados',
+  historySavedCountOne: 'guardado',
   switchPanel: 'Cambiar panel',
   mainContent: 'Contenido principal',
   jiraOutputPanel: 'Salida de Jira',
@@ -204,4 +205,121 @@ export const es: Record<StringKey, string> = {
   selectEntryLabel: 'Seleccionar "{title}"',
   renameEntryAction: 'Renombrar "{title}"',
   deleteEntryLabel: 'Eliminar "{title}" del historial',
+  // ── Etiquetas aria no traducidas anteriormente ─────────────────────────────
+  markdownInputSection: 'Entrada de Markdown',
+  resizePanels: 'Ajustar paneles',
+  editActions: 'Acciones de edici\u00f3n',
+  findReplace: 'Buscar / Reemplazar',
+  switchToLightMode: 'Cambiar a modo claro',
+  switchToDarkMode: 'Cambiar a modo oscuro',
+  copyAndEditGroup: 'Copiar y editar',
+  textFormattingToolbar: 'Formato de texto',
+  codeSnippetButton: 'Fragmento de c\u00f3digo',
+  renderingJiraPreview: 'Renderizando vista previa de Jira',
+  jiraContentEditor: 'Editor de contenido Jira',
+  wikiMarkupEditor: 'Editor de Wiki Markup',
+  wikiMarkupPreview: 'Vista previa de Wiki Markup',
+  viewModeGroup: 'Modo de vista',
+  // ── WYSIWYG toolbar — botones de formato ─────────────────────────────────
+  wysiwygBold: 'Negrita',
+  wysiwygItalic: 'Cursiva',
+  wysiwygUnderline: 'Subrayado',
+  wysiwygStrikethrough: 'Tachado',
+  wysiwygInlineCode: 'C\u00f3digo en l\u00ednea',
+  wysiwygSubscript: 'Sub\u00edndice',
+  wysiwygSuperscript: 'Super\u00edndice',
+  wysiwygClearFormatting: 'Borrar formato',
+  // ── WYSIWYG toolbar — etiquetas de men\u00fa ─────────────────────────────────
+  wysiwygTextStyles: 'Estilos de texto',
+  wysiwygMoreFormatting: 'M\u00e1s formato',
+  wysiwygLists: 'Listas',
+  wysiwygTextColor: 'Color de texto',
+  wysiwygEmoji: 'Emoji',
+  wysiwygInsertElements: 'Insertar elementos',
+  // ── WYSIWYG toolbar — estilos de texto ────────────────────────────────────
+  wysiwygNormalText: 'Texto normal',
+  wysiwygHeading1: 'Encabezado 1',
+  wysiwygHeading2: 'Encabezado 2',
+  wysiwygHeading3: 'Encabezado 3',
+  wysiwygHeading4: 'Encabezado 4',
+  wysiwygHeading5: 'Encabezado 5',
+  wysiwygHeading6: 'Encabezado 6',
+  // ── WYSIWYG toolbar — elementos del men\u00fa Insertar ──────────────────────
+  wysiwygActionItem: 'Elemento de acci\u00f3n',
+  wysiwygActionItemDesc: 'Crear y asignar elementos de acci\u00f3n',
+  wysiwygMention: 'Menci\u00f3n',
+  wysiwygMentionDesc:
+    'Insertar @menci\u00f3n \u2014 el cursor queda despu\u00e9s del s\u00edmbolo @',
+  wysiwygInsertTable: 'Tabla',
+  wysiwygInsertTableDesc: 'Insertar una tabla',
+  wysiwygInfoPanel: 'Panel de informaci\u00f3n',
+  wysiwygInfoPanelDesc: 'Resaltar informaci\u00f3n en un panel de color',
+  wysiwygQuote: 'Cita',
+  wysiwygQuoteDesc: 'Insertar una cita o referencia',
+  wysiwygDecision: 'Decisi\u00f3n',
+  wysiwygDecisionDesc: 'Capturar decisiones para hacerles seguimiento',
+  wysiwygDivider: 'Divisor',
+  wysiwygDividerDesc: 'Insertar una l\u00ednea divisoria',
+  // ── WYSIWYG — aviso de formato perdido ────────────────────────────────────
+  lostInJira: 'Perdido en Jira',
+  lostInJiraTooltip: 'El formato de subrayado y color no aparecer\u00e1 en la salida de Jira Wiki',
+  // ── Etiquetas de regi\u00f3n de vista c\u00f3digo ────────────────────────────────
+  adfCodeLabel: 'C\u00f3digo ADF JSON',
+  wikiCodeLabel: 'C\u00f3digo Wiki Markup',
+  // ── Enlace de salto ───────────────────────────────────────────────────────
+  skipToMainContent: 'Ir al contenido principal',
+  // ── T\u00edtulos de tooltip ─────────────────────────────────────────────────
+  newDocumentTitle: 'Nuevo documento (limpia el editor)',
+  importHistoryTitle: 'Importar historial desde JSON',
+  exportHistoryTitle: 'Exportar historial como JSON',
+  // ── Contador de caracteres ────────────────────────────────────────────────
+  charsLabel: 'car.',
+  // ── Modal de compartir ───────────────────────────────────────────────────
+  shareDocumentTitle: 'Compartir documento',
+  shareDocumentDesc:
+    'Comparte este enlace para que otros puedan ver tu documento Markdown convertido.',
+  copyLinkToShare: 'Copiar enlace para compartir',
+  // ── Atajos de teclado — etiquetas de acciones ─────────────────────────────
+  scLabelBold: 'Negrita',
+  scLabelItalic: 'Cursiva',
+  scLabelInsertLink: 'Insertar enlace',
+  scLabelInlineCode: 'C\u00f3digo en l\u00ednea',
+  scLabelStrikethrough: 'Tachado',
+  scLabelCycleHeading: 'Rotar encabezado (h1 \u2192 h2 \u2192 h3 \u2192 ninguno)',
+  scLabelToggleBulletList: 'Alternar lista con vi\u00f1etas',
+  scLabelToggleNumberedList: 'Alternar lista numerada',
+  scLabelToggleBlockquote: 'Alternar cita en bloque',
+  scLabelInsertCodeBlock:
+    'Insertar bloque de c\u00f3digo \u26a0 puede entrar en conflicto con DevTools en Chrome/Edge',
+  scLabelInsertBlankLine: 'Insertar l\u00ednea en blanco abajo',
+  scLabelMoveLineUp: 'Mover l\u00ednea arriba',
+  scLabelMoveLineDown: 'Mover l\u00ednea abajo',
+  scLabelDuplicateLine: 'Duplicar l\u00ednea',
+  scLabelIndent: 'Sangr\u00eda (2 espacios)',
+  scLabelDedent: 'Quitar sangr\u00eda (2 espacios)',
+  scLabelAutoContinueList: 'Continuar elemento de lista autom\u00e1ticamente',
+  scLabelSaveHistory: 'Guardar en el historial',
+  scLabelSaveHistoryDisabled: 'Guardar en el historial (activar en Configuraci\u00f3n)',
+  scLabelSwitchAdf: 'Cambiar a Jira Cloud (ADF)',
+  scLabelSwitchWiki: 'Cambiar a Wiki Markup',
+  scLabelToggleHistory: 'Mostrar/ocultar historial de documentos',
+  scLabelNewDocument: 'Nuevo documento (guarda primero en el historial)',
+  scLabelUnderline: 'Subrayado',
+  scLabelUndo: 'Deshacer',
+  scLabelRedo: 'Rehacer',
+  scLabelOrderedList: 'Lista ordenada',
+  scLabelBulletList: 'Lista con vi\u00f1etas',
+  scLabelBlockquote: 'Cita en bloque',
+  // ── Men\u00fa de formato \u2014 nota al pie ────────────────────────────────────────
+  wysiwygSubSupNote:
+    'El sub\u00edndice y el super\u00edndice son solo del editor \u2014 se serializan como etiquetas HTML en el Markdown exportado.',
+  renderError: 'Error de renderizado',
+  retriesRemaining: 'restantes',
+  retriesRemainingOne: 'restante',
+  maxRetriesLabel:
+    'Se alcanz\u00f3 el m\u00e1ximo de reintentos. Por favor, recarga la p\u00e1gina.',
+  buyMeACoffee: '\u2615 Inv\u00edtame a un caf\u00e9',
+  // ── Anuncios de regi\u00f3n aria-live ─────────────────────────────────────────
+  editModeEnabled: 'Modo de edici\u00f3n activado',
+  copiedToClipboard: 'Copiado al portapapeles',
 } as const

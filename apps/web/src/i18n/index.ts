@@ -43,3 +43,42 @@ export function useT(): (key: StringKey) => string {
   const dict = locale === 'es' ? es : locale === 'pt' ? pt : locale === 'fr' ? fr : en
   return useCallback((key: StringKey) => dict[key], [dict])
 }
+
+/**
+ * Hook returning a locale-aware interpolation function.
+ * Replaces `{placeholder}` tokens in a translated string with the given values.
+ *
+ * @example
+ *   const ti = useTI()
+ *   <button aria-label={ti('selectEntryLabel', { title: entry.title })} />
+ */
+export function useTI(): (key: StringKey, vars: Record<string, string>) => string {
+  const { locale } = useSettings()
+  const dict = locale === 'es' ? es : locale === 'pt' ? pt : locale === 'fr' ? fr : en
+  return useCallback(
+    (key: StringKey, vars: Record<string, string>) =>
+      dict[key].replace(/\{(\w+)\}/g, (_, k: string) => vars[k] ?? `{${k}}`),
+    [dict]
+  )
+}
+
+/**
+ * Hook returning a locale-aware plural selection function.
+ * Uses `Intl.PluralRules` to select between the singular (`oneKey`) and
+ * plural (`otherKey`) translation based on `count`.
+ *
+ * @example
+ *   const tp = useTP()
+ *   <span>{count} {tp('historySavedCountOne', 'historySavedCount', count)}</span>
+ */
+export function useTP(): (oneKey: StringKey, otherKey: StringKey, count: number) => string {
+  const { locale } = useSettings()
+  const dict = locale === 'es' ? es : locale === 'pt' ? pt : locale === 'fr' ? fr : en
+  return useCallback(
+    (oneKey: StringKey, otherKey: StringKey, count: number) => {
+      const rule = new Intl.PluralRules(locale).select(count)
+      return rule === 'one' ? dict[oneKey] : dict[otherKey]
+    },
+    [dict, locale]
+  )
+}
