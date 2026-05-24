@@ -32,7 +32,7 @@ export function ListsMenu({ exec, close, openKey, onOpen, activeFormats }: Lists
       openKey={openKey}
       onOpen={onOpen}
       onClose={close}
-      ariaLabel="Lists"
+      ariaLabel={t('wysiwygLists')}
       trigger={
         <>
           <IconListBullet aria-hidden />
@@ -114,7 +114,7 @@ export function ColorMenu({ exec, close, openKey, onOpen, activeColor }: ColorMe
       onOpen={onOpen}
       onClose={close}
       menuRole="listbox"
-      ariaLabel="Text color"
+      ariaLabel={t('wysiwygTextColor')}
       trigger={
         <span
           className="relative select-none font-bold leading-none"
@@ -196,6 +196,7 @@ export function EmojiMenu({ exec, close, openKey, onOpen }: EmojiMenuProps) {
     if (!isOpen || emojiData !== null) return
     import('../emoji-data.js')
       .then((m) => setEmojiData(m.EMOJI_CATEGORIES as EmojiCategoriesData))
+      /* v8 ignore next -- defensive: bundled local module cannot fail to import */
       .catch(() => setEmojiData({}))
   }, [isOpen, emojiData])
 
@@ -224,7 +225,7 @@ export function EmojiMenu({ exec, close, openKey, onOpen }: EmojiMenuProps) {
       onOpen={onOpen}
       onClose={close}
       menuRole="dialog"
-      ariaLabel="Emoji"
+      ariaLabel={t('wysiwygEmoji')}
       trigger={
         <span className="text-base leading-none" aria-hidden>
           ☺
@@ -304,13 +305,14 @@ interface InsertMenuProps extends ToolbarMenuProps {
 }
 
 export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertMenuProps) {
+  const t = useT()
   return (
     <ToolbarDropdown
       dropKey="insert"
       openKey={openKey}
       onOpen={onOpen}
       onClose={close}
-      ariaLabel="Insert elements"
+      ariaLabel={t('wysiwygInsertElements')}
       trigger={
         <>
           <span className="text-sm font-bold leading-none" aria-hidden>
@@ -332,8 +334,8 @@ export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertM
           className={DROP_ITEM_CLS}
         >
           <div className="text-left">
-            <div>Action item</div>
-            <div className="text-xs text-neutral-400">Create and assign action items</div>
+            <div>{t('wysiwygActionItem')}</div>
+            <div className="text-xs text-neutral-400">{t('wysiwygActionItemDesc')}</div>
           </div>
         </button>
         <button
@@ -347,10 +349,8 @@ export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertM
           className={DROP_ITEM_CLS}
         >
           <div className="text-left">
-            <div>Mention</div>
-            <div className="text-xs text-neutral-400">
-              Insert @mention — cursor lands after the @ symbol
-            </div>
+            <div>{t('wysiwygMention')}</div>
+            <div className="text-xs text-neutral-400">{t('wysiwygMentionDesc')}</div>
           </div>
         </button>
         <button
@@ -364,8 +364,8 @@ export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertM
           className={DROP_ITEM_CLS}
         >
           <div className="text-left">
-            <div>Table</div>
-            <div className="text-xs text-neutral-400">Insert a table</div>
+            <div>{t('wysiwygInsertTable')}</div>
+            <div className="text-xs text-neutral-400">{t('wysiwygInsertTableDesc')}</div>
           </div>
         </button>
         <button
@@ -379,8 +379,8 @@ export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertM
           className={DROP_ITEM_CLS}
         >
           <div className="text-left">
-            <div>Info panel</div>
-            <div className="text-xs text-neutral-400">Highlight information in a color panel</div>
+            <div>{t('wysiwygInfoPanel')}</div>
+            <div className="text-xs text-neutral-400">{t('wysiwygInfoPanelDesc')}</div>
           </div>
         </button>
         <button
@@ -394,8 +394,8 @@ export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertM
           className={DROP_ITEM_CLS}
         >
           <div className="text-left">
-            <div>Quote</div>
-            <div className="text-xs text-neutral-400">Insert a quote or reference</div>
+            <div>{t('wysiwygQuote')}</div>
+            <div className="text-xs text-neutral-400">{t('wysiwygQuoteDesc')}</div>
           </div>
         </button>
         <button
@@ -409,8 +409,8 @@ export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertM
           className={DROP_ITEM_CLS}
         >
           <div className="text-left">
-            <div>Decision</div>
-            <div className="text-xs text-neutral-400">Capture decisions to track them</div>
+            <div>{t('wysiwygDecision')}</div>
+            <div className="text-xs text-neutral-400">{t('wysiwygDecisionDesc')}</div>
           </div>
         </button>
         <button
@@ -424,8 +424,8 @@ export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertM
           className={DROP_ITEM_CLS}
         >
           <div className="text-left">
-            <div>Divider</div>
-            <div className="text-xs text-neutral-400">Insert a dividing line</div>
+            <div>{t('wysiwygDivider')}</div>
+            <div className="text-xs text-neutral-400">{t('wysiwygDividerDesc')}</div>
           </div>
         </button>
       </div>

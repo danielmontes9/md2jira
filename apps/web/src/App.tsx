@@ -28,7 +28,7 @@ import { reportError } from './utils/report-error.js'
 import { useDocumentHistory } from './hooks/useDocumentHistory.js'
 import { lazyNamed } from './utils/lazy-named.js'
 import { HistorySidebar } from './components/HistorySidebar.js'
-import { useT } from './i18n/index.js'
+import { useT, useTP } from './i18n/index.js'
 
 const SettingsModal = lazyNamed(() => import('./components/SettingsModal.js'), 'SettingsModal')
 
@@ -68,6 +68,7 @@ function AppContent() {
   const isOffline = useOfflineStatus()
   const { needsUpdate, applyUpdate } = usePwaUpdate()
   const t = useT()
+  const tp = useTP()
 
   /** Active panel shown on mobile (below the sm: breakpoint). Desktop always shows both. */
   const [activePanel, setActivePanel] = useState<'input' | 'output'>('input')
@@ -204,6 +205,13 @@ function AppContent() {
   // on the initial load and when switching back to ADF format.
   const isLoadingPreview = format === 'adf' && adfDoc !== null && previewHtml === '' && !workerError
 
+  /* v8 ignore next 2 -- ErrorBoundary callbacks only fire on React render errors, untestable in jsdom */
+  const handleBoundaryError = (err: Error, info: { componentStack?: string | null }) =>
+    reportError(err, info.componentStack ?? undefined)
+  /* v8 ignore next 3 -- retry label fn only called by ErrorBoundary after repeated crashes */
+  const getRetryLabel = (n: number) =>
+    `${t('retry')} (${n} ${tp('retriesRemainingOne', 'retriesRemaining', n)})`
+
   return (
     <div className="flex h-screen flex-col bg-neutral-100 dark:bg-neutral-950">
       {/* Skip link — visually hidden until focused, satisfies WCAG 2.4.1 */}
@@ -211,7 +219,7 @@ function AppContent() {
         href="#main-content"
         className="sr-only focus-visible:not-sr-only focus-visible:absolute focus-visible:left-2 focus-visible:top-2 focus-visible:z-50 focus-visible:rounded focus-visible:bg-white focus-visible:px-4 focus-visible:py-2 focus-visible:text-sm focus-visible:text-neutral-900 focus-visible:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500 dark:focus-visible:bg-neutral-900 dark:focus-visible:text-neutral-100"
       >
-        Skip to main content
+        {t('skipToMainContent')}
       </a>
       <Header
         isDeepLinkActive={isDeepLinkActive}
@@ -350,14 +358,17 @@ function AppContent() {
         className="flex flex-1 flex-col gap-2 overflow-auto p-2 sm:flex-row sm:gap-0 sm:overflow-hidden sm:p-0"
       >
         <section
-          aria-label="Markdown input"
+          aria-label={t('markdownInputSection')}
           style={{ flex: split }}
           className={`flex min-h-0 flex-col sm:min-h-0 sm:min-w-0 sm:overflow-hidden${
             activePanel !== 'input' ? ' hidden sm:flex' : ''
           }`}
         >
           <ErrorBoundary
-            onError={(err, info) => reportError(err, info.componentStack ?? undefined)}
+            onError={handleBoundaryError}
+            renderErrorLabel={t('renderError')}
+            retryLabel={getRetryLabel}
+            maxRetriesLabel={t('maxRetriesLabel')}
           >
             <MarkdownInput
               value={markdown}
@@ -372,7 +383,7 @@ function AppContent() {
         <div
           role="separator"
           aria-orientation="vertical"
-          aria-label="Resize panels"
+          aria-label={t('resizePanels')}
           aria-valuenow={Math.round(split)}
           aria-valuemin={20}
           aria-valuemax={80}
@@ -402,7 +413,10 @@ function AppContent() {
           }`}
         >
           <ErrorBoundary
-            onError={(err, info) => reportError(err, info.componentStack ?? undefined)}
+            onError={handleBoundaryError}
+            renderErrorLabel={t('renderError')}
+            retryLabel={getRetryLabel}
+            maxRetriesLabel={t('maxRetriesLabel')}
           >
             <JiraOutput
               value={jiraOutput}

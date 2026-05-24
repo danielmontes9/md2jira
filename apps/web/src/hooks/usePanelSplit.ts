@@ -23,9 +23,8 @@ export function usePanelSplit(storageKey: string, initial = 50) {
         const parsed = parseFloat(stored)
         if (!Number.isNaN(parsed) && parsed >= SPLIT_MIN && parsed <= SPLIT_MAX) return parsed
       }
-    } catch {
-      // localStorage unavailable (sandboxed iframe, privacy mode)
-    }
+      /* v8 ignore next -- localStorage unavailable (sandboxed iframe, privacy mode) */
+    } catch {}
     return initial
   })
 
@@ -40,15 +39,15 @@ export function usePanelSplit(storageKey: string, initial = 50) {
         const next = Math.max(SPLIT_MIN, Math.min(SPLIT_MAX, raw))
         try {
           localStorage.setItem(storageKey, String(next))
-        } catch {
-          // localStorage unavailable — preference not persisted
-        }
+          /* v8 ignore next -- localStorage unavailable — preference not persisted */
+        } catch {}
         return next
       })
     },
     [storageKey]
   )
 
+  /* v8 ignore next 4 -- pointer-capture drag: setPointerCapture unavailable in jsdom */
   const handleDragStart = useCallback((e: ReactPointerEvent<HTMLDivElement>) => {
     e.currentTarget.setPointerCapture(e.pointerId)
     isDragging.current = true
@@ -57,6 +56,7 @@ export function usePanelSplit(storageKey: string, initial = 50) {
   const handleDragMove = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
       if (!isDragging.current || !mainRef.current) return
+      /* v8 ignore next 4 -- drag-move body: requires real pointer events and DOM geometry */
       const rect = mainRef.current.getBoundingClientRect()
       setSplit(
         Math.max(SPLIT_MIN, Math.min(SPLIT_MAX, ((e.clientX - rect.left) / rect.width) * 100))
@@ -65,6 +65,7 @@ export function usePanelSplit(storageKey: string, initial = 50) {
     [setSplit]
   )
 
+  /* v8 ignore next 3 -- pointer-capture drag: only reachable via pointer events in browsers */
   const handleDragEnd = useCallback(() => {
     isDragging.current = false
   }, [])

@@ -34,7 +34,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider value={{ addToast }}>
       {children}
       {createPortal(
-        <ToastContainer toasts={toasts} onClose={removeToast} dismissLabel={t('dismissToast')} notificationsLabel={t('notificationsLabel')} />,
+        <ToastContainer
+          toasts={toasts}
+          onClose={removeToast}
+          dismissLabel={t('dismissToast')}
+          notificationsLabel={t('notificationsLabel')}
+        />,
         document.body
       )}
     </ToastContext.Provider>

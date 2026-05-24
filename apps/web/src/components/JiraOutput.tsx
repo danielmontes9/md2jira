@@ -160,8 +160,8 @@ export const JiraOutput = memo(function JiraOutput({
       {/* ── Accessibility: live region for mode changes ── */}
       <div role="status" aria-live="polite" className="sr-only">
         {editMode
-          ? 'Edit mode enabled'
-          : `${format === 'adf' ? 'Jira Cloud' : 'Wiki Markup'} ${viewMode}`}
+          ? t('editModeEnabled')
+          : `${t(format === 'adf' ? 'formatAdf' : 'formatWiki')} ${t(viewMode === 'preview' ? 'viewPreview' : 'viewCode')}`}
       </div>
 
       {/* ── Content ── */}

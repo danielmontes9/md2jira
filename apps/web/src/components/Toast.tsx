@@ -90,10 +90,18 @@ interface ToastContainerProps {
   notificationsLabel?: string
 }
 
-export function ToastContainer({ toasts, onClose, dismissLabel, notificationsLabel }: ToastContainerProps) {
+export function ToastContainer({
+  toasts,
+  onClose,
+  dismissLabel,
+  notificationsLabel,
+}: ToastContainerProps) {
   if (toasts.length === 0) return null
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2" aria-label={notificationsLabel ?? 'Notifications'}>
+    <div
+      className="fixed bottom-4 right-4 z-50 flex flex-col gap-2"
+      aria-label={notificationsLabel ?? 'Notifications'}
+    >
       {toasts.map((t) => (
         <Toast
           key={t.id}

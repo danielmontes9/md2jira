@@ -4,7 +4,7 @@ import { IconHistory, IconClose, IconSearch } from './icons.js'
 import type { HistoryEntry } from '../hooks/useDocumentHistory.js'
 import { LS_KEY, isValidEntry } from '../hooks/useDocumentHistory.js'
 import { useSettings } from '../context/SettingsContext.js'
-import { useT } from '../i18n/index.js'
+import { useT, useTI } from '../i18n/index.js'
 import type { StringKey } from '../i18n/en.js'
 
 const FOCUSABLE_SELECTOR =
@@ -68,6 +68,7 @@ export const HistorySidebar = memo(function HistorySidebar({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const searchId = useId()
   const t = useT()
+  const ti = useTI()
   const { maxHistoryEntries } = useSettings()
 
   const activeId = currentMarkdown?.trim()
@@ -283,7 +284,7 @@ export const HistorySidebar = memo(function HistorySidebar({
             <div className="flex items-center gap-2 rounded-md border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 dark:border-neutral-700 dark:bg-neutral-800">
               <IconSearch className="h-3.5 w-3.5 shrink-0 text-neutral-400 dark:text-neutral-500" />
               <label htmlFor={searchId} className="sr-only">
-                Search history
+                {t('searchHistory')}
               </label>
               <input
                 id={searchId}
@@ -354,7 +355,7 @@ export const HistorySidebar = memo(function HistorySidebar({
                                   checked={isSelected}
                                   onChange={() => toggleSelect(entry.id)}
                                   className="h-3.5 w-3.5 shrink-0 rounded border-neutral-300 text-blue-600 focus:ring-blue-500 dark:border-neutral-600"
-                                  aria-label={t('selectEntryLabel').replace('{title}', entry.title)}
+                                  aria-label={ti('selectEntryLabel', { title: entry.title })}
                                 />
                                 <span className="min-w-0 truncate text-sm font-medium text-neutral-800 dark:text-neutral-200">
                                   {entry.title}
@@ -405,7 +406,7 @@ export const HistorySidebar = memo(function HistorySidebar({
                                   type="button"
                                   onClick={() => startRename(entry)}
                                   className="rounded p-0.5 text-neutral-300 hover:text-blue-500 dark:text-neutral-600 dark:hover:text-blue-400 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
-                                  aria-label={t('renameEntryAction').replace('{title}', entry.title)}
+                                  aria-label={ti('renameEntryAction', { title: entry.title })}
                                 >
                                   {/* Pencil icon */}
                                   <svg
@@ -426,7 +427,7 @@ export const HistorySidebar = memo(function HistorySidebar({
                                   type="button"
                                   onClick={() => onDeleteEntry(entry.id)}
                                   className="rounded p-0.5 text-neutral-300 hover:text-red-500 dark:text-neutral-600 dark:hover:text-red-400 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
-                                  aria-label={t('deleteEntryLabel').replace('{title}', entry.title)}
+                                  aria-label={ti('deleteEntryLabel', { title: entry.title })}
                                 >
                                   <IconClose className="h-3 w-3" />
                                 </button>
@@ -435,7 +436,7 @@ export const HistorySidebar = memo(function HistorySidebar({
                           </div>
                           <span className="mt-0.5 text-xs text-neutral-400 dark:text-neutral-500">
                             {formatDate(entry.savedAt)} {'\u00B7'}{' '}
-                            {entry.content.length.toLocaleString()} chars
+                            {entry.content.length.toLocaleString()} {t('charsLabel')}
                           </span>
                         </li>
                       )
@@ -483,7 +484,7 @@ export const HistorySidebar = memo(function HistorySidebar({
               <button
                 type="button"
                 onClick={() => importInputRef.current?.click()}
-                title="Import history from JSON"
+                title={t('importHistoryTitle')}
                 className="rounded px-2.5 py-1 text-xs text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
                 aria-label={t('importHistory')}
               >
@@ -494,7 +495,7 @@ export const HistorySidebar = memo(function HistorySidebar({
                   <button
                     type="button"
                     onClick={handleExport}
-                    title="Export history as JSON"
+                    title={t('exportHistoryTitle')}
                     className="rounded px-2.5 py-1 text-xs text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
                     aria-label={t('exportHistory')}
                   >

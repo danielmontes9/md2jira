@@ -80,7 +80,7 @@ export const MarkdownInput = memo(function MarkdownInput({
     try {
       await navigator.clipboard.writeText(value)
     } catch {
-      // Fallback for non-secure contexts
+      /* v8 ignore start -- textarea clipboard fallback: only runs in non-secure contexts */
       const ta = document.createElement('textarea')
       ta.value = value
       ta.style.position = 'fixed'
@@ -89,6 +89,7 @@ export const MarkdownInput = memo(function MarkdownInput({
       ta.select()
       document.execCommand('copy')
       document.body.removeChild(ta)
+      /* v8 ignore stop */
     }
     if (copiedTimerRef.current !== null) clearTimeout(copiedTimerRef.current)
     setCopiedMd(true)
@@ -151,7 +152,7 @@ export const MarkdownInput = memo(function MarkdownInput({
                   type="button"
                   onClick={() => setConfirmNew(true)}
                   className="whitespace-nowrap rounded-md border border-neutral-300 px-3 py-1 text-xs font-medium text-neutral-600 transition-colors hover:bg-neutral-100 dark:border-neutral-600 dark:text-neutral-300 dark:hover:bg-neutral-800 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
-                  title="New document (clears editor)"
+                  title={t('newDocumentTitle')}
                 >
                   {t('newDocument')}
                 </button>
@@ -209,13 +210,13 @@ export const MarkdownInput = memo(function MarkdownInput({
         {/* Bottom status bar */}
         <div className="flex items-center justify-between border-t border-neutral-200 px-3 py-1 dark:border-neutral-800">
           {/* Edit actions as text buttons */}
-          <div role="group" aria-label="Edit actions" className="flex items-center gap-0.5">
+          <div role="group" aria-label={t('editActions')} className="flex items-center gap-0.5">
             <button
               type="button"
               onClick={undo}
               className="rounded px-2 py-0.5 text-xs text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-500 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
-              aria-label="Undo (Ctrl+Z)"
-              title="Undo (Ctrl+Z)"
+              aria-label={t('undoAction')}
+              title={`${t('undoAction')} (Ctrl+Z)`}
             >
               {t('undoAction')}
             </button>
@@ -223,8 +224,8 @@ export const MarkdownInput = memo(function MarkdownInput({
               type="button"
               onClick={redo}
               className="rounded px-2 py-0.5 text-xs text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-500 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
-              aria-label="Redo (Ctrl+Y)"
-              title="Redo (Ctrl+Y)"
+              aria-label={t('redoAction')}
+              title={`${t('redoAction')} (Ctrl+Y)`}
             >
               {t('redoAction')}
             </button>
@@ -232,8 +233,8 @@ export const MarkdownInput = memo(function MarkdownInput({
               type="button"
               onClick={openSearch}
               className="rounded px-2 py-0.5 text-xs text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-500 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
-              aria-label="Find / Replace (Ctrl+F)"
-              title="Find / Replace (Ctrl+F)"
+              aria-label={t('findReplace')}
+              title={`${t('findReplace')} (Ctrl+F)`}
             >
               {t('openSearch')}
             </button>

@@ -9,6 +9,8 @@ import {
   ChevronDown,
   CheckIcon,
 } from './shared.js'
+import { useT } from '../../../i18n/index.js'
+import type { StringKey } from '../../../i18n/index.js'
 
 // ── Text Style Menu ──
 
@@ -18,16 +20,26 @@ interface TextStyleMenuProps extends ToolbarMenuProps {
   activeBlock: string
 }
 
+const TAG_LABEL_KEY: Record<string, StringKey> = {
+  p: 'wysiwygNormalText',
+  h1: 'wysiwygHeading1',
+  h2: 'wysiwygHeading2',
+  h3: 'wysiwygHeading3',
+  h4: 'wysiwygHeading4',
+  h5: 'wysiwygHeading5',
+  h6: 'wysiwygHeading6',
+}
+
 export function TextStyleMenu({ exec, close, openKey, onOpen, activeBlock }: TextStyleMenuProps) {
-  const currentLabel =
-    TEXT_STYLES.find((s) => s.tag.toLowerCase() === activeBlock)?.label ?? 'Normal'
+  const t = useT()
+  const currentLabel = t(TAG_LABEL_KEY[activeBlock] ?? 'wysiwygNormalText')
   return (
     <ToolbarDropdown
       dropKey="textStyle"
       openKey={openKey}
       onOpen={onOpen}
       onClose={close}
-      ariaLabel="Text styles"
+      ariaLabel={t('wysiwygTextStyles')}
       trigger={
         <>
           <span className="max-w-24 truncate font-medium" aria-hidden>
@@ -38,8 +50,9 @@ export function TextStyleMenu({ exec, close, openKey, onOpen, activeBlock }: Tex
       }
     >
       <div className={`${DROP_CLS} min-w-47.5`}>
-        {TEXT_STYLES.map(({ label, tag, cls }) => {
+        {TEXT_STYLES.map(({ tag, cls }) => {
           const isActive = activeBlock === tag.toLowerCase()
+          const styleLabel = t(TAG_LABEL_KEY[tag.toLowerCase()] ?? 'wysiwygNormalText')
           return (
             <button
               type="button"
@@ -53,7 +66,7 @@ export function TextStyleMenu({ exec, close, openKey, onOpen, activeBlock }: Tex
               }}
               className={`flex w-full items-center justify-between px-4 py-1.5 text-left transition-colors duration-75 hover:bg-neutral-100 dark:hover:bg-neutral-800 ${cls} ${isActive ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-300' : ''}`}
             >
-              <span>{label}</span>
+              <span>{styleLabel}</span>
               {isActive && <CheckIcon />}
             </button>
           )
@@ -71,7 +84,14 @@ interface FormatMenuProps extends ToolbarMenuProps {
   activeFormats: Set<string>
 }
 
+const CMD_LABEL_KEY: Record<string, StringKey> = {
+  subscript: 'wysiwygSubscript',
+  superscript: 'wysiwygSuperscript',
+  removeFormat: 'wysiwygClearFormatting',
+}
+
 export function FormatMenu({ exec, close, openKey, onOpen, activeFormats }: FormatMenuProps) {
+  const t = useT()
   // Only the less-common formats live in this "more" dropdown.
   // Bold / Italic / Underline / Strikethrough are now individual toolbar buttons.
   const EXTRA_ITEMS = FORMAT_ITEMS.filter((f) =>
@@ -83,7 +103,7 @@ export function FormatMenu({ exec, close, openKey, onOpen, activeFormats }: Form
       openKey={openKey}
       onOpen={onOpen}
       onClose={close}
-      ariaLabel="More formatting"
+      ariaLabel={t('wysiwygMoreFormatting')}
       trigger={
         <span className="text-sm font-medium tracking-widest" aria-hidden>
           ···
@@ -91,12 +111,13 @@ export function FormatMenu({ exec, close, openKey, onOpen, activeFormats }: Form
       }
     >
       <div className={`${DROP_CLS} min-w-53.75`}>
-        {EXTRA_ITEMS.map(({ label, shortcut, iconCls, icon, cmd }) => {
+        {EXTRA_ITEMS.map(({ shortcut, iconCls, icon, cmd }) => {
           const isActive = activeFormats.has(cmd)
+          const label = t(CMD_LABEL_KEY[cmd]!)
           return (
             <button
               type="button"
-              key={label}
+              key={cmd}
               role="menuitemcheckbox"
               aria-checked={isActive}
               onMouseDown={(e) => {
@@ -118,8 +139,7 @@ export function FormatMenu({ exec, close, openKey, onOpen, activeFormats }: Form
           )
         })}
         <p className="mt-1.5 border-t border-neutral-100 px-4 pt-2 pb-1.5 text-[10px] leading-tight text-neutral-400 dark:border-neutral-800">
-          Subscript and superscript are editor-only — they serialize to HTML tags in exported
-          Markdown.
+          {t('wysiwygSubSupNote')}
         </p>
       </div>
     </ToolbarDropdown>

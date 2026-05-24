@@ -1,4 +1,4 @@
-import { useState, Fragment, Suspense, memo, useCallback, useRef, useEffect } from 'react'
+import { useState, Fragment, memo, useCallback, useRef, useEffect } from 'react'
 import {
   IconGitHub,
   IconLink,
@@ -10,7 +10,6 @@ import {
 } from './icons.js'
 import { ShareModal } from './Modal.js'
 
-import { lazyNamed } from '../utils/lazy-named.js'
 import { useT } from '../i18n/index.js'
 
 const GITHUB_URL = 'https://github.com/danielmontes9/md2jira'
@@ -37,6 +36,7 @@ export const Header = memo(function Header({
   const [showShare, setShowShare] = useState(false)
   const [showExportMenu, setShowExportMenu] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+  /* v8 ignore next 2 -- BMaC image onError: only fires on external image load failure */
   const handleBmacError = useCallback(() => setBmacError(true), [])
   const t = useT()
 
@@ -57,13 +57,13 @@ export const Header = memo(function Header({
         <h1 className="text-center sm:order-2 sm:min-w-0 sm:flex-1 truncate bg-linear-to-r from-blue-800 to-blue-300 bg-clip-text text-base font-bold text-transparent sm:text-2xl">
           md2jira-previewer
           <span className="ml-2 hidden text-sm font-normal text-neutral-500 sm:inline dark:text-neutral-400">
-            Markdown to Jira Wiki Markup & ADF
+            {t('appSubtitle')}
           </span>
         </h1>
 
         {/* Row 2 (mobile only): Subtitle */}
         <p className="text-center text-sm text-neutral-500 sm:hidden dark:text-neutral-400">
-          Markdown to Jira Wiki Markup &amp; ADF
+          {t('appSubtitle')}
         </p>
 
         {/* Row 3 (mobile) / Left + Right (desktop) */}
@@ -77,7 +77,7 @@ export const Header = memo(function Header({
           >
             {bmacError ? (
               <span className="inline-flex h-7 items-center rounded bg-yellow-400 px-3 text-xs font-medium text-yellow-900 sm:h-10 sm:px-4 sm:text-sm">
-                ☕ Buy me a coffee
+                {t('buyMeACoffee')}
               </span>
             ) : (
               <img
@@ -99,7 +99,7 @@ export const Header = memo(function Header({
               className="flex items-center gap-1.5 rounded-full border border-neutral-200 px-3 py-1 text-xs text-neutral-500 transition-colors hover:border-yellow-400 hover:text-yellow-500 dark:border-neutral-700 dark:text-neutral-400 dark:hover:border-yellow-500 dark:hover:text-yellow-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
               aria-label={t('starOnGitHub')}
             >
-              Star on GitHub
+              {t('starOnGitHub')}
             </a>
             <a
               href={GITHUB_URL}
@@ -162,6 +162,7 @@ export const Header = memo(function Header({
                   <button
                     type="button"
                     onClick={() => {
+                      /* v8 ignore next -- window.print() is untestable in jsdom */
                       window.print()
                       setShowExportMenu(false)
                     }}

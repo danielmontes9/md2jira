@@ -45,25 +45,24 @@ export function InfoModal({ onClose }: InfoModalProps) {
         {/* Packages */}
         <div className="mb-5 space-y-2">
           <p className="text-xs font-semibold uppercase tracking-wide text-neutral-400 dark:text-neutral-500">
-            Packages
+            {t('infoPackages')}
           </p>
           {[
             {
               name: 'md2jira-core',
-              description:
-                'Pure TypeScript conversion engine. Zero browser dependencies — works in Node.js, browsers, and VSCode extensions.',
+              description: t('infoCoreDesc'),
               href: 'https://github.com/danielmontes9/md2jira/tree/main/packages/core',
               badge: 'core',
             },
             {
               name: 'md2jira-cli',
-              description: 'Command-line tool to convert Markdown files from your terminal.',
+              description: t('infoCliDesc'),
               href: 'https://github.com/danielmontes9/md2jira/tree/main/packages/cli',
               badge: 'cli',
             },
             {
               name: 'md2jira-previewer',
-              description: 'This web app — live two-panel converter built with React 18 + Vite.',
+              description: t('infoWebDesc'),
               href: 'https://github.com/danielmontes9/md2jira/tree/main/apps/web',
               badge: 'web',
             },

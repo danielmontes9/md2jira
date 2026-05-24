@@ -24,7 +24,7 @@ export const CopyEditGroup = memo(function CopyEditGroup({
   return (
     <div
       role="group"
-      aria-label="Copy and edit"
+      aria-label={t('copyAndEditGroup')}
       className={`flex rounded-md border border-neutral-300 text-xs dark:border-neutral-600 ${className ?? ''}`}
     >
       <button
@@ -56,7 +56,7 @@ export const CopyEditGroup = memo(function CopyEditGroup({
       {/* Visually hidden live region — announces copy confirmation to screen readers
           without relying on AT re-reading a changed aria-label on a focused button. */}
       <span role="status" aria-live="polite" className="sr-only">
-        {copied ? 'Copied to clipboard' : ''}
+        {copied ? t('copiedToClipboard') : ''}
       </span>
     </div>
   )

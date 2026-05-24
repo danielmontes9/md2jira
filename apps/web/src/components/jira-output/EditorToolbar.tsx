@@ -5,6 +5,7 @@ import { type DropKey, BTN_CLS } from './toolbar/shared.js'
 import { TextStyleMenu, FormatMenu } from './toolbar/FormatMenus.js'
 import { ListsMenu, ColorMenu, EmojiMenu, InsertMenu, TableMenu } from './toolbar/ContentMenus.js'
 import { IconCodeBrackets, IconUndo, IconRedo } from '../icons.js'
+import { useT } from '../../i18n/index.js'
 
 interface EditorToolbarProps {
   exec: (cmd: string, arg?: string) => void
@@ -42,6 +43,7 @@ export const EditorToolbar = memo(function EditorToolbar({
   const handleToolbarKeyDown = useCallback((e: ReactKeyboardEvent<HTMLDivElement>) => {
     if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return
     const toolbar = toolbarRef.current
+    /* v8 ignore next -- toolbar ref is always defined when component is mounted */
     if (!toolbar) return
     const focusable = Array.from(toolbar.querySelectorAll<HTMLElement>('button:not([disabled])'))
     const idx = focusable.indexOf(document.activeElement as HTMLElement)
@@ -77,12 +79,13 @@ export const EditorToolbar = memo(function EditorToolbar({
   }, [close])
 
   const menuProps = { exec, close, openKey, onOpen: open }
+  const t = useT()
 
   return (
     <div
       ref={toolbarRef}
       role="toolbar"
-      aria-label="Text formatting"
+      aria-label={t('textFormattingToolbar')}
       onKeyDown={handleToolbarKeyDown}
       className="flex items-center border-b border-neutral-200 bg-white px-2 py-1.5 dark:border-neutral-800 dark:bg-neutral-900"
     >
@@ -94,39 +97,54 @@ export const EditorToolbar = memo(function EditorToolbar({
         {/* Bold, Italic, Underline, Strikethrough — individual visible buttons like Jira */}
         {(
           [
-            { cmd: 'bold', label: 'Bold', shortcut: `${MOD_KEY}+B`, icon: 'B', cls: 'font-bold' },
-            { cmd: 'italic', label: 'Italic', shortcut: `${MOD_KEY}+I`, icon: 'I', cls: 'italic' },
+            {
+              cmd: 'bold',
+              labelKey: 'wysiwygBold',
+              shortcut: `${MOD_KEY}+B`,
+              icon: 'B',
+              cls: 'font-bold',
+            },
+            {
+              cmd: 'italic',
+              labelKey: 'wysiwygItalic',
+              shortcut: `${MOD_KEY}+I`,
+              icon: 'I',
+              cls: 'italic',
+            },
             {
               cmd: 'underline',
-              label: 'Underline',
+              labelKey: 'wysiwygUnderline',
               shortcut: `${MOD_KEY}+U`,
               icon: 'U',
               cls: 'underline',
             },
             {
               cmd: 'strikeThrough',
-              label: 'Strikethrough',
+              labelKey: 'wysiwygStrikethrough',
               shortcut: `${MOD_KEY}+Shift+S`,
               icon: 'S',
               cls: 'line-through',
             },
           ] as const
-        ).map(({ cmd, label, shortcut, icon, cls }) => (
-          <button
-            key={cmd}
-            type="button"
-            onMouseDown={(e) => {
-              e.preventDefault()
-              exec(cmd)
-            }}
-            title={`${label} (${shortcut})`}
-            aria-label={`${label} (${shortcut})`}
-            aria-pressed={activeFormats.has(cmd)}
-            className={`${BTN_CLS} ${activeFormats.has(cmd) ? 'bg-blue-50 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400' : ''}`}
-          >
-            <span className={`text-sm ${cls}`}>{icon}</span>
-          </button>
-        ))}
+        ).map(({ cmd, labelKey, shortcut, icon, cls }) => {
+          const label = t(labelKey)
+          return (
+            <button
+              key={cmd}
+              type="button"
+              onMouseDown={(e) => {
+                e.preventDefault()
+                exec(cmd)
+              }}
+              title={`${label} (${shortcut})`}
+              aria-label={`${label} (${shortcut})`}
+              aria-pressed={activeFormats.has(cmd)}
+              className={`${BTN_CLS} ${activeFormats.has(cmd) ? 'bg-blue-50 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400' : ''}`}
+            >
+              <span className={`text-sm ${cls}`}>{icon}</span>
+            </button>
+          )
+        })}
 
         {/* Inline code */}
         <button
@@ -135,8 +153,8 @@ export const EditorToolbar = memo(function EditorToolbar({
             e.preventDefault()
             exec('toggleCode')
           }}
-          title={`Inline code (${MOD_KEY}+Shift+K)`}
-          aria-label={`Inline code (${MOD_KEY}+Shift+K)`}
+          title={`${t('wysiwygInlineCode')} (${MOD_KEY}+Shift+K)`}
+          aria-label={`${t('wysiwygInlineCode')} (${MOD_KEY}+Shift+K)`}
           aria-pressed={activeFormats.has('code')}
           className={`${BTN_CLS} ${activeFormats.has('code') ? 'bg-blue-50 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400' : ''}`}
         >
@@ -156,8 +174,8 @@ export const EditorToolbar = memo(function EditorToolbar({
             e.preventDefault()
             exec('toggleCodeBlock')
           }}
-          title="Code snippet"
-          aria-label="Code snippet"
+          title={t('codeSnippetButton')}
+          aria-label={t('codeSnippetButton')}
           aria-pressed={activeBlock === 'pre'}
           className={`${BTN_CLS} ${activeBlock === 'pre' ? 'bg-blue-50 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400' : ''}`}
         >
@@ -203,11 +221,11 @@ export const EditorToolbar = memo(function EditorToolbar({
         <span
           role="status"
           aria-live="polite"
-          title="Underline and color formatting will not appear in the Jira Wiki output"
+          title={t('lostInJiraTooltip')}
           className="ml-2 flex shrink-0 items-center gap-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-600 dark:bg-amber-950/30 dark:text-amber-400"
         >
           <span aria-hidden>⚠</span>
-          <span>Lost in Jira</span>
+          <span>{t('lostInJira')}</span>
         </span>
       )}
     </div>

@@ -64,7 +64,7 @@ export const JiraOutputHeader = memo(function JiraOutputHeader({
       <div className="flex flex-wrap items-center justify-end gap-2">
         <div
           role="radiogroup"
-          aria-label="Output format"
+          aria-label={t('outputFormatGroup')}
           className="flex w-fit rounded-md border border-neutral-300 text-xs dark:border-neutral-700"
         >
           <button
@@ -91,7 +91,7 @@ export const JiraOutputHeader = memo(function JiraOutputHeader({
         {format === 'adf' && (
           <div
             role="radiogroup"
-            aria-label="View mode"
+            aria-label={t('viewModeGroup')}
             className="flex w-fit rounded-md border border-neutral-300 text-xs dark:border-neutral-700"
           >
             <button

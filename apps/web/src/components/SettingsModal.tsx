@@ -1,7 +1,7 @@
 import { useState, useId, Suspense } from 'react'
 import { Modal } from './Modal.js'
 import { useSettings } from '../context/SettingsContext.js'
-import { useT } from '../i18n/index.js'
+import { useT, useTP } from '../i18n/index.js'
 import { IconClose, IconInfoCircle } from './icons.js'
 import { lazyNamed } from '../utils/lazy-named.js'
 
@@ -25,6 +25,7 @@ export function SettingsModal({ onClose, theme, onToggleTheme, historyCount }: S
     setLocale,
   } = useSettings()
   const t = useT()
+  const tp = useTP()
   const titleId = useId()
   const langId = useId()
   const themeToggleId = useId()
@@ -93,7 +94,14 @@ export function SettingsModal({ onClose, theme, onToggleTheme, historyCount }: S
                           : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200'
                       }`}
                     >
-                      {{ en: 'English', es: 'Espa\u00f1ol', pt: 'Portugu\u00eas', fr: 'Fran\u00e7ais' }[l]}
+                      {
+                        {
+                          en: 'English',
+                          es: 'Espa\u00f1ol',
+                          pt: 'Portugu\u00eas',
+                          fr: 'Fran\u00e7ais',
+                        }[l]
+                      }
                     </button>
                   ))}
                 </div>
@@ -120,7 +128,7 @@ export function SettingsModal({ onClose, theme, onToggleTheme, historyCount }: S
                   type="button"
                   aria-checked={theme === 'dark'}
                   onClick={onToggleTheme}
-                  aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                  aria-label={theme === 'dark' ? t('switchToLightMode') : t('switchToDarkMode')}
                   className={`relative mt-0.5 inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 ${
                     theme === 'dark' ? 'bg-blue-500' : 'bg-neutral-300 dark:bg-neutral-600'
                   }`}
@@ -178,7 +186,8 @@ export function SettingsModal({ onClose, theme, onToggleTheme, historyCount }: S
                       {t('maxEntriesLabel')}
                       {historyCount !== undefined && (
                         <span className="ml-1.5 text-xs font-normal text-neutral-400 dark:text-neutral-500">
-                          ({historyCount} {t('historySavedCount')})
+                          ({historyCount}{' '}
+                          {tp('historySavedCountOne', 'historySavedCount', historyCount)})
                         </span>
                       )}
                     </span>

@@ -4,6 +4,7 @@ import type { Editor } from '@tiptap/react'
 import { highlightJson } from '../../utils/highlight-json.js'
 import { highlightWiki } from '../../utils/highlight-wiki.js'
 import type { OutputFormat, ViewMode } from '../../types.js'
+import { useT } from '../../i18n/index.js'
 
 interface JiraOutputContentProps {
   format: OutputFormat
@@ -45,6 +46,7 @@ export function JiraOutputContent({
   wikiDraft,
   onWikiDraftChange,
 }: JiraOutputContentProps) {
+  const t = useT()
   // ── All hooks must be declared unconditionally before any early return ─────
   // Memoize expensive syntax-highlight passes: only recompute when `value` changes.
   const highlightedJson = useMemo(() => highlightJson(value), [value])
@@ -57,10 +59,7 @@ export function JiraOutputContent({
   useEffect(() => {
     const el = wikiTextareaRef.current
     if (!el) return
-    // Reset first so scrollHeight reflects the natural content height,
-    // not a previously set override. flex-1 fills the container when content
-    // is shorter; minHeight forces growth when content is taller so the parent
-    // overflow-auto handles the scroll.
+    /* v8 ignore next 2 -- scrollHeight is not available in jsdom */
     el.style.minHeight = 'auto'
     el.style.minHeight = `${el.scrollHeight}px`
   }, [wikiValue])
@@ -70,7 +69,7 @@ export function JiraOutputContent({
     return (
       <pre
         role="region"
-        aria-label={format === 'adf' ? 'ADF JSON code' : 'Wiki markup code'}
+        aria-label={format === 'adf' ? t('adfCodeLabel') : t('wikiCodeLabel')}
         className="flex-1 overflow-auto whitespace-pre-wrap p-4 font-mono text-sm text-neutral-900 dark:text-neutral-100"
         // highlightJson/highlightWiki escape HTML before injecting <span> tags — safe.
         // eslint-disable-next-line react/no-danger
@@ -87,7 +86,7 @@ export function JiraOutputContent({
       return (
         <div
           role="status"
-          aria-label="Rendering Jira preview"
+          aria-label={t('renderingJiraPreview')}
           className="flex flex-1 flex-col items-center justify-center gap-3"
         >
           <svg
@@ -119,7 +118,7 @@ export function JiraOutputContent({
       <EditorContent
         editor={editor}
         role="textbox"
-        aria-label="Jira content editor"
+        aria-label={t('jiraContentEditor')}
         aria-multiline={true}
         aria-readonly={!(canEdit && editMode)}
         className={`jira-preview flex-1 overflow-auto p-6 text-sm text-neutral-900 outline-none transition-opacity duration-200 dark:text-neutral-100 ${isPending && !(canEdit && editMode) ? 'opacity-50' : ''}`}
@@ -134,7 +133,7 @@ export function JiraOutputContent({
         ref={wikiTextareaRef}
         value={wikiValue}
         onChange={(e) => onWikiDraftChange?.(e.target.value)}
-        aria-label="Wiki Markup editor"
+        aria-label={t('wikiMarkupEditor')}
         spellCheck={false}
         className="flex-1 resize-none overflow-hidden p-4 font-mono text-sm leading-6 text-neutral-900 outline-none ring-1 ring-inset ring-blue-300 dark:text-neutral-100 dark:ring-blue-700"
       />
@@ -144,7 +143,7 @@ export function JiraOutputContent({
   return (
     <pre
       role="region"
-      aria-label="Wiki markup preview"
+      aria-label={t('wikiMarkupPreview')}
       className="jira-preview flex-1 overflow-auto whitespace-pre-wrap p-6 font-mono text-sm text-neutral-900 dark:text-neutral-100"
       // highlightWiki escapes HTML entities before injecting <span> tags — safe.
       // eslint-disable-next-line react/no-danger

@@ -46,7 +46,10 @@ function loadSettings(): SettingsState {
         typeof parsed.historyEnabled === 'boolean' ? parsed.historyEnabled : DEFAULT.historyEnabled,
       maxHistoryEntries: mx === 10 || mx === 25 || mx === 50 ? mx : DEFAULT.maxHistoryEntries,
       locale:
-        parsed.locale === 'en' || parsed.locale === 'es' || parsed.locale === 'pt' || parsed.locale === 'fr'
+        parsed.locale === 'en' ||
+        parsed.locale === 'es' ||
+        parsed.locale === 'pt' ||
+        parsed.locale === 'fr'
           ? parsed.locale
           : detectLocale(),
     }
