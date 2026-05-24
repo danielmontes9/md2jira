@@ -2,22 +2,10 @@ import { memo, useRef, useEffect, useState, useCallback, useId } from 'react'
 import type { KeyboardEvent as ReactKeyboardEvent, ChangeEvent } from 'react'
 import { IconHistory, IconClose, IconSearch } from './icons.js'
 import type { HistoryEntry } from '../hooks/useDocumentHistory.js'
-import { LS_KEY } from '../hooks/useDocumentHistory.js'
+import { LS_KEY, isValidEntry } from '../hooks/useDocumentHistory.js'
 import { useSettings } from '../context/SettingsContext.js'
 import { useT } from '../i18n/index.js'
 import type { StringKey } from '../i18n/en.js'
-
-/** Runtime type guard — rejects entries that are missing required fields or have wrong types. */
-function isValidEntry(entry: unknown): entry is HistoryEntry {
-  if (!entry || typeof entry !== 'object') return false
-  const e = entry as Record<string, unknown>
-  return (
-    typeof e['id'] === 'string' &&
-    typeof e['title'] === 'string' &&
-    typeof e['content'] === 'string' &&
-    typeof e['savedAt'] === 'number'
-  )
-}
 
 const FOCUSABLE_SELECTOR =
   'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
@@ -240,7 +228,7 @@ export const HistorySidebar = memo(function HistorySidebar({
       // Reset input so the same file can be re-imported
       e.target.value = ''
     },
-    [history]
+    [history, maxHistoryEntries]
   )
 
   return (
@@ -254,7 +242,7 @@ export const HistorySidebar = memo(function HistorySidebar({
         ref={sidebarRef}
         role="dialog"
         aria-modal="true"
-        aria-label="Document history"
+        aria-label={t('recentDocuments')}
         className="fixed inset-y-0 right-0 z-40 flex w-80 flex-col border-l border-neutral-200 bg-white shadow-xl dark:border-neutral-800 dark:bg-neutral-900"
         onKeyDown={handleKeyDown}
       >
@@ -304,14 +292,14 @@ export const HistorySidebar = memo(function HistorySidebar({
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder={t('searchPlaceholder')}
                 className="min-w-0 flex-1 bg-transparent text-xs text-neutral-800 placeholder-neutral-400 outline-none dark:text-neutral-200 dark:placeholder-neutral-500"
-                aria-label="Search history"
+                aria-label={t('searchHistory')}
               />
               {query && (
                 <button
                   type="button"
                   onClick={() => setQuery('')}
                   className="shrink-0 rounded p-0.5 text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
-                  aria-label="Clear search"
+                  aria-label={t('clearSearch')}
                 >
                   <IconClose className="h-3 w-3" />
                 </button>
@@ -385,7 +373,7 @@ export const HistorySidebar = memo(function HistorySidebar({
                                 }}
                                 autoFocus
                                 className="min-w-0 flex-1 rounded border border-blue-400 bg-white px-1.5 py-0.5 text-sm text-neutral-800 outline-none focus:ring-2 focus:ring-blue-400 dark:border-blue-600 dark:bg-neutral-900 dark:text-neutral-200"
-                                aria-label="Rename entry"
+                                aria-label={t('renameEntryLabel')}
                               />
                             ) : (
                               <button
@@ -403,7 +391,7 @@ export const HistorySidebar = memo(function HistorySidebar({
                                     role="img"
                                     data-testid="active-indicator"
                                     className="mr-1 text-blue-500"
-                                    aria-label="Currently loaded"
+                                    aria-label={t('currentlyLoaded')}
                                   >
                                     {'\u25CF'}
                                   </span>
@@ -497,7 +485,7 @@ export const HistorySidebar = memo(function HistorySidebar({
                 onClick={() => importInputRef.current?.click()}
                 title="Import history from JSON"
                 className="rounded px-2.5 py-1 text-xs text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
-                aria-label="Import history"
+                aria-label={t('importHistory')}
               >
                 {t('historyImport')}
               </button>
@@ -508,7 +496,7 @@ export const HistorySidebar = memo(function HistorySidebar({
                     onClick={handleExport}
                     title="Export history as JSON"
                     className="rounded px-2.5 py-1 text-xs text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
-                    aria-label="Export history"
+                    aria-label={t('exportHistory')}
                   >
                     {t('historyExport')}
                   </button>

@@ -180,6 +180,17 @@ export const en = {
   // ── Output panel / edit mode ──────────────────────────────────────────────
   switchToViewMode: 'Switch to view mode',
   switchToEditMode: 'Switch to edit mode',
+
+  // ── Additional aria-labels & UI strings ───────────────────────────────────
+  markdownPlaceholder: 'Paste your Markdown here...',
+  openSettings: 'Open settings',
+  searchHistory: 'Search history',
+  clearSearch: 'Clear search',
+  renameEntryLabel: 'Rename entry',
+  currentlyLoaded: 'Currently loaded',
+  saveToHistory: 'Save document to history',
+  importHistory: 'Import history',
+  exportHistory: 'Export history',
 } as const
 
 export type StringKey = keyof typeof en

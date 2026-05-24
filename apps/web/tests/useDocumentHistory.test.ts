@@ -234,4 +234,57 @@ describe('useDocumentHistory — deleteEntries', () => {
     const stored = JSON.parse(localStorage.getItem(LS_KEY) ?? '[]') as unknown[]
     expect(stored).toHaveLength(0)
   })
+
+  it('is a no-op when ids do not exist in history', () => {
+    const { result } = renderHook(() => useDocumentHistory({ markdown: '# Keep', enabled: true }))
+    act(() => result.current.saveNow())
+    act(() => result.current.deleteEntries(['non-existent-id']))
+    expect(result.current.history).toHaveLength(1)
+  })
+})
+
+// ── renameEntry ───────────────────────────────────────────────────────────────
+describe('useDocumentHistory — renameEntry', () => {
+  it('renames an entry to the new title', () => {
+    const { result } = renderHook(() =>
+      useDocumentHistory({ markdown: '# Original', enabled: true })
+    )
+    act(() => result.current.saveNow())
+    const id = result.current.history[0]!.id
+    act(() => result.current.renameEntry(id, 'New Title'))
+    expect(result.current.history[0]?.title).toBe('New Title')
+  })
+
+  it('keeps the original title when called with empty string', () => {
+    const { result } = renderHook(() =>
+      useDocumentHistory({ markdown: '# Original', enabled: true })
+    )
+    act(() => result.current.saveNow())
+    const id = result.current.history[0]!.id
+    const originalTitle = result.current.history[0]!.title
+    act(() => result.current.renameEntry(id, ''))
+    expect(result.current.history[0]?.title).toBe(originalTitle)
+  })
+
+  it('keeps the original title when called with whitespace-only string', () => {
+    const { result } = renderHook(() =>
+      useDocumentHistory({ markdown: '# Original', enabled: true })
+    )
+    act(() => result.current.saveNow())
+    const id = result.current.history[0]!.id
+    const originalTitle = result.current.history[0]!.title
+    act(() => result.current.renameEntry(id, '   '))
+    expect(result.current.history[0]?.title).toBe(originalTitle)
+  })
+
+  it('persists the rename to localStorage', () => {
+    const { result } = renderHook(() =>
+      useDocumentHistory({ markdown: '# Persist', enabled: true })
+    )
+    act(() => result.current.saveNow())
+    const id = result.current.history[0]!.id
+    act(() => result.current.renameEntry(id, 'Persisted Title'))
+    const stored = JSON.parse(localStorage.getItem(LS_KEY) ?? '[]') as Array<{ title: string }>
+    expect(stored[0]?.title).toBe('Persisted Title')
+  })
 })

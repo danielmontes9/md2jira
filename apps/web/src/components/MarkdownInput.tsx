@@ -56,7 +56,7 @@ export const MarkdownInput = memo(function MarkdownInput({
     value,
     onChange,
     isDark,
-    placeholderText: 'Paste your Markdown here...',
+    placeholderText: t('markdownPlaceholder'),
     ...(historyEnabled && onSave ? { onSave } : {}),
   })
 
@@ -237,8 +237,8 @@ export const MarkdownInput = memo(function MarkdownInput({
                 type="button"
                 onClick={onSave}
                 className="rounded px-2 py-0.5 text-xs text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-blue-600 dark:text-neutral-500 dark:hover:bg-neutral-800 dark:hover:text-blue-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
-                aria-label="Save document to history"
-                title="Save document to history"
+                aria-label={t('saveToHistory')}
+                title={t('saveToHistory')}
               >
                 {t('saveAction')}
               </button>

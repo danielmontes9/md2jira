@@ -19,11 +19,25 @@ function extractTitle(content: string): string {
   return titleText.length > 60 ? `${titleText.slice(0, 60)}…` : titleText || 'Untitled'
 }
 
+/** Runtime type guard — validates that an entry read from storage has all required fields. */
+export function isValidEntry(entry: unknown): entry is HistoryEntry {
+  if (!entry || typeof entry !== 'object') return false
+  const e = entry as Record<string, unknown>
+  return (
+    typeof e['id'] === 'string' &&
+    typeof e['title'] === 'string' &&
+    typeof e['content'] === 'string' &&
+    typeof e['savedAt'] === 'number'
+  )
+}
+
 function loadHistory(): HistoryEntry[] {
   try {
     const raw = localStorage.getItem(LS_KEY)
     if (!raw) return []
-    return JSON.parse(raw) as HistoryEntry[]
+    const parsed: unknown = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return []
+    return parsed.filter(isValidEntry)
   } catch {
     return []
   }
@@ -88,7 +102,7 @@ export function useDocumentHistory({
     const t = setTimeout(() => {
       setHistory((prev) => {
         const entry: HistoryEntry = {
-          id: Date.now().toString(),
+          id: crypto.randomUUID(),
           title: extractTitle(markdown),
           content: markdown,
           savedAt: Date.now(),
@@ -143,7 +157,7 @@ export function useDocumentHistory({
     if (!enabled || !markdown.trim()) return
     setHistory((prev) => {
       const entry: HistoryEntry = {
-        id: Date.now().toString(),
+        id: crypto.randomUUID(),
         title: extractTitle(markdown),
         content: markdown,
         savedAt: Date.now(),

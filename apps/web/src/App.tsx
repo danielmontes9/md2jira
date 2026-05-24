@@ -183,8 +183,8 @@ function AppContent() {
   // Renders the ADF document to HTML off-thread using a Web Worker.
   // Shows a warning toast if the worker stalls and the 5 s fallback activates.
   const handleWorkerFallback = useCallback(() => {
-    addToast('ADF preview stalled — using fallback renderer.', 'warning')
-  }, [addToast])
+    addToast(t('adfWorkerStalled'), 'warning')
+  }, [addToast, t])
   const {
     html: previewHtml,
     workerError,

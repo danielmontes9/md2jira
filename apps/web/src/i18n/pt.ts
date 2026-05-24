@@ -176,4 +176,14 @@ export const pt: Record<StringKey, string> = {
   // ── Painel de sa\u00edda / modo de edi\u00e7\u00e3o ────────────────────────────────
   switchToViewMode: 'Mudar para modo de visualiza\u00e7\u00e3o',
   switchToEditMode: 'Mudar para modo de edi\u00e7\u00e3o',
+  // -- Rotulos ARIA adicionais e strings de UI ------------------------------
+  markdownPlaceholder: 'Cole seu Markdown aqui\u2026',
+  openSettings: 'Abrir configura\u00e7\u00f5es',
+  searchHistory: 'Pesquisar no hist\u00f3rico',
+  clearSearch: 'Limpar pesquisa',
+  renameEntryLabel: 'Renomear entrada',
+  currentlyLoaded: 'Carregado atualmente',
+  saveToHistory: 'Salvar documento no hist\u00f3rico',
+  importHistory: 'Importar hist\u00f3rico',
+  exportHistory: 'Exportar hist\u00f3rico',
 } as const
