@@ -182,6 +182,7 @@ export function ToolbarDropdown({
         aria-expanded={isOpen}
         aria-haspopup={menuRole as React.AriaAttributes['aria-haspopup']}
         aria-label={ariaLabel}
+        title={ariaLabel}
         className={BTN_CLS}
       >
         {trigger}

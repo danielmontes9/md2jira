@@ -80,7 +80,7 @@ export const EditorToolbar = memo(function EditorToolbar({
       role="toolbar"
       aria-label="Text formatting"
       onKeyDown={handleToolbarKeyDown}
-      className="flex flex-wrap items-center gap-0.5 border-b border-neutral-200 bg-white px-2 py-1.5 dark:border-neutral-800 dark:bg-neutral-950"
+      className="flex flex-wrap items-center gap-0.5 border-b border-neutral-200 bg-white px-2 py-1.5 dark:border-neutral-800 dark:bg-neutral-900"
     >
       <TextStyleMenu {...menuProps} activeBlock={activeBlock} />
 

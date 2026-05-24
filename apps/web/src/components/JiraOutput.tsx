@@ -96,7 +96,7 @@ export const JiraOutput = memo(function JiraOutput({
   }, [format, editMode, addToast])
 
   return (
-    <div className="@container flex min-h-0 flex-1 flex-col rounded-lg border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
+    <div className="@container flex min-h-0 flex-1 flex-col bg-white dark:bg-neutral-900">
       {/* ── Header bar ── */}
       <JiraOutputHeader
         format={format}

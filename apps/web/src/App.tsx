@@ -205,7 +205,7 @@ function AppContent() {
   const isLoadingPreview = format === 'adf' && adfDoc !== null && previewHtml === '' && !workerError
 
   return (
-    <div className="flex h-screen flex-col bg-white dark:bg-neutral-950">
+    <div className="flex h-screen flex-col bg-neutral-100 dark:bg-neutral-950">
       {/* Skip link — visually hidden until focused, satisfies WCAG 2.4.1 */}
       <a
         href="#main-content"
@@ -347,7 +347,7 @@ function AppContent() {
         ref={mainRef}
         id="main-content"
         aria-label="Main content"
-        className="flex flex-1 flex-col gap-4 overflow-auto p-4 sm:flex-row sm:gap-0 sm:overflow-hidden"
+        className="flex flex-1 flex-col gap-2 overflow-auto p-2 sm:flex-row sm:gap-0 sm:overflow-hidden sm:p-0"
       >
         <section
           aria-label="Markdown input"
