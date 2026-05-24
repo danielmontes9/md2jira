@@ -199,6 +199,21 @@ export const en = {
   dismissToast: 'Dismiss notification',
   close: 'Close',
   historySavedCount: 'saved',
+  // ── Structural panel / region labels ──────────────────────────────────────
+  switchPanel: 'Switch panel',
+  mainContent: 'Main content',
+  jiraOutputPanel: 'Jira output',
+  fileActions: 'File actions',
+  markdownInputEditor: 'Markdown input editor',
+  notificationsLabel: 'Notifications',
+  // ── Header external link labels ───────────────────────────────────────────
+  supportProject: 'Support the project \u2014 Buy me a coffee',
+  starOnGitHub: 'Star on GitHub',
+  viewOnGitHub: 'View project on GitHub',
+  // ── Interpolated history entry labels ─────────────────────────────────────
+  selectEntryLabel: 'Select "{title}"',
+  renameEntryAction: 'Rename "{title}"',
+  deleteEntryLabel: 'Delete "{title}" from history',
 } as const
 
 export type StringKey = keyof typeof en

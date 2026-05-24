@@ -159,7 +159,7 @@ export const MarkdownInput = memo(function MarkdownInput({
             {/* File group: Import + Export + Shortcuts */}
             <div
               role="group"
-              aria-label="File actions"
+              aria-label={t('fileActions')}
               className="flex rounded-md border border-neutral-300 text-xs dark:border-neutral-600"
             >
               <button
@@ -204,7 +204,7 @@ export const MarkdownInput = memo(function MarkdownInput({
         <div
           ref={containerRef}
           className="min-h-0 flex-1 overflow-hidden"
-          aria-label="Markdown input editor"
+          aria-label={t('markdownInputEditor')}
         />
         {/* Bottom status bar */}
         <div className="flex items-center justify-between border-t border-neutral-200 px-3 py-1 dark:border-neutral-800">

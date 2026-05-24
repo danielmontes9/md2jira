@@ -72,7 +72,7 @@ export const Header = memo(function Header({
             href="https://www.buymeacoffee.com/danielmontes9"
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="Support the project — Buy me a coffee"
+            aria-label={t('supportProject')}
             className="shrink-0 sm:order-1 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
           >
             {bmacError ? (
@@ -97,7 +97,7 @@ export const Header = memo(function Header({
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 rounded-full border border-neutral-200 px-3 py-1 text-xs text-neutral-500 transition-colors hover:border-yellow-400 hover:text-yellow-500 dark:border-neutral-700 dark:text-neutral-400 dark:hover:border-yellow-500 dark:hover:text-yellow-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
-              aria-label="Star on GitHub"
+              aria-label={t('starOnGitHub')}
             >
               Star on GitHub
             </a>
@@ -106,7 +106,7 @@ export const Header = memo(function Header({
               target="_blank"
               rel="noopener noreferrer"
               className="rounded-md p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
-              aria-label="View project on GitHub"
+              aria-label={t('viewOnGitHub')}
             >
               <IconGitHub className="h-5 w-5" />
             </a>

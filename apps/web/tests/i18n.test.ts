@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { en } from '../src/i18n/en.js'
 import { es } from '../src/i18n/es.js'
 import { pt } from '../src/i18n/pt.js'
+import { fr } from '../src/i18n/fr.js'
 
 const EN_KEYS = Object.keys(en).sort()
 
@@ -32,6 +33,17 @@ describe('i18n locale completeness', () => {
     for (const [key, value] of Object.entries(pt)) {
       expect(typeof value, `pt.${key}`).toBe('string')
       expect((value as string).length, `pt.${key}`).toBeGreaterThan(0)
+    }
+  })
+
+  it('fr.ts has exactly the same keys as en.ts', () => {
+    expect(Object.keys(fr).sort()).toEqual(EN_KEYS)
+  })
+
+  it('all fr.ts values are non-empty strings', () => {
+    for (const [key, value] of Object.entries(fr)) {
+      expect(typeof value, `fr.${key}`).toBe('string')
+      expect((value as string).length, `fr.${key}`).toBeGreaterThan(0)
     }
   })
 })

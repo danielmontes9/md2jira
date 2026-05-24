@@ -6,7 +6,7 @@ const LS_KEY = 'md2jira-settings'
 export type MaxHistoryEntries = 10 | 25 | 50
 
 /** Supported UI locales. */
-export type Locale = 'en' | 'es' | 'pt'
+export type Locale = 'en' | 'es' | 'pt' | 'fr'
 
 interface SettingsState {
   historyEnabled: boolean
@@ -23,10 +23,22 @@ interface SettingsContextValue extends SettingsState {
 // History is on by default — it's the app's most valuable persistence feature.
 const DEFAULT: SettingsState = { historyEnabled: true, maxHistoryEntries: 10, locale: 'en' }
 
+function detectLocale(): Locale {
+  try {
+    const lang = navigator.language?.toLowerCase() ?? ''
+    if (lang.startsWith('fr')) return 'fr'
+    if (lang.startsWith('es')) return 'es'
+    if (lang.startsWith('pt')) return 'pt'
+  } catch {
+    // navigator.language unavailable
+  }
+  return 'en'
+}
+
 function loadSettings(): SettingsState {
   try {
     const raw = localStorage.getItem(LS_KEY)
-    if (!raw) return DEFAULT
+    if (!raw) return { ...DEFAULT, locale: detectLocale() }
     const parsed = JSON.parse(raw) as Partial<SettingsState>
     const mx = parsed.maxHistoryEntries
     return {
@@ -34,12 +46,12 @@ function loadSettings(): SettingsState {
         typeof parsed.historyEnabled === 'boolean' ? parsed.historyEnabled : DEFAULT.historyEnabled,
       maxHistoryEntries: mx === 10 || mx === 25 || mx === 50 ? mx : DEFAULT.maxHistoryEntries,
       locale:
-        parsed.locale === 'en' || parsed.locale === 'es' || parsed.locale === 'pt'
+        parsed.locale === 'en' || parsed.locale === 'es' || parsed.locale === 'pt' || parsed.locale === 'fr'
           ? parsed.locale
-          : DEFAULT.locale,
+          : detectLocale(),
     }
   } catch {
-    return DEFAULT
+    return { ...DEFAULT, locale: detectLocale() }
   }
 }
 
@@ -56,6 +68,11 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       // localStorage unavailable
     }
   }, [settings])
+
+  // Keep <html lang="..."> in sync with the user's locale preference
+  useEffect(() => {
+    document.documentElement.lang = settings.locale
+  }, [settings.locale])
 
   const toggleHistory = useCallback(() => {
     setSettings((prev) => ({ ...prev, historyEnabled: !prev.historyEnabled }))

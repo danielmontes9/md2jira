@@ -316,7 +316,7 @@ function AppContent() {
       {/* Mobile panel tabs — only visible below the sm: breakpoint */}
       <div
         className="flex shrink-0 border-b border-neutral-200 sm:hidden dark:border-neutral-800"
-        aria-label="Switch panel"
+        aria-label={t('switchPanel')}
       >
         <button
           type="button"
@@ -346,7 +346,7 @@ function AppContent() {
       <main
         ref={mainRef}
         id="main-content"
-        aria-label="Main content"
+        aria-label={t('mainContent')}
         className="flex flex-1 flex-col gap-2 overflow-auto p-2 sm:flex-row sm:gap-0 sm:overflow-hidden sm:p-0"
       >
         <section
@@ -395,7 +395,7 @@ function AppContent() {
           <div className="h-16 w-1 rounded-full bg-neutral-300 transition-colors group-hover:bg-blue-400 group-active:bg-blue-500 group-focus-visible:bg-blue-400 dark:bg-neutral-700 dark:group-hover:bg-blue-500 dark:group-active:bg-blue-600 dark:group-focus-visible:bg-blue-500" />
         </div>
         <section
-          aria-label="Jira output"
+          aria-label={t('jiraOutputPanel')}
           style={{ flex: 100 - split }}
           className={`flex min-h-0 flex-col sm:min-h-0 sm:min-w-0 sm:overflow-hidden${
             activePanel !== 'output' ? ' hidden sm:flex' : ''

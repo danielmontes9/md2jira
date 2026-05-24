@@ -12,6 +12,7 @@ import { useCallback } from 'react'
 import { en } from './en.js'
 import { es } from './es.js'
 import { pt } from './pt.js'
+import { fr } from './fr.js'
 import type { StringKey } from './en.js'
 import { useSettings } from '../context/SettingsContext.js'
 
@@ -39,6 +40,6 @@ export function t(key: StringKey): string {
  */
 export function useT(): (key: StringKey) => string {
   const { locale } = useSettings()
-  const dict = locale === 'es' ? es : locale === 'pt' ? pt : en
+  const dict = locale === 'es' ? es : locale === 'pt' ? pt : locale === 'fr' ? fr : en
   return useCallback((key: StringKey) => dict[key], [dict])
 }

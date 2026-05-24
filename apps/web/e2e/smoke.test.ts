@@ -362,3 +362,20 @@ test('Settings — switching back to English restores English UI', async ({ page
     page.getByRole('button', { name: /copy as rich text for jira cloud/i }).first()
   ).toBeVisible()
 })
+
+test('Settings — language selector switches UI to French', async ({ page }) => {
+  await page.goto('/')
+
+  // Open Settings and select French
+  await page.getByRole('button', { name: 'Open settings' }).click()
+  await page.getByRole('radio', { name: 'Fran\u00e7ais' }).click()
+  await page.keyboard.press('Escape')
+
+  // The "Copy for Jira" button should now show French text
+  await expect(page.getByRole('button', { name: /copier pour jira/i }).first()).toBeVisible()
+
+  // Reset to English to avoid polluting subsequent tests
+  await page.getByRole('button', { name: /open settings|ouvrir/i }).click()
+  await page.getByRole('radio', { name: 'English' }).click()
+  await page.keyboard.press('Escape')
+})
