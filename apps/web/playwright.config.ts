@@ -65,8 +65,17 @@ export default defineConfig({
       // Dedicated project for visual regression — Chromium only for stable,
       // deterministic snapshots. Does NOT run as part of the default `test:e2e`
       // command; use `test:e2e:visual` / `test:e2e:update-snapshots` instead.
+      //
+      // Font rendering flags reduce cross-platform pixel-level variance:
+      //   --font-render-hinting=none   disables OS-level hinting for uniform glyph shapes
+      //   --disable-font-subpixel-positioning  makes text placement integer-aligned
       name: 'visual',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        launchOptions: {
+          args: ['--font-render-hinting=none', '--disable-font-subpixel-positioning'],
+        },
+      },
       testMatch: ['**/visual.test.ts'],
       retries: 0,
     },

@@ -15,12 +15,20 @@ export default defineConfig({
       reporter: ['text', 'lcov'],
       reportsDirectory: './coverage',
       include: ['src/**/*.{ts,tsx}'],
-      exclude: ['src/vite-env.d.ts'],
+      exclude: [
+        'src/vite-env.d.ts',
+        'src/main.tsx',
+        'src/workers/adf-worker.ts',
+        // CodeMirror wraps browser APIs (EditorView, EditorState) that are incompatible
+        // with jsdom. Every consumer mocks this hook, so instrumented coverage is 0%.
+        'src/hooks/useCodeMirrorEditor.ts',
+      ],
       thresholds: {
         lines: 85,
         functions: 85,
         branches: 80,
         statements: 85,
+        perFile: true,
       },
     },
   },
