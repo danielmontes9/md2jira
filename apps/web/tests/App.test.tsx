@@ -616,3 +616,33 @@ describe('App – large document isPending spinner', () => {
     expect(screen.queryByText('Converting\u2026')).not.toBeInTheDocument()
   })
 })
+
+// ── History sidebar integration ───────────────────────────────────────────────
+
+describe('App – history sidebar', () => {
+  it('clicking the History button shows the history sidebar', () => {
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: /document history/i }))
+    expect(screen.getByRole('dialog', { name: /recent documents/i })).toBeInTheDocument()
+  })
+
+  it('clicking the close button in the history sidebar hides it', () => {
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: /document history/i }))
+    expect(screen.getByRole('dialog', { name: /recent documents/i })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /close document history/i }))
+    expect(screen.queryByRole('dialog', { name: /recent documents/i })).not.toBeInTheDocument()
+  })
+
+  it('clicking the Settings button opens the settings modal, and closing it hides it', async () => {
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: /open settings/i }))
+    await waitFor(() => {
+      expect(screen.getByRole('dialog', { name: /settings/i })).toBeInTheDocument()
+    })
+    fireEvent.click(screen.getByRole('button', { name: /close settings/i }))
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: /settings/i })).not.toBeInTheDocument()
+    })
+  })
+})

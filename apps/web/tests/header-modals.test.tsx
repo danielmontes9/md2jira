@@ -1,14 +1,29 @@
-import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest'
+import { describe, it, expect, vi, beforeAll, afterAll, afterEach } from 'vitest'
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { Header } from '../src/components/Header.js'
 import { ShortcutsModal } from '../src/components/ShortcutsModal.js'
 import { InfoModal } from '../src/components/InfoModal.js'
+import { ShareModal } from '../src/components/Modal.js'
 import { SettingsProvider } from '../src/context/SettingsContext.js'
 
 function renderWithSettings(ui: React.ReactElement) {
   return render(<SettingsProvider>{ui}</SettingsProvider>)
 }
+
+const LS_KEY = 'md2jira-settings'
+
+function renderWithLocale(ui: React.ReactElement, locale: 'en' | 'es' | 'pt' | 'fr') {
+  localStorage.setItem(
+    LS_KEY,
+    JSON.stringify({ historyEnabled: true, maxHistoryEntries: 10, locale })
+  )
+  return render(<SettingsProvider>{ui}</SettingsProvider>)
+}
+
+afterEach(() => {
+  localStorage.clear()
+})
 
 // Use vi.stubGlobal so vitest restores originals after this file's tests run,
 // preventing cross-file global pollution in shared worker pools.
@@ -55,6 +70,28 @@ describe('Header', () => {
     const link = screen.getByRole('link', { name: /view project on github/i })
     expect(link).toHaveAttribute('target', '_blank')
     expect(link).toHaveAttribute('rel', expect.stringContaining('noopener'))
+  })
+
+  it('opens the export dropdown when Share/Export button is clicked with hasContent=true', () => {
+    renderWithSettings(<Header hasContent={true} isDeepLinkActive={false} />)
+    const btn = screen.getByRole('button', { name: /share or export/i })
+    fireEvent.click(btn)
+    expect(screen.getByText('Export PDF')).toBeInTheDocument()
+  })
+
+  it('clicking Share Link opens the ShareModal', () => {
+    renderWithSettings(<Header hasContent={true} isDeepLinkActive={true} />)
+    fireEvent.click(screen.getByRole('button', { name: /share or export/i }))
+    fireEvent.click(screen.getByText('Share link'))
+    // ShareModal should now be visible
+    expect(screen.getByRole('heading', { name: /share document/i })).toBeInTheDocument()
+  })
+
+  it('onToggleHistory is called when History button is clicked', () => {
+    const onToggle = vi.fn()
+    renderWithSettings(<Header onToggleHistory={onToggle} historyEnabled={true} />)
+    fireEvent.click(screen.getByRole('button', { name: /document history/i }))
+    expect(onToggle).toHaveBeenCalledOnce()
   })
 })
 
@@ -158,5 +195,33 @@ describe('InfoModal — content', () => {
   it('lists the md2jira-cli package', () => {
     renderWithSettings(<InfoModal onClose={vi.fn()} />)
     expect(screen.getByText('md2jira-cli')).toBeInTheDocument()
+  })
+})
+
+describe('ShortcutsModal — i18n', () => {
+  it('renders shortcut labels in Spanish', () => {
+    renderWithLocale(<ShortcutsModal onClose={vi.fn()} />, 'es')
+    // scLabelBold in es = 'Negrita'
+    expect(screen.getAllByText('Negrita').length).toBeGreaterThan(0)
+  })
+
+  it('renders shortcut group headings in French', () => {
+    renderWithLocale(<ShortcutsModal onClose={vi.fn()} />, 'fr')
+    // scLabelItalic in fr should differ from en
+    expect(screen.queryByText('Bold')).toBeNull()
+  })
+})
+
+describe('ShareModal — i18n', () => {
+  it('renders the share title in Spanish', () => {
+    renderWithLocale(<ShareModal url="https://example.com" onClose={vi.fn()} />, 'es')
+    // shareDocumentTitle in es = 'Compartir documento'
+    expect(screen.getByRole('heading', { name: /compartir documento/i })).toBeInTheDocument()
+  })
+
+  it('renders the copy link button in Spanish', () => {
+    renderWithLocale(<ShareModal url="https://example.com" onClose={vi.fn()} />, 'es')
+    // copyLinkToShare in es = 'Copiar enlace para compartir'
+    expect(screen.getByRole('button', { name: /copiar enlace/i })).toBeInTheDocument()
   })
 })

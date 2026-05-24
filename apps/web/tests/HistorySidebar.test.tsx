@@ -435,3 +435,86 @@ describe('HistorySidebar — import/export', () => {
     readTextSpy.mockRestore()
   })
 })
+
+// ── ti() aria-label interpolation ─────────────────────────────────────────────
+
+describe('HistorySidebar — ti() aria-label interpolation', () => {
+  const entries = [makeEntry('1', '# Alpha', 'Alpha')]
+
+  it('interpolates entry title into deleteEntryLabel aria-label', () => {
+    render(<HistorySidebar {...baseProps} history={entries} />)
+    expect(screen.getByRole('button', { name: 'Delete "Alpha" from history' })).toBeInTheDocument()
+  })
+
+  it('interpolates entry title into renameEntryAction aria-label', () => {
+    render(<HistorySidebar {...baseProps} history={entries} />)
+    expect(screen.getByRole('button', { name: 'Rename "Alpha"' })).toBeInTheDocument()
+  })
+
+  it('interpolates entry title into selectEntryLabel aria-label in select mode', () => {
+    render(<HistorySidebar {...baseProps} history={entries} />)
+    fireEvent.click(screen.getByRole('button', { name: /enter bulk selection mode/i }))
+    expect(screen.getByLabelText('Select "Alpha"')).toBeInTheDocument()
+  })
+})
+
+// ── Rename flow ──────────────────────────────────────────────────────────────
+
+describe('HistorySidebar — rename flow', () => {
+  const onRenameEntry = vi.fn()
+  const entries = [makeEntry('1', '# Alpha', 'Alpha'), makeEntry('2', '## Beta', 'Beta')]
+
+  beforeEach(() => {
+    onRenameEntry.mockClear()
+  })
+
+  it('clicking the rename button shows the rename input', () => {
+    render(<HistorySidebar {...baseProps} history={entries} onRenameEntry={onRenameEntry} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Rename "Alpha"' }))
+    expect(screen.getByRole('textbox', { name: /rename entry/i })).toBeInTheDocument()
+  })
+
+  it('rename input has the current title pre-filled', () => {
+    render(<HistorySidebar {...baseProps} history={entries} onRenameEntry={onRenameEntry} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Rename "Alpha"' }))
+    const input = screen.getByRole('textbox', { name: /rename entry/i }) as HTMLInputElement
+    expect(input.value).toBe('Alpha')
+  })
+
+  it('onChange updates the rename input value', () => {
+    render(<HistorySidebar {...baseProps} history={entries} onRenameEntry={onRenameEntry} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Rename "Alpha"' }))
+    const input = screen.getByRole('textbox', { name: /rename entry/i })
+    fireEvent.change(input, { target: { value: 'Alpha Renamed' } })
+    expect((input as HTMLInputElement).value).toBe('Alpha Renamed')
+  })
+
+  it('pressing Enter commits the rename', () => {
+    render(<HistorySidebar {...baseProps} history={entries} onRenameEntry={onRenameEntry} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Rename "Alpha"' }))
+    const input = screen.getByRole('textbox', { name: /rename entry/i })
+    fireEvent.change(input, { target: { value: 'New Name' } })
+    fireEvent.keyDown(input, { key: 'Enter' })
+    expect(onRenameEntry).toHaveBeenCalledWith('1', 'New Name')
+    // Input disappears after commit
+    expect(screen.queryByRole('textbox', { name: /rename entry/i })).not.toBeInTheDocument()
+  })
+
+  it('pressing Escape cancels the rename without calling onRenameEntry', () => {
+    render(<HistorySidebar {...baseProps} history={entries} onRenameEntry={onRenameEntry} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Rename "Alpha"' }))
+    const input = screen.getByRole('textbox', { name: /rename entry/i })
+    fireEvent.keyDown(input, { key: 'Escape' })
+    expect(onRenameEntry).not.toHaveBeenCalled()
+    expect(screen.queryByRole('textbox', { name: /rename entry/i })).not.toBeInTheDocument()
+  })
+
+  it('blurring the rename input commits the rename', () => {
+    render(<HistorySidebar {...baseProps} history={entries} onRenameEntry={onRenameEntry} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Rename "Alpha"' }))
+    const input = screen.getByRole('textbox', { name: /rename entry/i })
+    fireEvent.change(input, { target: { value: 'Blur Commit' } })
+    fireEvent.blur(input)
+    expect(onRenameEntry).toHaveBeenCalledWith('1', 'Blur Commit')
+  })
+})

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { sanitize } from '../src/utils/sanitize.js'
+import { sanitize, stripTags } from '../src/utils/sanitize.js'
 
 /**
  * Tests for the sanitize utility.
@@ -63,5 +63,32 @@ describe('sanitize — stripTags fallback', () => {
       expect(result).not.toContain('onload=')
       expect(result).not.toContain('javascript:')
     }
+  })
+})
+
+// ── stripTags (exported fallback) ────────────────────────────────────────────
+
+describe('stripTags — tag-stripping fallback', () => {
+  it('removes all HTML tags and returns plain text', () => {
+    expect(stripTags('<b>hello</b>')).toBe('hello')
+    expect(stripTags('<p>one</p><p>two</p>')).toBe('onetwo')
+  })
+
+  it('returns empty string for empty input', () => {
+    expect(stripTags('')).toBe('')
+  })
+
+  it('handles attributes containing > without leaking markup', () => {
+    // The regex must consume quoted attribute values before matching >
+    const result = stripTags('<img alt="x>y" src="z">')
+    expect(result).toBe('')
+  })
+
+  it('removes script tags', () => {
+    expect(stripTags('<script>alert(1)</script>')).toBe('alert(1)')
+  })
+
+  it('leaves plain text unchanged', () => {
+    expect(stripTags('no tags here')).toBe('no tags here')
   })
 })

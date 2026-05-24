@@ -79,6 +79,53 @@ describe('execTiptapCommand', () => {
       })
     ).not.toThrow()
   })
+
+  it('handles table-scoped commands without throwing', () => {
+    const result = makeEditor()
+    const tableCmds = [
+      'addRowAfter',
+      'addRowBefore',
+      'addColumnAfter',
+      'addColumnBefore',
+      'deleteRow',
+      'deleteColumn',
+      'deleteTable',
+    ]
+    for (const cmd of tableCmds) {
+      expect(() =>
+        act(() => {
+          if (result.current.editor) execTiptapCommand(result.current.editor, cmd)
+        })
+      ).not.toThrow()
+    }
+  })
+
+  it('formatBlock without arg does nothing', () => {
+    const result = makeEditor()
+    expect(() =>
+      act(() => {
+        if (result.current.editor) execTiptapCommand(result.current.editor, 'formatBlock')
+      })
+    ).not.toThrow()
+  })
+
+  it('formatBlock with unrecognized tag does nothing', () => {
+    const result = makeEditor()
+    expect(() =>
+      act(() => {
+        if (result.current.editor) execTiptapCommand(result.current.editor, 'formatBlock', 'div')
+      })
+    ).not.toThrow()
+  })
+
+  it('insertText without arg does nothing', () => {
+    const result = makeEditor()
+    expect(() =>
+      act(() => {
+        if (result.current.editor) execTiptapCommand(result.current.editor, 'insertText')
+      })
+    ).not.toThrow()
+  })
 })
 
 // ─── getActiveBlock ───────────────────────────────────────────────────────────

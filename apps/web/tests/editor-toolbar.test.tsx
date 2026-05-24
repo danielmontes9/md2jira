@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest'
 import { render, screen, fireEvent, within, waitFor } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { EditorToolbar } from '../src/components/jira-output/EditorToolbar.js'
@@ -298,6 +298,18 @@ describe('EditorToolbar', () => {
     expect(screen.queryByText('Heading 1')).not.toBeInTheDocument()
   })
 
+  it('dropdown closes when focus leaves the browser (blur with null relatedTarget)', () => {
+    renderToolbar()
+    const ttBtn = screen.getByRole('button', { name: 'Text styles' })
+    fireEvent.mouseDown(ttBtn)
+    expect(screen.getByText('Heading 1')).toBeInTheDocument()
+    // relatedTarget is null when the window loses focus (e.g. alt-tab).
+    // This exercises the !(related instanceof Node) → true branch in shared.tsx.
+    const dropdownWrapper = ttBtn.closest('[data-toolbar]')!
+    fireEvent.blur(dropdownWrapper)
+    expect(screen.queryByText('Heading 1')).not.toBeInTheDocument()
+  })
+
   it('TextStyleMenu returns focus to trigger button on Escape', () => {
     renderToolbar()
     const ttBtn = screen.getByRole('button', { name: 'Text styles' })
@@ -496,5 +508,360 @@ describe('EditorToolbar', () => {
     fireEvent.mouseDown(screen.getByRole('button', { name: 'Table options' }))
     fireEvent.mouseDown(screen.getByText('Delete table'))
     expect(execMock).toHaveBeenCalledWith('deleteTable')
+  })
+
+  it('ColorMenu swatch for the activeColor has aria-selected="true"', () => {
+    // '#091E42' is the first color in TEXT_COLORS
+    renderWithSettings(
+      <EditorToolbar
+        exec={execMock}
+        insertHtml={insertHtmlMock}
+        activeBlock="p"
+        activeFormats={new Set()}
+        activeColor="#091E42"
+      />
+    )
+    const colorBtn = screen.getByRole('button', { name: 'Text color' })
+    fireEvent.mouseDown(colorBtn)
+    const activeSwatch = screen.getByRole('option', { name: '#091E42' })
+    expect(activeSwatch).toHaveAttribute('aria-selected', 'true')
+  })
+
+  it('ColorMenu "Remove color" has aria-selected="false" when a color is active', () => {
+    renderWithSettings(
+      <EditorToolbar
+        exec={execMock}
+        insertHtml={insertHtmlMock}
+        activeBlock="p"
+        activeFormats={new Set()}
+        activeColor="#091E42"
+      />
+    )
+    const colorBtn = screen.getByRole('button', { name: 'Text color' })
+    fireEvent.mouseDown(colorBtn)
+    const removeBtn = screen.getByText('Remove color')
+    expect(removeBtn).toHaveAttribute('aria-selected', 'false')
+  })
+
+  it('EmojiMenu search input filters emojis by category name', async () => {
+    renderToolbar()
+    const emojiBtn = screen.getByRole('button', { name: 'Emoji' })
+    fireEvent.mouseDown(emojiBtn)
+    const dialog = screen.getByRole('dialog')
+
+    // Wait for emoji data to load (lazy import)
+    await waitFor(() => {
+      const btns = within(dialog)
+        .getAllByRole('button')
+        .filter((btn) => btn.textContent && /\p{Emoji}/u.test(btn.textContent))
+      if (btns.length === 0) throw new Error('emoji data not loaded yet')
+      return btns
+    })
+
+    // Type a category name into the search input
+    const searchInput = screen.getByRole('textbox', { name: /search emojis/i })
+    fireEvent.change(searchInput, { target: { value: 'people' } })
+
+    // After search, only the "People" category emojis should be shown,
+    // all as individual buttons in a flat list.
+    await waitFor(() => {
+      const filteredBtns = within(dialog)
+        .getAllByRole('button')
+        .filter((btn) => btn.textContent && /\p{Emoji}/u.test(btn.textContent))
+      expect(filteredBtns.length).toBeGreaterThan(0)
+      // Category headers should no longer appear
+      expect(screen.queryByText('Frequent')).not.toBeInTheDocument()
+    })
+  })
+
+  it('EmojiMenu search shows "No emojis found" when search matches nothing', async () => {
+    renderToolbar()
+    const emojiBtn = screen.getByRole('button', { name: 'Emoji' })
+    fireEvent.mouseDown(emojiBtn)
+
+    // Wait for emoji data to load before searching
+    await waitFor(() => {
+      const dialog = screen.getByRole('dialog')
+      const btns = within(dialog)
+        .getAllByRole('button')
+        .filter((btn) => btn.textContent && /\p{Emoji}/u.test(btn.textContent))
+      if (btns.length === 0) throw new Error('emoji data not loaded yet')
+    })
+
+    const searchInput = screen.getByRole('textbox', { name: /search emojis/i })
+    fireEvent.change(searchInput, { target: { value: 'zzznomatch' } })
+
+    await waitFor(() => {
+      expect(screen.getByText(/no emojis/i)).toBeInTheDocument()
+    })
+  })
+
+  // ── FormatMenu — active format branch ─────────────────────────────────────
+
+  it('FormatMenu shows Subscript as active (aria-checked="true") when subscript is in activeFormats', () => {
+    renderWithSettings(
+      <EditorToolbar
+        exec={execMock}
+        insertHtml={insertHtmlMock}
+        activeBlock="p"
+        activeFormats={new Set(['subscript'])}
+        activeColor={undefined}
+      />
+    )
+    const moreBtn = screen.getByRole('button', { name: 'More formatting' })
+    fireEvent.mouseDown(moreBtn)
+    const subscriptBtn = screen.getByText('Subscript').closest('button')!
+    expect(subscriptBtn).toHaveAttribute('aria-checked', 'true')
+  })
+
+  it('FormatMenu applies active highlight class when a format is active', () => {
+    renderWithSettings(
+      <EditorToolbar
+        exec={execMock}
+        insertHtml={insertHtmlMock}
+        activeBlock="p"
+        activeFormats={new Set(['superscript'])}
+        activeColor={undefined}
+      />
+    )
+    fireEvent.mouseDown(screen.getByRole('button', { name: 'More formatting' }))
+    const superscriptBtn = screen.getByText('Superscript').closest('button')!
+    expect(superscriptBtn.className).toContain('bg-blue-50')
+  })
+
+  // ── ToolbarDropdown trigger — keyboard navigation ──────────────────────────
+
+  it('TextStyleMenu opens via Enter key on the trigger button', () => {
+    renderToolbar()
+    const ttBtn = screen.getByRole('button', { name: 'Text styles' })
+    expect(screen.queryByText('Heading 1')).not.toBeInTheDocument()
+    fireEvent.keyDown(ttBtn, { key: 'Enter' })
+    expect(screen.getByText('Heading 1')).toBeInTheDocument()
+  })
+
+  it('TextStyleMenu opens via Space key on the trigger button', () => {
+    renderToolbar()
+    const ttBtn = screen.getByRole('button', { name: 'Text styles' })
+    fireEvent.keyDown(ttBtn, { key: ' ' })
+    expect(screen.getByText('Heading 1')).toBeInTheDocument()
+  })
+
+  it('TextStyleMenu closes via Enter when the dropdown is already open', () => {
+    renderToolbar()
+    const ttBtn = screen.getByRole('button', { name: 'Text styles' })
+    fireEvent.mouseDown(ttBtn) // open via mouse
+    expect(screen.getByText('Heading 1')).toBeInTheDocument()
+    fireEvent.keyDown(ttBtn, { key: 'Enter' }) // close via keyboard
+    expect(screen.queryByText('Heading 1')).not.toBeInTheDocument()
+  })
+
+  it('TextStyleMenu closes via Escape key pressed on the trigger button', () => {
+    renderToolbar()
+    const ttBtn = screen.getByRole('button', { name: 'Text styles' })
+    fireEvent.mouseDown(ttBtn) // open
+    expect(screen.getByText('Heading 1')).toBeInTheDocument()
+    fireEvent.keyDown(ttBtn, { key: 'Escape' })
+    expect(screen.queryByText('Heading 1')).not.toBeInTheDocument()
+  })
+
+  it('calls exec("toggleCode") when inline-code button is mouse-downed', () => {
+    renderToolbar()
+    const codeBtn = screen.getByRole('button', { name: /wysiwygInlineCode|Inline code/i })
+    fireEvent.mouseDown(codeBtn)
+    expect(execMock).toHaveBeenCalledWith('toggleCode')
+  })
+})
+
+// ── EditorToolbar — i18n locale switching ─────────────────────────────────────
+
+describe('EditorToolbar — i18n', () => {
+  const LS_KEY = 'md2jira-settings'
+
+  function renderToolbarWithLocale(locale: 'en' | 'es' | 'pt' | 'fr') {
+    localStorage.setItem(
+      LS_KEY,
+      JSON.stringify({ historyEnabled: true, maxHistoryEntries: 10, locale })
+    )
+    return render(
+      <SettingsProvider>
+        <EditorToolbar
+          exec={vi.fn()}
+          insertHtml={vi.fn()}
+          activeBlock="p"
+          activeFormats={new Set()}
+          activeColor={undefined}
+        />
+      </SettingsProvider>
+    )
+  }
+
+  afterEach(() => {
+    localStorage.clear()
+  })
+
+  // ── French ──────────────────────────────────────────────────────────────────
+
+  it('renders the toolbar aria-label in French', () => {
+    renderToolbarWithLocale('fr')
+    expect(screen.getByRole('toolbar', { name: 'Mise en forme du texte' })).toBeInTheDocument()
+  })
+
+  it('renders the Bold button label in French as "Gras"', () => {
+    renderToolbarWithLocale('fr')
+    expect(screen.getByRole('button', { name: /^Gras/ })).toBeInTheDocument()
+  })
+
+  it('renders the Text Styles menu trigger in French', () => {
+    renderToolbarWithLocale('fr')
+    expect(screen.getByRole('button', { name: 'Styles de texte' })).toBeInTheDocument()
+  })
+
+  it('TextStyleMenu shows "Texte normal" in French when opened', () => {
+    renderToolbarWithLocale('fr')
+    fireEvent.mouseDown(screen.getByRole('button', { name: 'Styles de texte' }))
+    expect(screen.getAllByText('Texte normal').length).toBeGreaterThan(0)
+  })
+
+  it('renders the More formatting menu trigger in French', () => {
+    renderToolbarWithLocale('fr')
+    expect(screen.getByRole('button', { name: 'Plus de mise en forme' })).toBeInTheDocument()
+  })
+
+  it('renders the Insert elements menu trigger in French', () => {
+    renderToolbarWithLocale('fr')
+    expect(
+      screen.getByRole('button', { name: 'Ins\u00e9rer des \u00e9l\u00e9ments' })
+    ).toBeInTheDocument()
+  })
+
+  // ── Spanish ─────────────────────────────────────────────────────────────────
+
+  it('renders the toolbar aria-label in Spanish', () => {
+    renderToolbarWithLocale('es')
+    expect(screen.getByRole('toolbar', { name: 'Formato de texto' })).toBeInTheDocument()
+  })
+
+  it('renders the Bold button label in Spanish as "Negrita"', () => {
+    renderToolbarWithLocale('es')
+    expect(screen.getByRole('button', { name: /^Negrita/ })).toBeInTheDocument()
+  })
+
+  it('renders the Insert elements menu trigger in Spanish', () => {
+    renderToolbarWithLocale('es')
+    expect(screen.getByRole('button', { name: 'Insertar elementos' })).toBeInTheDocument()
+  })
+
+  it('renders the More formatting menu trigger in Spanish', () => {
+    renderToolbarWithLocale('es')
+    expect(screen.getByRole('button', { name: 'M\u00e1s formato' })).toBeInTheDocument()
+  })
+})
+
+// ── FormatMenu button handlers ─────────────────────────────────────────────────
+
+describe('EditorToolbar — FormatMenu button mouseDown handlers', () => {
+  it('clicking Subscript calls exec("toggleSubscript")', () => {
+    render(
+      <SettingsProvider>
+        <EditorToolbar
+          exec={execMock}
+          insertHtml={insertHtmlMock}
+          activeBlock="p"
+          activeFormats={new Set()}
+          activeColor={undefined}
+        />
+      </SettingsProvider>
+    )
+    fireEvent.mouseDown(screen.getByRole('button', { name: 'More formatting' }))
+    fireEvent.mouseDown(screen.getByText('Subscript').closest('button')!)
+    expect(execMock).toHaveBeenCalledWith('toggleSubscript')
+  })
+
+  it('clicking Superscript calls exec("toggleSuperscript")', () => {
+    render(
+      <SettingsProvider>
+        <EditorToolbar
+          exec={execMock}
+          insertHtml={insertHtmlMock}
+          activeBlock="p"
+          activeFormats={new Set()}
+          activeColor={undefined}
+        />
+      </SettingsProvider>
+    )
+    fireEvent.mouseDown(screen.getByRole('button', { name: 'More formatting' }))
+    fireEvent.mouseDown(screen.getByText('Superscript').closest('button')!)
+    expect(execMock).toHaveBeenCalledWith('toggleSuperscript')
+  })
+
+  it('clicking Remove formatting calls exec("unsetAllMarks")', () => {
+    render(
+      <SettingsProvider>
+        <EditorToolbar
+          exec={execMock}
+          insertHtml={insertHtmlMock}
+          activeBlock="p"
+          activeFormats={new Set()}
+          activeColor={undefined}
+        />
+      </SettingsProvider>
+    )
+    fireEvent.mouseDown(screen.getByRole('button', { name: 'More formatting' }))
+    fireEvent.mouseDown(screen.getByText('Remove formatting').closest('button')!)
+    expect(execMock).toHaveBeenCalledWith('unsetAllMarks')
+  })
+})
+
+// ── ContentMenus TableMenu — additional handlers ───────────────────────────────
+
+describe('EditorToolbar — TableMenu additional handlers', () => {
+  function renderInTable() {
+    render(
+      <SettingsProvider>
+        <EditorToolbar
+          exec={execMock}
+          insertHtml={insertHtmlMock}
+          activeBlock="p"
+          activeFormats={new Set()}
+          activeColor={undefined}
+          isInTable={true}
+        />
+      </SettingsProvider>
+    )
+  }
+
+  it('TableMenu "Add row above" calls exec("addRowBefore")', () => {
+    renderInTable()
+    fireEvent.mouseDown(screen.getByRole('button', { name: 'Table options' }))
+    fireEvent.mouseDown(screen.getByText('Add row above'))
+    expect(execMock).toHaveBeenCalledWith('addRowBefore')
+  })
+
+  it('TableMenu "Add column right" calls exec("addColumnAfter")', () => {
+    renderInTable()
+    fireEvent.mouseDown(screen.getByRole('button', { name: 'Table options' }))
+    fireEvent.mouseDown(screen.getByText('Add column right'))
+    expect(execMock).toHaveBeenCalledWith('addColumnAfter')
+  })
+
+  it('TableMenu "Add column left" calls exec("addColumnBefore")', () => {
+    renderInTable()
+    fireEvent.mouseDown(screen.getByRole('button', { name: 'Table options' }))
+    fireEvent.mouseDown(screen.getByText('Add column left'))
+    expect(execMock).toHaveBeenCalledWith('addColumnBefore')
+  })
+
+  it('TableMenu "Delete row" calls exec("deleteRow")', () => {
+    renderInTable()
+    fireEvent.mouseDown(screen.getByRole('button', { name: 'Table options' }))
+    fireEvent.mouseDown(screen.getByText('Delete row'))
+    expect(execMock).toHaveBeenCalledWith('deleteRow')
+  })
+
+  it('TableMenu "Delete column" calls exec("deleteColumn")', () => {
+    renderInTable()
+    fireEvent.mouseDown(screen.getByRole('button', { name: 'Table options' }))
+    fireEvent.mouseDown(screen.getByText('Delete column'))
+    expect(execMock).toHaveBeenCalledWith('deleteColumn')
   })
 })

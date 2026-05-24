@@ -100,6 +100,23 @@ describe('adfInlineToHtml', () => {
     }
     expect(adfInlineToHtml(node)).toContain('href="#"')
   })
+
+  it('allows mailto: links', () => {
+    const node: AdfInlineNode = {
+      type: 'text',
+      text: 'email',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      marks: [{ type: 'link', attrs: { href: 'mailto:user@example.com' } } as any],
+    }
+    const html = adfInlineToHtml(node)
+    expect(html).toContain('href="mailto:user@example.com"')
+    expect(html).toContain('email</a>')
+  })
+
+  it('wraps strike mark as <s>', () => {
+    const node: AdfInlineNode = { type: 'text', text: 'crossed', marks: [{ type: 'strike' }] }
+    expect(adfInlineToHtml(node)).toBe('<s>crossed</s>')
+  })
 })
 
 describe('adfToHtml', () => {
@@ -328,6 +345,17 @@ describe('adfBlockToHtml', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result = adfBlockToHtml({ type: 'unknownType' } as any)
     expect(result).toBe('')
+  })
+
+  it('renders children of unknown block types as best-effort fallback', () => {
+    // Simulates a future ADF node type (e.g. "expand") that core doesn't handle.
+    // The renderer should fall through and render the inner paragraph content.
+    const result = adfBlockToHtml({
+      type: 'expand',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      content: [{ type: 'paragraph', content: [{ type: 'text', text: 'nested' }] }],
+    } as any)
+    expect(result).toBe('<p>nested</p>')
   })
 
   it('renders taskList with TODO item as unchecked checkbox', () => {

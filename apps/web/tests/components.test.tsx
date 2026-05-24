@@ -274,6 +274,55 @@ describe('ErrorBoundary', () => {
     spy.mockRestore()
     vi.useRealTimers()
   })
+
+  it('renders a custom renderErrorLabel when provided', () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    function Boom(): never {
+      throw new Error('oops')
+    }
+    render(
+      <ErrorBoundary renderErrorLabel="Fehler">
+        <Boom />
+      </ErrorBoundary>
+    )
+    expect(screen.getByText(/Fehler: oops/i)).toBeInTheDocument()
+    spy.mockRestore()
+  })
+
+  it('renders a custom retryLabel function when provided', () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    function Boom(): never {
+      throw new Error('oops')
+    }
+    render(
+      <ErrorBoundary retryLabel={(n) => `Réessayer (${n} restants)`}>
+        <Boom />
+      </ErrorBoundary>
+    )
+    expect(screen.getByRole('button', { name: /Réessayer \(3 restants\)/i })).toBeInTheDocument()
+    spy.mockRestore()
+  })
+
+  it('renders a custom maxRetriesLabel when all retries are exhausted', () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    function Boom(): never {
+      throw new Error('oops')
+    }
+    render(
+      <ErrorBoundary
+        retryLabel={(n) => `Réessayer (${n} restants)`}
+        maxRetriesLabel="Nombre maximal de tentatives atteint."
+      >
+        <Boom />
+      </ErrorBoundary>
+    )
+    fireEvent.click(screen.getByRole('button', { name: /3 restants/i }))
+    fireEvent.click(screen.getByRole('button', { name: /2 restants/i }))
+    fireEvent.click(screen.getByRole('button', { name: /1 restants/i }))
+    expect(screen.queryByRole('button', { name: /réessayer/i })).not.toBeInTheDocument()
+    expect(screen.getByText(/Nombre maximal de tentatives atteint/i)).toBeInTheDocument()
+    spy.mockRestore()
+  })
 })
 
 describe('Markdown → output conversion', () => {

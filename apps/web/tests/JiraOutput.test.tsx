@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, act } from '@testing-library/react'
+import { render, screen, fireEvent, act, within } from '@testing-library/react'
 import { createElement } from 'react'
 import type { ReactNode } from 'react'
 import { ToastProvider } from '../src/context/ToastContext.js'
@@ -116,5 +116,26 @@ describe('JiraOutput — wiki edit desync warning', () => {
     fireEvent.click(screen.getByRole('button', { name: 'View' }))
     // Still only one toast visible (the first one)
     expect(screen.getAllByText(/wiki markup edits are independent/i)).toHaveLength(1)
+  })
+})
+
+// ── JiraOutputHeader view mode ────────────────────────────────────────────────
+
+describe('JiraOutput — view mode toggle (ADF)', () => {
+  it('clicking Preview after Code returns to preview mode', () => {
+    renderWithToast(createElement(JiraOutput, baseProps))
+    // Switch to Code view
+    const viewModeGroup = screen.getByRole('radiogroup', { name: /view mode/i })
+    fireEvent.click(within(viewModeGroup).getByRole('radio', { name: 'Code' }))
+    expect(within(viewModeGroup).getByRole('radio', { name: 'Code' })).toHaveAttribute(
+      'aria-checked',
+      'true'
+    )
+    // Switch back to Preview
+    fireEvent.click(within(viewModeGroup).getByRole('radio', { name: 'Preview' }))
+    expect(within(viewModeGroup).getByRole('radio', { name: 'Preview' })).toHaveAttribute(
+      'aria-checked',
+      'true'
+    )
   })
 })
