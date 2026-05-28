@@ -36,7 +36,10 @@
     "jira",
     "cli",
     "converter",
-    "jira-wiki-markup"
+    "jira-wiki-markup",
+    "atlassian",
+    "adf",
+    "confluence"
   ],
   "license": "MIT",
   "homepage": "https://danielmontes9.github.io/md2jira",

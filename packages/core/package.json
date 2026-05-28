@@ -50,6 +50,10 @@
     "wiki",
     "converter",
     "jira-wiki-markup",
+    "atlassian",
+    "adf",
+    "atlassian-document-format",
+    "confluence",
     "remark"
   ],
   "license": "MIT",

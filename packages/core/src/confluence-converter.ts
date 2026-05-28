@@ -1,20 +1,19 @@
 import type { RootContent, PhrasingContent, List, ListItem, Blockquote } from 'mdast'
 import { parseMarkdown } from './parse.js'
-import { hasStringValue, resolveUrl, normalizeTableColumnCount } from './utils.js'
+import {
+  hasStringValue,
+  resolveUrl,
+  normalizeTableColumnCount,
+  escapeHtml,
+  escapeAttr,
+} from './utils.js'
 import type { ConvertOptions } from './utils.js'
 import { detectAlertType, stripAlertMarker } from './transforms/blockquotes.js'
 
 // ── HTML helpers ─────────────────────────────────────────────────────────────
 
-/** Escape text content for use inside XML/HTML element bodies. */
-function escHtml(text: string): string {
-  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-}
-
-/** Escape a value for use inside an XML attribute (double-quoted). */
-function escAttr(value: string): string {
-  return escHtml(value).replace(/"/g, '&quot;')
-}
+const escHtml = escapeHtml
+const escAttr = escapeAttr
 
 // ── Inline transforms (Confluence Storage Format XHTML) ──────────────────────
 

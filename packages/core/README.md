@@ -1,6 +1,6 @@
 # md2jira-core
 
-> Pure TypeScript library to convert Markdown to Jira Wiki Markup.
+> Pure TypeScript library to convert Markdown to **Jira Wiki Markup**, **Atlassian Document Format (ADF)**, and **Confluence Storage Format**.
 
 [![npm version](https://img.shields.io/npm/v/md2jira-core)](https://www.npmjs.com/package/md2jira-core)
 [![npm downloads](https://img.shields.io/npm/dm/md2jira-core)](https://www.npmjs.com/package/md2jira-core)
@@ -75,7 +75,7 @@ console.log('hello');
 
 ## API
 
-### `convert(markdown: string): string`
+### `convert(markdown: string, options?: ConvertOptions): string`
 
 Converts a Markdown string to Jira Wiki Markup.
 
@@ -83,6 +83,53 @@ Converts a Markdown string to Jira Wiki Markup.
 import { convert } from 'md2jira-core'
 
 const result = convert('**hello**') // → '*hello*'
+```
+
+### `convertToAdf(markdown: string, options?: ConvertOptions): AdfDocument`
+
+Converts a Markdown string to [Atlassian Document Format (ADF)](https://developer.atlassian.com/cloud/jira/platform/apis/document/structure/) — the native JSON format used by Jira Cloud.
+
+```ts
+import { convertToAdf } from 'md2jira-core'
+
+const doc = convertToAdf('# Hello\n\n**world**')
+// → { version: 1, type: 'doc', content: [ { type: 'heading', ... }, ... ] }
+```
+
+### `convertToConfluence(markdown: string, options?: ConvertOptions): string`
+
+Converts a Markdown string to [Confluence Storage Format](https://confluence.atlassian.com/doc/confluence-storage-format-790796544.html) (XHTML with Confluence macros).
+
+```ts
+import { convertToConfluence } from 'md2jira-core'
+
+const xml = convertToConfluence('# Hello\n\n**world**')
+// → '<h1>Hello</h1>\n<p><strong>world</strong></p>'
+```
+
+### `ConvertOptions`
+
+All converter functions accept an optional `ConvertOptions` object:
+
+```ts
+interface ConvertOptions {
+  /** Prepend an absolute base URL to relative links (those starting with '/'). */
+  baseUrl?: string
+  /** Suppress one or more node types from the output. */
+  disableTransforms?: ReadonlyArray<
+    'heading' | 'list' | 'code' | 'blockquote' | 'table' | 'thematicBreak' | 'panel'
+  >
+}
+```
+
+```ts
+import { convert } from 'md2jira-core'
+
+convert('[docs](/guide)', { baseUrl: 'https://company.atlassian.net/wiki' })
+// → '[docs|https://company.atlassian.net/wiki/guide]'
+
+convert('# Title\n\nParagraph', { disableTransforms: ['heading'] })
+// → 'Paragraph'
 ```
 
 ## Live Demo

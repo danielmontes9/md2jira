@@ -1,6 +1,22 @@
 import type { TableRow } from 'mdast'
 
 /**
+ * Escapes text for safe insertion into XML/HTML element bodies.
+ * Used by `confluence-converter.ts` for both text nodes and attribute values.
+ */
+export function escapeHtml(text: string): string {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+/**
+ * Escapes a string for safe use inside a double-quoted XML attribute.
+ * Builds on `escapeHtml` so all HTML special chars plus `"` are covered.
+ */
+export function escapeAttr(value: string): string {
+  return escapeHtml(value).replace(/"/g, '&quot;')
+}
+
+/**
  * Resolves a URL against a base URL when the URL is relative (starts with '/').
  * Shared by the Jira Wiki, ADF, and Confluence inline transform layers so
  * the resolution logic is defined exactly once.
