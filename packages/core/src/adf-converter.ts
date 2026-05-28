@@ -9,7 +9,7 @@ import type {
   Table,
 } from 'mdast'
 import { parseMarkdown } from './parse.js'
-import { hasStringValue, normalizeTableColumnCount } from './utils.js'
+import { hasStringValue, normalizeTableColumnCount, resolveUrl } from './utils.js'
 import type { ConvertOptions } from './utils.js'
 import { detectAlertType, stripAlertMarker, ALERT_TO_ADF_PANEL } from './transforms/blockquotes.js'
 import type {
@@ -60,8 +60,7 @@ function convertInlineToAdf(
         },
       ]
     case 'link': {
-      const resolvedHref =
-        baseUrl && node.url.startsWith('/') ? baseUrl.replace(/\/$/, '') + node.url : node.url
+      const resolvedHref = resolveUrl(node.url, baseUrl)
       const marks: AdfMark[] = [...parentMarks, { type: 'link', attrs: { href: resolvedHref } }]
       if (node.children.length === 0) {
         // Empty link text [](url) — use the URL itself as the display text

@@ -46,9 +46,13 @@ export interface ConvertOptions {
    */
   baseUrl?: string
   /**
-   * mdast block node types whose output should be suppressed.
-   * Valid values match mdast block node type names:
-   * `'heading' | 'list' | 'code' | 'blockquote' | 'table' | 'thematicBreak'`
+   * Node types whose output should be suppressed.
+   * Most values correspond to mdast block node type names.
+   * Exception: `'panel'` is a synthetic value (not an mdast type) that controls
+   * whether GFM Alert blockquotes (`> [!NOTE]`) are rendered as panel macros
+   * (`{note}` / `<ac:structured-macro ac:name="note">`) or fall back to plain
+   * blockquotes. It is checked explicitly inside the blockquote handlers rather
+   * than by the generic `node.type` switch.
    */
   disableTransforms?: ReadonlyArray<
     'heading' | 'list' | 'code' | 'blockquote' | 'table' | 'thematicBreak' | 'panel'
