@@ -80,15 +80,31 @@ program
     collectTransforms,
     [] as string[]
   )
-  .option('-w, --watch', 'Re-run conversion whenever the input file changes (requires an input file)')
+  .option(
+    '-w, --watch',
+    'Re-run conversion whenever the input file changes (requires an input file)'
+  )
+  .option('-q, --quiet', 'Suppress informational messages written to stderr (watch mode banners)')
   .action(
     async (
       input: string | undefined,
-      options: { output?: string; format: string; baseUrl?: string; disable: string[]; watch?: boolean }
+      options: {
+        output?: string
+        format: string
+        baseUrl?: string
+        disable: string[]
+        watch?: boolean
+        quiet?: boolean
+      }
     ) => {
       // format and baseUrl are validated and normalised at parse time by argParser.
       const fmt = options.format
       const watchMode = options.watch === true
+      const quiet = options.quiet === true
+
+      const log = (msg: string): void => {
+        if (!quiet) process.stderr.write(msg)
+      }
 
       if (watchMode && !input) {
         process.stderr.write(
@@ -111,9 +127,16 @@ program
 
       /** Reads the input, converts, and writes output once. */
       async function runOnce(): Promise<void> {
-        const markdown = input
-          ? await readFile(resolve(input), 'utf-8')
-          : await readStdin()
+        let markdown: string
+        try {
+          markdown = input ? await readFile(resolve(input), 'utf-8') : await readStdin()
+        } catch (err) {
+          if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
+            process.stderr.write(`[md2jira] File not found: ${input}\n`)
+            return
+          }
+          throw err
+        }
 
         let result: string
         if (fmt === 'adf') {
@@ -140,22 +163,29 @@ program
       const ac = new AbortController()
       process.on('SIGINT', () => {
         ac.abort()
-        process.stderr.write('\n[md2jira] Watch stopped.\n')
+        log('\n[md2jira] Watch stopped.\n')
         process.exit(0)
       })
 
-      process.stderr.write(`[md2jira] Watching ${input}...\n`)
+      log(`[md2jira] Watching ${input}...\n`)
 
       try {
         for await (const { eventType } of watch(resolve(input!), { signal: ac.signal })) {
           if (eventType === 'change') {
-            process.stderr.write('[md2jira] Change detected, converting...\n')
+            log('[md2jira] Change detected, converting...\n')
             await runOnce()
           }
         }
       } catch (err) {
-        // AbortError is expected when SIGINT is received
-        if ((err as NodeJS.ErrnoException).name !== 'AbortError') throw err
+        const e = err as NodeJS.ErrnoException
+        // AbortError is expected when SIGINT triggers ac.abort()
+        if (e.name === 'AbortError') return
+        // File deleted while watching — report and exit cleanly
+        if (e.code === 'ENOENT') {
+          process.stderr.write(`[md2jira] Watched file was deleted: ${input}\n`)
+          process.exit(1)
+        }
+        throw err
       }
     }
   )

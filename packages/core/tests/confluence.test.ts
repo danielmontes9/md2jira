@@ -248,15 +248,18 @@ describe('convertToConfluence — GFM Alerts', () => {
 // ── Tables ────────────────────────────────────────────────────────────────────
 
 describe('convertToConfluence — table', () => {
-  it('renders header row with <th> and data rows with <td>', () => {
+  it('renders header row in <thead> and data rows in <tbody>', () => {
     const md = '| A | B |\n|---|---|\n| 1 | 2 |'
     const out = convertToConfluence(md)
     expect(out).toContain('<table>')
+    expect(out).toContain('<thead>')
     expect(out).toContain('<tbody>')
     expect(out).toContain('<th>A</th>')
     expect(out).toContain('<th>B</th>')
     expect(out).toContain('<td>1</td>')
     expect(out).toContain('<td>2</td>')
+    // thead comes before tbody in source order
+    expect(out.indexOf('<thead>')).toBeLessThan(out.indexOf('<tbody>'))
   })
   it('pads missing cells in short rows', () => {
     const md = '| A | B | C |\n|---|---|---|\n| x |'
@@ -277,11 +280,12 @@ describe('convertToConfluence — table', () => {
     expect(out).toContain('a &lt; b')
     expect(out).toContain('c &amp; d')
   })
-  it('renders single-row table as header only', () => {
+  it('renders single-row table as header only (no tbody)', () => {
     const md = '| H1 | H2 |\n|---|---|'
     const out = convertToConfluence(md)
     expect(out).toContain('<th>H1</th>')
     expect(out).not.toContain('<td>')
+    expect(out).not.toContain('<tbody>')
   })
 })
 

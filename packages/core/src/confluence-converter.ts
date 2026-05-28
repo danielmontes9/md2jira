@@ -9,6 +9,7 @@ import {
 } from './utils.js'
 import type { ConvertOptions } from './utils.js'
 import { detectAlertType, stripAlertMarker } from './transforms/blockquotes.js'
+import { resolveLanguage } from './transforms/codeblocks.js'
 
 // ── Inline transforms (Confluence Storage Format XHTML) ──────────────────────
 
@@ -69,7 +70,7 @@ function confluenceCodeBlock(node: Extract<RootContent, { type: 'code' }>): stri
   if (node.lang) {
     return (
       `<ac:structured-macro ac:name="code">` +
-      `<ac:parameter ac:name="language">${escapeAttr(node.lang)}</ac:parameter>` +
+      `<ac:parameter ac:name="language">${escapeAttr(resolveLanguage(node.lang))}</ac:parameter>` +
       `<ac:plain-text-body><![CDATA[${body}]]></ac:plain-text-body>` +
       `</ac:structured-macro>`
     )
@@ -175,9 +176,7 @@ function confluenceTable(node: Extract<RootContent, { type: 'table' }>, baseUrl?
   const rows = node.children
   const maxCols = normalizeTableColumnCount(rows)
 
-  const rowStrings = rows.map((row, rowIndex) => {
-    const isHeader = rowIndex === 0
-    const tag = isHeader ? 'th' : 'td'
+  const buildRow = (row: (typeof rows)[number], tag: 'th' | 'td'): string => {
     const cells = row.children.map((cell) => {
       const content = inlineChildren(cell.children, baseUrl)
       return `<${tag}>${content}</${tag}>`
@@ -185,9 +184,14 @@ function confluenceTable(node: Extract<RootContent, { type: 'table' }>, baseUrl?
     // Pad rows with fewer columns than the widest row
     while (cells.length < maxCols) cells.push(`<${tag}></${tag}>`)
     return `<tr>${cells.join('')}</tr>`
-  })
+  }
 
-  return `<table><tbody>${rowStrings.join('')}</tbody></table>`
+  const [headerRow, ...dataRows] = rows
+  const thead = headerRow ? `<thead>${buildRow(headerRow, 'th')}</thead>` : ''
+  const tbody =
+    dataRows.length > 0 ? `<tbody>${dataRows.map((r) => buildRow(r, 'td')).join('')}</tbody>` : ''
+
+  return `<table>${thead}${tbody}</table>`
 }
 
 // ── Root converter ────────────────────────────────────────────────────────────

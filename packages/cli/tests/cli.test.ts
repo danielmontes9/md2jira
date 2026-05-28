@@ -508,4 +508,29 @@ describe('--watch flag', () => {
     expect(exitCode).toBe(1)
     expect(stderr).toContain('--watch requires an input file')
   })
+
+  it('exits cleanly with "File not found" message when input file does not exist (no watch)', async () => {
+    const { stderr, exitCode } = await run(['nonexistent-watch-file.md'])
+    expect(exitCode).toBe(1)
+    expect(stderr).toMatch(/ENOENT|no such file/i)
+  })
+})
+
+describe('--quiet flag', () => {
+  it('shows --quiet in help output', async () => {
+    const { stdout } = await run(['--help'])
+    expect(stdout).toContain('--quiet')
+  })
+
+  it('-q is accepted as short alias for --quiet', async () => {
+    const { stdout, exitCode } = await run(['-q'], { stdin: '# Hello\n' })
+    expect(exitCode).toBe(0)
+    expect(stdout).toContain('h1. Hello')
+  })
+
+  it('still converts correctly when --quiet is passed', async () => {
+    const { stdout, exitCode } = await run(['--quiet'], { stdin: '**bold**\n' })
+    expect(exitCode).toBe(0)
+    expect(stdout).toContain('*bold*')
+  })
 })
