@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { createRequire } from 'node:module'
-import { readFile, writeFile } from 'node:fs/promises'
+import { readFile, writeFile, watch } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { createInterface } from 'node:readline'
 import { Command, Option, InvalidArgumentError } from 'commander'
@@ -80,19 +80,21 @@ program
     collectTransforms,
     [] as string[]
   )
+  .option('-w, --watch', 'Re-run conversion whenever the input file changes (requires an input file)')
   .action(
     async (
       input: string | undefined,
-      options: { output?: string; format: string; baseUrl?: string; disable: string[] }
+      options: { output?: string; format: string; baseUrl?: string; disable: string[]; watch?: boolean }
     ) => {
       // format and baseUrl are validated and normalised at parse time by argParser.
       const fmt = options.format
+      const watchMode = options.watch === true
 
-      let markdown: string
-      if (input) {
-        markdown = await readFile(resolve(input), 'utf-8')
-      } else {
-        markdown = await readStdin()
+      if (watchMode && !input) {
+        process.stderr.write(
+          'Error: --watch requires an input file. Pipe mode is not supported in watch mode.\n'
+        )
+        process.exit(1)
       }
 
       // --disable values are validated at parse time by collectTransforms;
@@ -107,21 +109,53 @@ program
         ...(disableTransforms ? { disableTransforms } : {}),
       }
 
-      let result: string
-      if (fmt === 'adf') {
-        result = JSON.stringify(convertToAdf(markdown, convertOptions), null, 2)
-      } else if (fmt === 'confluence') {
-        result = convertToConfluence(markdown, convertOptions)
-      } else {
-        result = convert(markdown, convertOptions)
+      /** Reads the input, converts, and writes output once. */
+      async function runOnce(): Promise<void> {
+        const markdown = input
+          ? await readFile(resolve(input), 'utf-8')
+          : await readStdin()
+
+        let result: string
+        if (fmt === 'adf') {
+          result = JSON.stringify(convertToAdf(markdown, convertOptions), null, 2)
+        } else if (fmt === 'confluence') {
+          result = convertToConfluence(markdown, convertOptions)
+        } else {
+          result = convert(markdown, convertOptions)
+        }
+
+        // Ensure a trailing newline so shell prompts appear on a fresh line.
+        const out = result && !result.endsWith('\n') ? result + '\n' : result
+        if (options.output) {
+          await writeFile(resolve(options.output), out, 'utf-8')
+        } else {
+          process.stdout.write(out)
+        }
       }
 
-      // Ensure a trailing newline so shell prompts appear on a fresh line.
-      const output = result && !result.endsWith('\n') ? result + '\n' : result
-      if (options.output) {
-        await writeFile(resolve(options.output), output, 'utf-8')
-      } else {
-        process.stdout.write(output)
+      await runOnce()
+
+      if (!watchMode) return
+
+      const ac = new AbortController()
+      process.on('SIGINT', () => {
+        ac.abort()
+        process.stderr.write('\n[md2jira] Watch stopped.\n')
+        process.exit(0)
+      })
+
+      process.stderr.write(`[md2jira] Watching ${input}...\n`)
+
+      try {
+        for await (const { eventType } of watch(resolve(input!), { signal: ac.signal })) {
+          if (eventType === 'change') {
+            process.stderr.write('[md2jira] Change detected, converting...\n')
+            await runOnce()
+          }
+        }
+      } catch (err) {
+        // AbortError is expected when SIGINT is received
+        if ((err as NodeJS.ErrnoException).name !== 'AbortError') throw err
       }
     }
   )

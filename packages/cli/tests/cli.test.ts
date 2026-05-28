@@ -495,3 +495,17 @@ describe('--base-url edge cases', () => {
     expect(stdout).toContain('[page|https://company.atlassian.net/wiki/home]')
   })
 })
+
+describe('--watch flag', () => {
+  it('exits with error when --watch is used without an input file', async () => {
+    const { stderr, exitCode } = await run(['--watch'], { stdin: '# Hello\n' })
+    expect(exitCode).toBe(1)
+    expect(stderr).toContain('--watch requires an input file')
+  })
+
+  it('-w short flag also exits with error when no input file is given', async () => {
+    const { stderr, exitCode } = await run(['-w'], { stdin: '# Hello\n' })
+    expect(exitCode).toBe(1)
+    expect(stderr).toContain('--watch requires an input file')
+  })
+})
