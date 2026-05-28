@@ -196,7 +196,7 @@ describe('--format validation', () => {
   it('exits with code 1 for unknown format', async () => {
     const { stderr, exitCode } = await run(['--format', 'xml'], { stdin: '# Title\n' })
     expect(exitCode).toBe(1)
-    expect(stderr).toContain('unknown format')
+    expect(stderr).toContain('invalid')
     expect(stderr).toContain('xml')
     expect(stderr).toContain('wiki')
     expect(stderr).toContain('adf')

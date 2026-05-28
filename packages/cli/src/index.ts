@@ -3,7 +3,7 @@ import { createRequire } from 'node:module'
 import { readFile, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { createInterface } from 'node:readline'
-import { Command } from 'commander'
+import { Command, Option, InvalidArgumentError } from 'commander'
 import { convert, convertToAdf, convertToConfluence } from 'md2jira-core'
 import type { ConvertOptions } from 'md2jira-core'
 
@@ -20,9 +20,6 @@ const VALID_TRANSFORMS = new Set([
   'thematicBreak',
   'panel',
 ])
-
-/** Valid output format names accepted by --format. */
-const VALID_FORMATS = new Set(['wiki', 'adf', 'confluence'])
 
 /** Collector for --disable: supports both comma-separated and repeated flags. Deduplicates. */
 function collectTransforms(val: string, prev: string[]): string[] {
@@ -43,10 +40,16 @@ program
   .version(version)
   .argument('[input]', 'Input Markdown file (omit to read from stdin)')
   .option('-o, --output <file>', 'Output file (omit to write to stdout)')
-  .option(
-    '-f, --format <format>',
-    'Output format: "wiki" (default), "adf", or "confluence"',
-    'wiki'
+  .addOption(
+    new Option('-f, --format <format>', 'Output format: "wiki" (default), "adf", or "confluence"')
+      .default('wiki')
+      .argParser((v) => {
+        const lower = v.toLowerCase()
+        if (!['wiki', 'adf', 'confluence'].includes(lower)) {
+          throw new InvalidArgumentError('Allowed choices are wiki, adf, confluence.')
+        }
+        return lower
+      })
   )
   .option(
     '--base-url <url>',
@@ -63,14 +66,8 @@ program
       input: string | undefined,
       options: { output?: string; format: string; baseUrl?: string; disable: string[] }
     ) => {
-      // Validate --format before touching stdin/file so we fail fast.
-      const fmt = options.format.toLowerCase()
-      if (!VALID_FORMATS.has(fmt)) {
-        process.stderr.write(
-          `Error: unknown format "${options.format}". Valid values: wiki, adf, confluence\n`
-        )
-        process.exit(1)
-      }
+      // Format is validated and normalised to lowercase by commander's argParser + choices.
+      const fmt = options.format
 
       // Validate --base-url is an absolute URL.
       if (options.baseUrl !== undefined) {
