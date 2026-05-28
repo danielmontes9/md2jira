@@ -31,9 +31,21 @@ export const CopyEditGroup = memo(function CopyEditGroup({
         type="button"
         onClick={onCopy}
         aria-label={
-          copied ? t('copied') : format === 'adf' ? t('copyRichText') : t('copyWikiMarkup')
+          copied
+            ? t('copied')
+            : format === 'adf'
+              ? t('copyRichText')
+              : format === 'confluence'
+                ? t('copyConfluenceMarkup')
+                : t('copyWikiMarkup')
         }
-        title={format === 'adf' ? t('copyRichText') : t('copyWikiMarkup')}
+        title={
+          format === 'adf'
+            ? t('copyRichText')
+            : format === 'confluence'
+              ? t('copyConfluenceMarkup')
+              : t('copyWikiMarkup')
+        }
         className="whitespace-nowrap rounded-l-md px-3 py-1 font-medium text-neutral-600 transition-colors hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
       >
         {copied ? t('copied') : t('copyForJira')}

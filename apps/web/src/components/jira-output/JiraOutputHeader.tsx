@@ -4,8 +4,8 @@ import { CopyEditGroup } from './CopyEditGroup.js'
 import { useT } from '../../i18n/index.js'
 
 /** Returns the correct className for a toggle-group button. */
-function toggleBtnCls(active: boolean, side: 'left' | 'right'): string {
-  const radius = side === 'left' ? 'rounded-l-md' : 'rounded-r-md'
+function toggleBtnCls(active: boolean, side: 'left' | 'middle' | 'right'): string {
+  const radius = side === 'left' ? 'rounded-l-md' : side === 'right' ? 'rounded-r-md' : ''
   const base = `whitespace-nowrap ${radius} px-2 py-1 transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500`
   return active
     ? `${base} bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-neutral-100`
@@ -76,6 +76,16 @@ export const JiraOutputHeader = memo(function JiraOutputHeader({
             className={toggleBtnCls(format === 'adf', 'left')}
           >
             {t('formatAdf')}
+          </button>
+          <button
+            type="button"
+            onClick={() => onFormatChange('confluence')}
+            role="radio"
+            aria-checked={format === 'confluence'}
+            tabIndex={format === 'confluence' ? 0 : -1}
+            className={toggleBtnCls(format === 'confluence', 'middle')}
+          >
+            {t('formatConfluence')}
           </button>
           <button
             type="button"

@@ -131,6 +131,11 @@ export const JiraOutput = memo(function JiraOutput({
           {t('wikiCodeHint')}
         </div>
       )}
+      {format === 'confluence' && (
+        <div className="border-b border-neutral-200 bg-neutral-50 px-4 py-1.5 text-xs text-neutral-400 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-500">
+          {t('confluenceCodeHint')}
+        </div>
+      )}
 
       {/* ── Editor toolbar ── */}
       {canEdit && (
@@ -161,7 +166,7 @@ export const JiraOutput = memo(function JiraOutput({
       <div role="status" aria-live="polite" className="sr-only">
         {editMode
           ? t('editModeEnabled')
-          : `${t(format === 'adf' ? 'formatAdf' : 'formatWiki')} ${t(viewMode === 'preview' ? 'viewPreview' : 'viewCode')}`}
+          : `${t(format === 'adf' ? 'formatAdf' : format === 'confluence' ? 'formatConfluence' : 'formatWiki')} ${t(viewMode === 'preview' ? 'viewPreview' : 'viewCode')}`}
       </div>
 
       {/* ── Content ── */}

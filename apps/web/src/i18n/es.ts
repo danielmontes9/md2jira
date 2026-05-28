@@ -51,6 +51,7 @@ export const es: Record<StringKey, string> = {
   outputFormatGroup: 'Formato de salida',
   formatAdf: 'Jira Cloud',
   formatWiki: 'Wiki Markup',
+  formatConfluence: 'Confluence',
   viewPreview: 'Vista previa',
   viewCode: 'C\u00f3digo',
   editToggle: 'Editar',
@@ -58,6 +59,9 @@ export const es: Record<StringKey, string> = {
   adfCodeHint:
     'Se copia como texto enriquecido \u2014 pega directamente en comentarios de Jira Cloud',
   wikiCodeHint: 'Wiki Markup en bruto \u2014 copia y pega en Jira Server/Data Center',
+  confluenceCodeHint:
+    'Formato de almacenamiento de Confluence (XHTML) \u2014 importa v\u00eda API REST o pega en una p\u00e1gina de Confluence',
+  copyConfluenceMarkup: 'Copiar formato de almacenamiento de Confluence al portapapeles',
 
   // ── History sidebar ──────────────────────────────────────────────────────────
   recentDocuments: 'Documentos recientes',

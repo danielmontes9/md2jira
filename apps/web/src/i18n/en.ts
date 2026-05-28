@@ -60,12 +60,16 @@ export const en = {
   outputFormatGroup: 'Output format',
   formatAdf: 'Jira Cloud',
   formatWiki: 'Wiki Markup',
+  formatConfluence: 'Confluence',
   viewPreview: 'Preview',
   viewCode: 'Code',
   editToggle: 'Edit',
   viewToggle: 'View',
   adfCodeHint: 'Copies as rich text \u2014 paste directly into Jira Cloud comments',
   wikiCodeHint: 'Raw Wiki Markup \u2014 copy and paste into Jira Server/Data Center',
+  confluenceCodeHint:
+    'Confluence Storage Format (XHTML) \u2014 import via REST API or paste into a Confluence page',
+  copyConfluenceMarkup: 'Copy Confluence Storage Format to clipboard',
 
   // ── History sidebar ───────────────────────────────────────────────────────
   recentDocuments: 'Recent documents',

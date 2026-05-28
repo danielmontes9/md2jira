@@ -51,6 +51,11 @@ export function JiraOutputContent({
   // Memoize expensive syntax-highlight passes: only recompute when `value` changes.
   const highlightedJson = useMemo(() => highlightJson(value), [value])
   const highlightedWiki = useMemo(() => highlightWiki(value), [value])
+  // Confluence output is XHTML — just HTML-escape it, no syntax decoration.
+  const highlightedConfluence = useMemo(
+    () => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'),
+    [value]
+  )
 
   // Wiki textarea auto-resize: keep the ref + effect always at the top level
   // so hook order is stable across all render paths (code view, ADF, wiki preview, wiki edit).
@@ -72,8 +77,16 @@ export function JiraOutputContent({
         aria-label={format === 'adf' ? t('adfCodeLabel') : t('wikiCodeLabel')}
         className="flex-1 overflow-auto whitespace-pre-wrap p-4 font-mono text-sm text-neutral-900 dark:text-neutral-100"
         // highlightJson/highlightWiki escape HTML before injecting <span> tags — safe.
+        // highlightedConfluence is manually HTML-escaped — safe.
         // eslint-disable-next-line react/no-danger
-        dangerouslySetInnerHTML={{ __html: format === 'adf' ? highlightedJson : highlightedWiki }}
+        dangerouslySetInnerHTML={{
+          __html:
+            format === 'adf'
+              ? highlightedJson
+              : format === 'confluence'
+                ? highlightedConfluence
+                : highlightedWiki,
+        }}
       />
     )
   }
@@ -122,6 +135,20 @@ export function JiraOutputContent({
         aria-multiline={true}
         aria-readonly={!(canEdit && editMode)}
         className={`jira-preview flex-1 overflow-auto p-6 text-sm text-neutral-900 outline-none transition-opacity duration-200 dark:text-neutral-100 ${isPending && !(canEdit && editMode) ? 'opacity-50' : ''}`}
+      />
+    )
+  }
+
+  // Confluence output — plain HTML-escaped XHTML, no wiki syntax decoration.
+  if (format === 'confluence') {
+    return (
+      <pre
+        role="region"
+        aria-label={t('formatConfluence')}
+        className="flex-1 overflow-auto whitespace-pre-wrap p-6 font-mono text-sm text-neutral-900 dark:text-neutral-100"
+        // highlightedConfluence is manually HTML-escaped — safe.
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: highlightedConfluence }}
       />
     )
   }

@@ -7,7 +7,7 @@ import {
   useRef,
   Suspense,
 } from 'react'
-import { convert, convertToAdf } from 'md2jira-core'
+import { convert, convertToAdf, convertToConfluence } from 'md2jira-core'
 import type { AdfDocument } from 'md2jira-core'
 import { Header } from './components/Header.js'
 import { MarkdownInput } from './components/MarkdownInput.js'
@@ -40,10 +40,10 @@ const LARGE_DOC_DEBOUNCE_MS = 150
 /** Reads the initial output format from the ?fmt= URL param, then localStorage, then 'adf'. */
 function getInitialFormat(search = window.location.search): OutputFormat {
   const urlFmt = new URLSearchParams(search).get('fmt')
-  if (urlFmt === 'wiki' || urlFmt === 'adf') return urlFmt
+  if (urlFmt === 'wiki' || urlFmt === 'adf' || urlFmt === 'confluence') return urlFmt
   try {
     const stored = localStorage.getItem('output-format')
-    if (stored === 'wiki' || stored === 'adf') return stored
+    if (stored === 'wiki' || stored === 'adf' || stored === 'confluence') return stored
   } catch {
     // localStorage unavailable (sandboxed iframe, privacy mode)
   }
@@ -147,6 +147,9 @@ function AppContent() {
         } else if (e.key === 'W') {
           e.preventDefault()
           setFormat('wiki')
+        } else if (e.key === 'C') {
+          e.preventDefault()
+          setFormat('confluence')
         }
       },
       { signal: ac.signal }
@@ -172,6 +175,13 @@ function AppContent() {
         return {
           jiraOutput: JSON.stringify(adf, null, 2),
           adfDoc: adf,
+          hasConversionError: false,
+        }
+      }
+      if (format === 'confluence') {
+        return {
+          jiraOutput: convertToConfluence(deferredMarkdown),
+          adfDoc: null,
           hasConversionError: false,
         }
       }
