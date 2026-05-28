@@ -5,15 +5,24 @@ import type { TableRow } from 'mdast'
  * Used by `confluence-converter.ts` for both text nodes and attribute values.
  */
 export function escapeHtml(text: string): string {
-  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;')
+}
+
+/**
+ * Escapes text for safe insertion into XML/XHTML element bodies.
+ * Unlike `escapeHtml`, also escapes `>` for strict XML compliance.
+ * Used by `confluence-converter.ts` which produces Confluence Storage Format (XHTML).
+ */
+export function escapeXml(text: string): string {
+  return escapeHtml(text).replace(/>/g, '&gt;')
 }
 
 /**
  * Escapes a string for safe use inside a double-quoted XML attribute.
- * Builds on `escapeHtml` so all HTML special chars plus `"` are covered.
+ * Builds on `escapeXml` so all XML special chars plus `"` are covered.
  */
 export function escapeAttr(value: string): string {
-  return escapeHtml(value).replace(/"/g, '&quot;')
+  return escapeXml(value).replace(/"/g, '&quot;')
 }
 
 /**

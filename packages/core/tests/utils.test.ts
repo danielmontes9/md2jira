@@ -4,6 +4,7 @@ import {
   normalizeTableColumnCount,
   resolveUrl,
   escapeHtml,
+  escapeXml,
   escapeAttr,
 } from '../src/utils.js'
 import type { TableRow } from 'mdast'
@@ -82,11 +83,11 @@ describe('escapeHtml', () => {
     expect(escapeHtml('<div>')).toBe('&lt;div>')
   })
 
-  it('escapes greater-than', () => {
+  it('does not escape greater-than', () => {
     expect(escapeHtml('a > b')).toBe('a > b')
   })
 
-  it('escapes all three special chars in one string', () => {
+  it('escapes all HTML special chars in one string', () => {
     expect(escapeHtml('<a & b>')).toBe('&lt;a &amp; b>')
   })
 
@@ -99,13 +100,39 @@ describe('escapeHtml', () => {
   })
 })
 
+describe('escapeXml', () => {
+  it('escapes ampersands', () => {
+    expect(escapeXml('a & b')).toBe('a &amp; b')
+  })
+
+  it('escapes less-than', () => {
+    expect(escapeXml('<div>')).toBe('&lt;div&gt;')
+  })
+
+  it('escapes greater-than (XML strict compliance)', () => {
+    expect(escapeXml('a > b')).toBe('a &gt; b')
+  })
+
+  it('escapes all three XML special chars in one string', () => {
+    expect(escapeXml('<a & b>')).toBe('&lt;a &amp; b&gt;')
+  })
+
+  it('returns an empty string unchanged', () => {
+    expect(escapeXml('')).toBe('')
+  })
+
+  it('returns plain text unchanged', () => {
+    expect(escapeXml('hello world')).toBe('hello world')
+  })
+})
+
 describe('escapeAttr', () => {
   it('escapes double quotes', () => {
     expect(escapeAttr('say "hi"')).toBe('say &quot;hi&quot;')
   })
 
-  it('also escapes HTML special chars', () => {
-    expect(escapeAttr('<a & "b">')).toBe('&lt;a &amp; &quot;b&quot;>')
+  it('also escapes XML special chars', () => {
+    expect(escapeAttr('<a & "b">')).toBe('&lt;a &amp; &quot;b&quot;&gt;')
   })
 
   it('returns an empty string unchanged', () => {

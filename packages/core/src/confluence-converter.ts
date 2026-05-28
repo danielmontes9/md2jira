@@ -4,7 +4,7 @@ import {
   hasStringValue,
   resolveUrl,
   normalizeTableColumnCount,
-  escapeHtml,
+  escapeXml,
   escapeAttr,
 } from './utils.js'
 import type { ConvertOptions } from './utils.js'
@@ -19,7 +19,7 @@ function inlineChildren(children: PhrasingContent[], baseUrl?: string): string {
 function inlineNode(node: PhrasingContent, baseUrl?: string): string {
   switch (node.type) {
     case 'text':
-      return escapeHtml(node.value)
+      return escapeXml(node.value)
     case 'strong':
       return `<strong>${inlineChildren(node.children, baseUrl)}</strong>`
     case 'emphasis':
@@ -27,11 +27,11 @@ function inlineNode(node: PhrasingContent, baseUrl?: string): string {
     case 'delete':
       return `<del>${inlineChildren(node.children, baseUrl)}</del>`
     case 'inlineCode':
-      return `<code>${escapeHtml(node.value)}</code>`
+      return `<code>${escapeXml(node.value)}</code>`
     case 'link': {
       const href = resolveUrl(node.url, baseUrl)
       const label =
-        node.children.length > 0 ? inlineChildren(node.children, baseUrl) : escapeHtml(href)
+        node.children.length > 0 ? inlineChildren(node.children, baseUrl) : escapeXml(href)
       return `<a href="${escapeAttr(href)}">${label}</a>`
     }
     case 'image':
@@ -45,7 +45,7 @@ function inlineNode(node: PhrasingContent, baseUrl?: string): string {
     default: {
       // Fallback: emit escaped raw text for unknown inline node types
       const n = node as { value?: unknown }
-      if (typeof n.value === 'string') return escapeHtml(n.value)
+      if (typeof n.value === 'string') return escapeXml(n.value)
       return ''
     }
   }
@@ -221,7 +221,7 @@ function transformNode(node: RootContent, ctx: ConfluenceContext): string | null
       // Frontmatter — skip silently
       return null
     default: {
-      if (hasStringValue(node)) return `<p>${escapeHtml(node.value)}</p>`
+      if (hasStringValue(node)) return `<p>${escapeXml(node.value)}</p>`
       return null
     }
   }
