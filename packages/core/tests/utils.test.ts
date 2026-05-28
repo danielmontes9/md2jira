@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { hasStringValue, normalizeTableColumnCount, resolveUrl } from '../src/utils.js'
+import {
+  hasStringValue,
+  normalizeTableColumnCount,
+  resolveUrl,
+  escapeHtml,
+  escapeAttr,
+} from '../src/utils.js'
 import type { TableRow } from 'mdast'
 
 // Minimal TableRow factory — only the `children` array matters for column counting.
@@ -64,6 +70,50 @@ describe('normalizeTableColumnCount', () => {
 
   it('handles a row with 0 columns among others', () => {
     expect(normalizeTableColumnCount([row(0), row(3)])).toBe(3)
+  })
+})
+
+describe('escapeHtml', () => {
+  it('escapes ampersands', () => {
+    expect(escapeHtml('a & b')).toBe('a &amp; b')
+  })
+
+  it('escapes less-than', () => {
+    expect(escapeHtml('<div>')).toBe('&lt;div>')
+  })
+
+  it('escapes greater-than', () => {
+    expect(escapeHtml('a > b')).toBe('a > b')
+  })
+
+  it('escapes all three special chars in one string', () => {
+    expect(escapeHtml('<a & b>')).toBe('&lt;a &amp; b>')
+  })
+
+  it('returns an empty string unchanged', () => {
+    expect(escapeHtml('')).toBe('')
+  })
+
+  it('returns plain text unchanged', () => {
+    expect(escapeHtml('hello world')).toBe('hello world')
+  })
+})
+
+describe('escapeAttr', () => {
+  it('escapes double quotes', () => {
+    expect(escapeAttr('say "hi"')).toBe('say &quot;hi&quot;')
+  })
+
+  it('also escapes HTML special chars', () => {
+    expect(escapeAttr('<a & "b">')).toBe('&lt;a &amp; &quot;b&quot;>')
+  })
+
+  it('returns an empty string unchanged', () => {
+    expect(escapeAttr('')).toBe('')
+  })
+
+  it('returns plain text unchanged', () => {
+    expect(escapeAttr('https://example.com/path')).toBe('https://example.com/path')
   })
 })
 

@@ -10,11 +10,6 @@ import {
 import type { ConvertOptions } from './utils.js'
 import { detectAlertType, stripAlertMarker } from './transforms/blockquotes.js'
 
-// ── HTML helpers ─────────────────────────────────────────────────────────────
-
-const escHtml = escapeHtml
-const escAttr = escapeAttr
-
 // ── Inline transforms (Confluence Storage Format XHTML) ──────────────────────
 
 function inlineChildren(children: PhrasingContent[], baseUrl?: string): string {
@@ -24,7 +19,7 @@ function inlineChildren(children: PhrasingContent[], baseUrl?: string): string {
 function inlineNode(node: PhrasingContent, baseUrl?: string): string {
   switch (node.type) {
     case 'text':
-      return escHtml(node.value)
+      return escapeHtml(node.value)
     case 'strong':
       return `<strong>${inlineChildren(node.children, baseUrl)}</strong>`
     case 'emphasis':
@@ -32,12 +27,12 @@ function inlineNode(node: PhrasingContent, baseUrl?: string): string {
     case 'delete':
       return `<del>${inlineChildren(node.children, baseUrl)}</del>`
     case 'inlineCode':
-      return `<code>${escHtml(node.value)}</code>`
+      return `<code>${escapeHtml(node.value)}</code>`
     case 'link': {
       const href = resolveUrl(node.url, baseUrl)
       const label =
-        node.children.length > 0 ? inlineChildren(node.children, baseUrl) : escHtml(href)
-      return `<a href="${escAttr(href)}">${label}</a>`
+        node.children.length > 0 ? inlineChildren(node.children, baseUrl) : escapeHtml(href)
+      return `<a href="${escapeAttr(href)}">${label}</a>`
     }
     case 'image':
       // Out of scope — ignore silently per AGENTS.md
@@ -50,7 +45,7 @@ function inlineNode(node: PhrasingContent, baseUrl?: string): string {
     default: {
       // Fallback: emit escaped raw text for unknown inline node types
       const n = node as { value?: unknown }
-      if (typeof n.value === 'string') return escHtml(n.value)
+      if (typeof n.value === 'string') return escapeHtml(n.value)
       return ''
     }
   }
@@ -74,7 +69,7 @@ function confluenceCodeBlock(node: Extract<RootContent, { type: 'code' }>): stri
   if (node.lang) {
     return (
       `<ac:structured-macro ac:name="code">` +
-      `<ac:parameter ac:name="language">${escAttr(node.lang)}</ac:parameter>` +
+      `<ac:parameter ac:name="language">${escapeAttr(node.lang)}</ac:parameter>` +
       `<ac:plain-text-body><![CDATA[${body}]]></ac:plain-text-body>` +
       `</ac:structured-macro>`
     )
@@ -226,7 +221,7 @@ function transformNode(node: RootContent, ctx: ConfluenceContext): string | null
       // Frontmatter — skip silently
       return null
     default: {
-      if (hasStringValue(node)) return `<p>${escHtml(node.value)}</p>`
+      if (hasStringValue(node)) return `<p>${escapeHtml(node.value)}</p>`
       return null
     }
   }
