@@ -61,9 +61,18 @@ program
         return lower
       })
   )
-  .option(
-    '--base-url <url>',
-    'Base URL prepended to relative links (e.g. https://company.atlassian.net/wiki)'
+  .addOption(
+    new Option(
+      '--base-url <url>',
+      'Base URL prepended to relative links (e.g. https://company.atlassian.net/wiki)'
+    ).argParser((v) => {
+      try {
+        new URL(v)
+      } catch {
+        throw new InvalidArgumentError(`"${v}" is not a valid absolute URL.`)
+      }
+      return v
+    })
   )
   .option(
     '--disable <transforms>',
@@ -76,20 +85,8 @@ program
       input: string | undefined,
       options: { output?: string; format: string; baseUrl?: string; disable: string[] }
     ) => {
-      // Format is validated and normalised to lowercase by commander's argParser + choices.
+      // format and baseUrl are validated and normalised at parse time by argParser.
       const fmt = options.format
-
-      // Validate --base-url is an absolute URL.
-      if (options.baseUrl !== undefined) {
-        try {
-          new URL(options.baseUrl)
-        } catch {
-          process.stderr.write(
-            `Error: --base-url "${options.baseUrl}" is not a valid absolute URL\n`
-          )
-          process.exit(1)
-        }
-      }
 
       let markdown: string
       if (input) {
