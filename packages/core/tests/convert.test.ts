@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { convert } from '../src/index.js'
+import { convert, convertToAdf, convertToConfluence } from '../src/index.js'
+import type { ConvertOptions } from '../src/index.js'
 
 describe('convert', () => {
   it('returns empty string for empty input', () => {
@@ -623,5 +624,56 @@ describe('full-document integration', () => {
     // Table
     expect(result).toContain('||Header A||Header B||')
     expect(result).toContain('|Cell 1|Cell 2|')
+  })
+})
+
+describe('cross-format — consistent behaviour across all three converters', () => {
+  it('all converters return empty output for empty input', () => {
+    expect(convert('')).toBe('')
+    expect(convertToConfluence('')).toBe('')
+    expect(convertToAdf('').content).toHaveLength(0)
+  })
+
+  it('all converters produce semantically equivalent h1 heading', () => {
+    const md = '# Hello'
+    expect(convert(md)).toBe('h1. Hello')
+    expect(convertToConfluence(md)).toBe('<h1>Hello</h1>')
+    expect(convertToAdf(md).content[0]).toMatchObject({ type: 'heading', attrs: { level: 1 } })
+  })
+
+  it('baseUrl resolves relative links in all three converters', () => {
+    const md = '[page](/wiki/home)'
+    const baseUrl = 'https://company.atlassian.net'
+    expect(convert(md, { baseUrl })).toContain('https://company.atlassian.net/wiki/home')
+    expect(convertToConfluence(md, { baseUrl })).toContain(
+      'https://company.atlassian.net/wiki/home'
+    )
+    expect(JSON.stringify(convertToAdf(md, { baseUrl }))).toContain(
+      'https://company.atlassian.net/wiki/home'
+    )
+  })
+
+  it('disableTransforms heading suppresses heading in all three converters', () => {
+    const md = '# Title\n\nParagraph'
+    const opts: ConvertOptions = { disableTransforms: ['heading'] }
+    expect(convert(md, opts)).not.toContain('h1.')
+    expect(convertToConfluence(md, opts)).not.toContain('<h1>')
+    const adfDoc = convertToAdf(md, opts)
+    expect(adfDoc.content.map((n) => n.type)).not.toContain('heading')
+  })
+
+  it('disableTransforms panel falls back to blockquote in all three converters', () => {
+    const md = '> [!NOTE]\n> Note text'
+    const opts: ConvertOptions = { disableTransforms: ['panel'] }
+    const wikiOut = convert(md, opts)
+    expect(wikiOut).not.toContain('{note}')
+    expect(wikiOut).toContain('bq.')
+    const confOut = convertToConfluence(md, opts)
+    expect(confOut).not.toContain('ac:name="note"')
+    expect(confOut).toContain('<blockquote>')
+    const adfDoc = convertToAdf(md, opts)
+    const types = adfDoc.content.map((n) => n.type)
+    expect(types).not.toContain('panel')
+    expect(types).toContain('blockquote')
   })
 })
