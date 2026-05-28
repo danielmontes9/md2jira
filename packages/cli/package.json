@@ -1,7 +1,7 @@
 {
   "name": "md2jira-cli",
   "version": "1.0.0",
-  "description": "CLI to convert Markdown to Jira Wiki Markup",
+  "description": "CLI to convert Markdown to Jira Wiki Markup, Atlassian Document Format (ADF), or Confluence Storage Format",
   "type": "module",
   "bin": {
     "md2jira": "./dist/index.js"

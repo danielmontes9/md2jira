@@ -77,15 +77,15 @@ h1. Bug: login fails on Safari
 
 ## Options
 
-| Argument / Option        | Description                                                                                |
-| ------------------------ | ------------------------------------------------------------------------------------------ |
-| `[input]`                | Input Markdown file. Omit to read from stdin.                                              |
-| `-o, --output <file>`    | Write output to a file instead of stdout.                                                  |
-| `-f, --format <format>`  | Output format: `wiki` (default) or `adf` (Atlassian Document Format JSON).                 |
-| `--base-url <url>`       | Absolute base URL prepended to relative links (e.g. `https://company.atlassian.net/wiki`). |
-| `--disable <transforms>` | Suppress one or more transforms. Comma-separated or repeat the flag. See values below.     |
-| `-V, --version`          | Print version number.                                                                      |
-| `-h, --help`             | Display help.                                                                              |
+| Argument / Option        | Description                                                                                                                 |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| `[input]`                | Input Markdown file. Omit to read from stdin.                                                                               |
+| `-o, --output <file>`    | Write output to a file instead of stdout.                                                                                   |
+| `-f, --format <format>`  | Output format: `wiki` (default), `adf` (Atlassian Document Format JSON), or `confluence` (Confluence Storage Format XHTML). |
+| `--base-url <url>`       | Absolute base URL prepended to relative links (e.g. `https://company.atlassian.net/wiki`).                                  |
+| `--disable <transforms>` | Suppress one or more transforms. Comma-separated or repeat the flag. See values below.                                      |
+| `-V, --version`          | Print version number.                                                                                                       |
+| `-h, --help`             | Display help.                                                                                                               |
 
 ### `--disable` values
 
@@ -98,6 +98,13 @@ h1. Bug: login fails on Safari
 ```bash
 md2jira input.md --format adf
 cat input.md | md2jira -f adf > output.json
+```
+
+**Output Confluence Storage Format:**
+
+```bash
+md2jira input.md --format confluence
+cat input.md | md2jira -f confluence > output.xml
 ```
 
 **Resolve relative links against a Confluence base URL:**
