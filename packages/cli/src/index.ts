@@ -10,7 +10,6 @@ import type { ConvertOptions } from 'md2jira-core'
 const require = createRequire(import.meta.url)
 const { version } = require('../package.json') as { version: string }
 
-/** Valid transform names accepted by --disable. */
 const VALID_TRANSFORMS = new Set([
   'heading',
   'list',
@@ -21,13 +20,24 @@ const VALID_TRANSFORMS = new Set([
   'panel',
 ])
 
-/** Collector for --disable: supports both comma-separated and repeated flags. Deduplicates. */
+/**
+ * Collector for --disable: validates, expands comma-separated values, and
+ * deduplicates. Throwing InvalidArgumentError here causes commander to report
+ * the error and exit before any stdin/file I/O takes place.
+ */
 function collectTransforms(val: string, prev: string[]): string[] {
-  const next = val
+  const parts = val
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean)
-  return [...new Set([...prev, ...next])]
+  for (const part of parts) {
+    if (!VALID_TRANSFORMS.has(part)) {
+      throw new InvalidArgumentError(
+        `Unknown transform "${part}". Allowed: ${[...VALID_TRANSFORMS].join(', ')}.`
+      )
+    }
+  }
+  return [...new Set([...prev, ...parts])]
 }
 
 const program = new Command()
@@ -88,18 +98,12 @@ program
         markdown = await readStdin()
       }
 
-      // Validate --disable transform names.
-      let disableTransforms: ConvertOptions['disableTransforms'] | undefined
-      if (options.disable.length > 0) {
-        const invalid = options.disable.filter((t) => !VALID_TRANSFORMS.has(t))
-        if (invalid.length > 0) {
-          process.stderr.write(
-            `Error: unknown transform(s): ${invalid.join(', ')}\nValid values: ${[...VALID_TRANSFORMS].join(', ')}\n`
-          )
-          process.exit(1)
-        }
-        disableTransforms = options.disable as ConvertOptions['disableTransforms']
-      }
+      // --disable values are validated at parse time by collectTransforms;
+      // by the time we reach here they are guaranteed to be valid.
+      const disableTransforms: ConvertOptions['disableTransforms'] | undefined =
+        options.disable.length > 0
+          ? (options.disable as ConvertOptions['disableTransforms'])
+          : undefined
 
       const convertOptions: ConvertOptions = {
         ...(options.baseUrl ? { baseUrl: options.baseUrl } : {}),

@@ -289,7 +289,8 @@ describe('--disable flag', () => {
     const md = '# Title\n'
     const { stderr, exitCode } = await run(['--disable', 'unknown-transform'], { stdin: md })
     expect(exitCode).toBe(1)
-    expect(stderr).toContain('unknown transform')
+    expect(stderr).toContain('invalid')
+    expect(stderr).toContain('unknown-transform')
   })
 
   it('supports repeated --disable flags (heading then list)', async () => {
