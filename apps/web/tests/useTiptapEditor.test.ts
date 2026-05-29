@@ -258,6 +258,49 @@ describe('useTiptapEditor', () => {
       await waitFor(() => expect(onMarkdownChange).toHaveBeenCalled(), { timeout: 2000 })
       expect(onColorWarning).not.toHaveBeenCalled()
     })
+
+    it('resets so onColorWarning fires again after color is removed then re-applied', async () => {
+      const onColorWarning = vi.fn()
+      const onMarkdownChange = vi.fn()
+
+      const { result } = renderHook(() =>
+        useTiptapEditor({
+          previewHtml: '<p>Hello</p>',
+          onMarkdownChange,
+          onColorWarning,
+          debounceMs: 50,
+        })
+      )
+
+      await act(async () => {})
+      await waitFor(() => expect(result.current.editor).not.toBeNull())
+
+      act(() => {
+        result.current.editor!.setEditable(true)
+      })
+
+      // First color application → warning fires
+      act(() => {
+        result.current.editor!.commands.setContent(
+          '<p><span style="color: #ff0000">colored</span></p>'
+        )
+      })
+      await waitFor(() => expect(onColorWarning).toHaveBeenCalledTimes(1), { timeout: 2000 })
+
+      // Remove color → colorWarnedRef resets to false
+      act(() => {
+        result.current.editor!.commands.setContent('<p>plain text</p>')
+      })
+      await waitFor(() => expect(onMarkdownChange).toHaveBeenCalledTimes(2), { timeout: 2000 })
+
+      // Re-apply color → warning should fire again (second time)
+      act(() => {
+        result.current.editor!.commands.setContent(
+          '<p><span style="color: #0000ff">colored again</span></p>'
+        )
+      })
+      await waitFor(() => expect(onColorWarning).toHaveBeenCalledTimes(2), { timeout: 2000 })
+    })
   })
 
   describe('onUnderlineWarning', () => {

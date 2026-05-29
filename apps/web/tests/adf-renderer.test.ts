@@ -117,6 +117,28 @@ describe('adfInlineToHtml', () => {
     const node: AdfInlineNode = { type: 'text', text: 'crossed', marks: [{ type: 'strike' }] }
     expect(adfInlineToHtml(node)).toBe('<s>crossed</s>')
   })
+
+  it('returns attrs.text for external ADF mention nodes that carry no .text property', () => {
+    // Jira REST API mention nodes look like { type: 'mention', attrs: { text: '@alice', id: '...' } }.
+    // They are not in our AdfInlineNode type but may appear in real-world ADF payloads.
+    // The defensive guard in adfInlineToHtml should extract attrs.text and escape it.
+    const mentionNode = {
+      type: 'text' as const,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      attrs: { text: '@alice <script>', id: 'user-123' },
+    } as unknown as AdfInlineNode
+    expect(adfInlineToHtml(mentionNode)).toBe('@alice &lt;script&gt;')
+  })
+
+  it('returns empty string for external inline nodes with neither .text nor attrs.text', () => {
+    // e.g. an emoji or status node that has no extractable text representation.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const statusNode = {
+      type: 'text' as const,
+      attrs: { color: 'red' },
+    } as unknown as AdfInlineNode
+    expect(adfInlineToHtml(statusNode)).toBe('')
+  })
 })
 
 describe('adfToHtml', () => {
