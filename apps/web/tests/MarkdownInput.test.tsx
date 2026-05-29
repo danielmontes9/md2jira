@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, act, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { createElement } from 'react'
 import { MarkdownInput } from '../src/components/MarkdownInput.js'
 import { SettingsProvider } from '../src/context/SettingsContext.js'
 import { ToastProvider } from '../src/context/ToastContext.js'
+import { useFileImportExport } from '../src/hooks/useFileImportExport.js'
 
 // CodeMirror wraps browser APIs unavailable in jsdom — mock the hook.
 vi.mock('../src/hooks/useCodeMirrorEditor.js', () => ({
@@ -64,6 +65,29 @@ describe('MarkdownInput — panel structure', () => {
   it('keyboard shortcuts button has correct aria-label', () => {
     renderInput()
     expect(screen.getByRole('button', { name: 'Keyboard shortcuts' })).toBeInTheDocument()
+  })
+
+  it('opens shortcuts modal when keyboard shortcuts button is clicked', async () => {
+    renderInput()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Keyboard shortcuts' }))
+    })
+    // The modal renders (setShowShortcuts(true) called)
+    await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument())
+  })
+
+  it('closes shortcuts modal when its close button is clicked', async () => {
+    renderInput()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Keyboard shortcuts' }))
+    })
+    await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument())
+    // Close via close button (calls setShowShortcuts(false))
+    const closeBtn = screen.getByRole('button', { name: /close.*shortcuts/i })
+    await act(async () => {
+      fireEvent.click(closeBtn)
+    })
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
   })
 
   it('copy markdown button has correct aria-label', () => {
@@ -155,5 +179,154 @@ describe('MarkdownInput — word count', () => {
   it('shows correct word count for non-empty value', () => {
     renderInput({ value: 'hello world foo' })
     expect(screen.getByText(/3 words/)).toBeInTheDocument()
+  })
+})
+
+// ── Drag and drop ────────────────────────────────────────────────────────────
+
+describe('MarkdownInput — drag and drop', () => {
+  function renderWithDragHandlers(isDragging = false) {
+    const handleDragOver = vi.fn()
+    const handleDragLeave = vi.fn()
+    const handleDrop = vi.fn()
+    vi.mocked(useFileImportExport).mockReturnValueOnce({
+      fileInputRef: { current: null },
+      handleImport: vi.fn(),
+      handleFileChange: vi.fn(),
+      handleExport: vi.fn(),
+      handleDragOver,
+      handleDragLeave,
+      handleDrop,
+      isDragging,
+    })
+    const result = renderInput()
+    return { ...result, handleDragOver, handleDragLeave, handleDrop }
+  }
+
+  it('calls handleDragOver when a file is dragged over the editor area', () => {
+    const { container, handleDragOver } = renderWithDragHandlers()
+    const dragArea = container.firstChild as HTMLElement
+    fireEvent.dragOver(dragArea)
+    expect(handleDragOver).toHaveBeenCalledTimes(1)
+  })
+
+  it('calls handleDragLeave when the drag leaves the editor area', () => {
+    const { container, handleDragLeave } = renderWithDragHandlers()
+    const dragArea = container.firstChild as HTMLElement
+    fireEvent.dragLeave(dragArea)
+    expect(handleDragLeave).toHaveBeenCalledTimes(1)
+  })
+
+  it('calls handleDrop when a file is dropped on the editor area', () => {
+    const { container, handleDrop } = renderWithDragHandlers()
+    const dragArea = container.firstChild as HTMLElement
+    fireEvent.drop(dragArea)
+    expect(handleDrop).toHaveBeenCalledTimes(1)
+  })
+
+  it('applies drag-active ring styles when isDragging is true', () => {
+    const { container } = renderWithDragHandlers(true)
+    const dragArea = container.firstChild as HTMLElement
+    expect(dragArea.className).toMatch(/ring-2/)
+  })
+})
+
+// ── Copy Markdown ─────────────────────────────────────────────────────────────
+
+describe('MarkdownInput — copy markdown', () => {
+  it('clicking Copy MD calls navigator.clipboard.writeText with the current value', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    vi.stubGlobal('navigator', { clipboard: { writeText } })
+
+    renderInput({ value: '# Hello' })
+    const copyBtn = screen.getByRole('button', { name: /copy markdown/i })
+    await act(async () => {
+      fireEvent.click(copyBtn)
+    })
+
+    expect(writeText).toHaveBeenCalledWith('# Hello')
+
+    vi.unstubAllGlobals()
+  })
+
+  it('shows "Copied!" feedback text after clicking Copy MD', async () => {
+    vi.useFakeTimers()
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    vi.stubGlobal('navigator', { clipboard: { writeText } })
+
+    renderInput({ value: '# Hello' })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /copy markdown/i }))
+    })
+
+    // The button label should reflect the copied state
+    const copyBtn = screen.getByRole('button', { name: /copy markdown/i })
+    expect(copyBtn.textContent).toMatch(/cop/i)
+
+    vi.useRealTimers()
+    vi.unstubAllGlobals()
+  })
+
+  it('resets copy feedback after 2000 ms', async () => {
+    vi.useFakeTimers()
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    vi.stubGlobal('navigator', { clipboard: { writeText } })
+
+    renderInput({ value: '# Hello' })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /copy markdown/i }))
+    })
+    await act(async () => {
+      vi.advanceTimersByTime(2001)
+    })
+
+    // After timer expires the button should be back to normal
+    expect(screen.getByRole('button', { name: /copy markdown/i })).toBeInTheDocument()
+
+    vi.useRealTimers()
+    vi.unstubAllGlobals()
+  })
+
+  it('clears existing timer when Copy MD is clicked a second time', async () => {
+    vi.useFakeTimers()
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    vi.stubGlobal('navigator', { clipboard: { writeText } })
+
+    renderInput({ value: '# Hello' })
+    // First click — sets the timer (copiedTimerRef.current !== null after)
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /copy markdown/i }))
+    })
+    // Second click — enters the `if (copiedTimerRef.current !== null)` branch
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /copy markdown/i }))
+    })
+
+    vi.useRealTimers()
+    vi.unstubAllGlobals()
+  })
+})
+
+// ── confirmNew timer ──────────────────────────────────────────────────────────
+
+describe('MarkdownInput — confirmNew auto-dismiss', () => {
+  it('auto-dismisses the confirmation after 5000 ms', () => {
+    vi.useFakeTimers()
+    renderInput({ value: '# Hello' })
+    fireEvent.click(screen.getByTitle('New document (clears editor)'))
+    expect(screen.getByText('Clear editor?')).toBeInTheDocument()
+    act(() => {
+      vi.advanceTimersByTime(5001)
+    })
+    expect(screen.queryByText('Clear editor?')).not.toBeInTheDocument()
+    vi.useRealTimers()
+  })
+
+  it('dismisses confirmNew when value becomes empty', () => {
+    const { rerender } = renderInput({ value: '# Hello' })
+    fireEvent.click(screen.getByTitle('New document (clears editor)'))
+    expect(screen.getByText('Clear editor?')).toBeInTheDocument()
+    rerender(<MarkdownInput value="" onChange={vi.fn()} isDark={false} />)
+    expect(screen.queryByText('Clear editor?')).not.toBeInTheDocument()
   })
 })

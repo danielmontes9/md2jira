@@ -19,8 +19,7 @@ export default defineConfig({
         'src/vite-env.d.ts',
         'src/main.tsx',
         'src/workers/adf-worker.ts',
-        // CodeMirror wraps browser APIs (EditorView, EditorState) that are incompatible
-        // with jsdom. Every consumer mocks this hook, so instrumented coverage is 0%.
+        // CodeMirror wraps browser APIs incompatible with jsdom; covered via mocks in keyboard.test.ts
         'src/hooks/useCodeMirrorEditor.ts',
       ],
       thresholds: {

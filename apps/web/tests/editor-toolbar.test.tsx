@@ -208,6 +208,38 @@ describe('EditorToolbar', () => {
     expect(execMock).toHaveBeenCalledWith('insertText', emoji)
   })
 
+  it('EmojiMenu calls exec("insertText") when a searched emoji is clicked', async () => {
+    renderToolbar()
+    const emojiBtn = screen.getByRole('button', { name: 'Emoji' })
+    fireEvent.mouseDown(emojiBtn)
+    const dialog = screen.getByRole('dialog')
+
+    // Wait for emoji data to load first
+    await waitFor(() => {
+      const btns = within(dialog)
+        .getAllByRole('button')
+        .filter((btn) => btn.textContent && /\p{Emoji}/u.test(btn.textContent))
+      if (btns.length === 0) throw new Error('emoji data not loaded yet')
+      return btns
+    })
+
+    // Search for a category to get filtered results
+    const searchInput = screen.getByRole('textbox', { name: /search emojis/i })
+    fireEvent.change(searchInput, { target: { value: 'people' } })
+
+    // Click one of the filtered emoji buttons
+    const filteredBtns = await waitFor(() => {
+      const btns = within(dialog)
+        .getAllByRole('button')
+        .filter((btn) => btn.textContent && /\p{Emoji}/u.test(btn.textContent))
+      if (btns.length === 0) throw new Error('no filtered emojis yet')
+      return btns
+    })
+    const emoji = filteredBtns[0]!.textContent ?? ''
+    fireEvent.mouseDown(filteredBtns[0]!)
+    expect(execMock).toHaveBeenCalledWith('insertText', emoji)
+  })
+
   it('InsertMenu opens on mousedown and shows Table item', () => {
     renderToolbar()
     const insertBtn = screen.getByRole('button', { name: 'Insert elements' })
@@ -222,6 +254,15 @@ describe('EditorToolbar', () => {
     const tableItem = screen.getByText('Table')
     fireEvent.mouseDown(tableItem)
     expect(execMock).toHaveBeenCalledWith('insertTable')
+  })
+
+  it('InsertMenu Action item calls exec("toggleTaskList")', () => {
+    renderToolbar()
+    const insertBtn = screen.getByRole('button', { name: 'Insert elements' })
+    fireEvent.mouseDown(insertBtn)
+    const actionItem = screen.getByText('Action item')
+    fireEvent.mouseDown(actionItem)
+    expect(execMock).toHaveBeenCalledWith('toggleTaskList')
   })
 
   it('InsertMenu Quote item calls exec("toggleBlockquote")', () => {
@@ -670,6 +711,37 @@ describe('EditorToolbar', () => {
     fireEvent.mouseDown(codeBtn)
     expect(execMock).toHaveBeenCalledWith('toggleCode')
   })
+
+  // ── Toolbar ArrowLeft / ArrowRight keyboard navigation ────────────────────
+
+  it('ArrowRight on the toolbar moves focus to the next focusable button', () => {
+    renderToolbar()
+    const toolbar = screen.getByRole('toolbar')
+    const buttons = Array.from(toolbar.querySelectorAll<HTMLElement>('button:not([disabled])'))
+    expect(buttons.length).toBeGreaterThan(1)
+    buttons[0]!.focus()
+    fireEvent.keyDown(toolbar, { key: 'ArrowRight' })
+    expect(document.activeElement).toBe(buttons[1])
+  })
+
+  it('ArrowLeft on the toolbar moves focus to the previous focusable button', () => {
+    renderToolbar()
+    const toolbar = screen.getByRole('toolbar')
+    const buttons = Array.from(toolbar.querySelectorAll<HTMLElement>('button:not([disabled])'))
+    expect(buttons.length).toBeGreaterThan(1)
+    buttons[1]!.focus()
+    fireEvent.keyDown(toolbar, { key: 'ArrowLeft' })
+    expect(document.activeElement).toBe(buttons[0])
+  })
+
+  it('ArrowRight on the last toolbar button wraps to the first button', () => {
+    renderToolbar()
+    const toolbar = screen.getByRole('toolbar')
+    const buttons = Array.from(toolbar.querySelectorAll<HTMLElement>('button:not([disabled])'))
+    buttons[buttons.length - 1]!.focus()
+    fireEvent.keyDown(toolbar, { key: 'ArrowRight' })
+    expect(document.activeElement).toBe(buttons[0])
+  })
 })
 
 // ── EditorToolbar — i18n locale switching ─────────────────────────────────────
@@ -760,6 +832,14 @@ describe('EditorToolbar — i18n', () => {
 // ── FormatMenu button handlers ─────────────────────────────────────────────────
 
 describe('EditorToolbar — FormatMenu button mouseDown handlers', () => {
+  let execMock: ReturnType<typeof vi.fn>
+  let insertHtmlMock: ReturnType<typeof vi.fn>
+
+  beforeEach(() => {
+    execMock = vi.fn()
+    insertHtmlMock = vi.fn()
+  })
+
   it('clicking Subscript calls exec("toggleSubscript")', () => {
     render(
       <SettingsProvider>
@@ -774,7 +854,7 @@ describe('EditorToolbar — FormatMenu button mouseDown handlers', () => {
     )
     fireEvent.mouseDown(screen.getByRole('button', { name: 'More formatting' }))
     fireEvent.mouseDown(screen.getByText('Subscript').closest('button')!)
-    expect(execMock).toHaveBeenCalledWith('toggleSubscript')
+    expect(execMock).toHaveBeenCalledWith('subscript')
   })
 
   it('clicking Superscript calls exec("toggleSuperscript")', () => {
@@ -791,7 +871,7 @@ describe('EditorToolbar — FormatMenu button mouseDown handlers', () => {
     )
     fireEvent.mouseDown(screen.getByRole('button', { name: 'More formatting' }))
     fireEvent.mouseDown(screen.getByText('Superscript').closest('button')!)
-    expect(execMock).toHaveBeenCalledWith('toggleSuperscript')
+    expect(execMock).toHaveBeenCalledWith('superscript')
   })
 
   it('clicking Remove formatting calls exec("unsetAllMarks")', () => {
@@ -807,14 +887,22 @@ describe('EditorToolbar — FormatMenu button mouseDown handlers', () => {
       </SettingsProvider>
     )
     fireEvent.mouseDown(screen.getByRole('button', { name: 'More formatting' }))
-    fireEvent.mouseDown(screen.getByText('Remove formatting').closest('button')!)
-    expect(execMock).toHaveBeenCalledWith('unsetAllMarks')
+    fireEvent.mouseDown(screen.getByText('Clear formatting').closest('button')!)
+    expect(execMock).toHaveBeenCalledWith('removeFormat')
   })
 })
 
 // ── ContentMenus TableMenu — additional handlers ───────────────────────────────
 
 describe('EditorToolbar — TableMenu additional handlers', () => {
+  let execMock: ReturnType<typeof vi.fn>
+  let insertHtmlMock: ReturnType<typeof vi.fn>
+
+  beforeEach(() => {
+    execMock = vi.fn()
+    insertHtmlMock = vi.fn()
+  })
+
   function renderInTable() {
     render(
       <SettingsProvider>

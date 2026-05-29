@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi } from 'vitest'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { SettingsProvider } from '../src/context/SettingsContext.js'
 import { JiraOutputContent } from '../src/components/jira-output/JiraOutputContent.js'
 
@@ -106,5 +106,82 @@ describe('JiraOutputContent — wiki preview', () => {
       <JiraOutputContent {...baseProps} format="wiki" viewMode="preview" value="" />
     )
     expect(screen.getByRole('region', { name: 'Wiki markup preview' })).toBeInTheDocument()
+  })
+})
+
+describe('JiraOutputContent — confluence code view', () => {
+  it('renders confluence code region when format=confluence and viewMode=code', () => {
+    renderWithSettings(
+      <JiraOutputContent
+        {...baseProps}
+        format="confluence"
+        viewMode="code"
+        value="<h1>Hello</h1>"
+      />
+    )
+    // confluence falls through to the generic code view pre with aria-label from formatConfluence
+    expect(screen.getByRole('region')).toBeInTheDocument()
+  })
+})
+
+describe('JiraOutputContent — ADF loading state', () => {
+  it('renders loading spinner when isLoadingPreview is true', () => {
+    renderWithSettings(
+      <JiraOutputContent {...baseProps} format="adf" viewMode="preview" isLoadingPreview={true} />
+    )
+    expect(screen.getByRole('status')).toBeInTheDocument()
+  })
+})
+
+describe('JiraOutputContent — wiki edit mode', () => {
+  it('renders wiki textarea when format=wiki and editMode=true', () => {
+    renderWithSettings(
+      <JiraOutputContent
+        {...baseProps}
+        format="wiki"
+        viewMode="preview"
+        editMode={true}
+        canEdit={true}
+        value="h1. Hello"
+      />
+    )
+    expect(screen.getByRole('textbox', { name: /wiki markup editor/i })).toBeInTheDocument()
+  })
+
+  it('textarea shows wikiDraft value when provided', () => {
+    renderWithSettings(
+      <JiraOutputContent
+        {...baseProps}
+        format="wiki"
+        viewMode="preview"
+        editMode={true}
+        canEdit={true}
+        value="h1. Original"
+        wikiDraft="h1. Draft"
+      />
+    )
+    const textarea = screen.getByRole('textbox', {
+      name: /wiki markup editor/i,
+    }) as HTMLTextAreaElement
+    expect(textarea.value).toBe('h1. Draft')
+  })
+
+  it('calls onWikiDraftChange when wiki textarea value changes', () => {
+    const onWikiDraftChange = vi.fn()
+    renderWithSettings(
+      <JiraOutputContent
+        {...baseProps}
+        format="wiki"
+        viewMode="preview"
+        editMode={true}
+        canEdit={true}
+        value="h1. Hello"
+        wikiDraft="h1. Hello"
+        onWikiDraftChange={onWikiDraftChange}
+      />
+    )
+    const textarea = screen.getByRole('textbox', { name: /wiki markup editor/i })
+    fireEvent.change(textarea, { target: { value: 'new draft' } })
+    expect(onWikiDraftChange).toHaveBeenCalledWith('new draft')
   })
 })

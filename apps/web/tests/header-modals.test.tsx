@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeAll, afterAll, afterEach } from 'vitest'
 import React from 'react'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, act } from '@testing-library/react'
 import { Header } from '../src/components/Header.js'
 import { ShortcutsModal } from '../src/components/ShortcutsModal.js'
 import { InfoModal } from '../src/components/InfoModal.js'
@@ -92,6 +92,56 @@ describe('Header', () => {
     renderWithSettings(<Header onToggleHistory={onToggle} historyEnabled={true} />)
     fireEvent.click(screen.getByRole('button', { name: /document history/i }))
     expect(onToggle).toHaveBeenCalledOnce()
+  })
+
+  it('shows "Close history" aria-label on history button when historyOpen=true', () => {
+    renderWithSettings(
+      <Header historyOpen={true} historyEnabled={true} onToggleHistory={vi.fn()} />
+    )
+    expect(screen.getByRole('button', { name: /close document history/i })).toBeInTheDocument()
+  })
+
+  it('closes export dropdown when clicking outside', () => {
+    renderWithSettings(<Header hasContent={true} isDeepLinkActive={false} />)
+    fireEvent.click(screen.getByRole('button', { name: /share or export/i }))
+    expect(screen.getByText('Export PDF')).toBeInTheDocument()
+    fireEvent.mouseDown(document.body)
+    expect(screen.queryByText('Export PDF')).not.toBeInTheDocument()
+  })
+
+  it('unmounting while menu is open cleans up the mousedown listener', () => {
+    const { unmount } = renderWithSettings(<Header hasContent={true} isDeepLinkActive={false} />)
+    fireEvent.click(screen.getByRole('button', { name: /share or export/i }))
+    unmount() // triggers useEffect cleanup arrow
+  })
+
+  it('calls default onOpenSettings when settings button clicked without prop', () => {
+    // default prop `onOpenSettings = () => {}` should be invoked (no-op)
+    renderWithSettings(<Header />)
+    fireEvent.click(screen.getByRole('button', { name: /open settings/i }))
+  })
+
+  it('calls default onToggleHistory when history button clicked without prop', () => {
+    // default prop `onToggleHistory = () => {}` should be invoked (no-op)
+    renderWithSettings(<Header historyEnabled={true} />)
+    fireEvent.click(screen.getByRole('button', { name: /document history/i }))
+  })
+
+  it('shows disabled share link with "Too large" badge when isDeepLinkActive=false', () => {
+    renderWithSettings(<Header hasContent={true} isDeepLinkActive={false} />)
+    fireEvent.click(screen.getByRole('button', { name: /share or export/i }))
+    expect(screen.getByText(/too large/i)).toBeInTheDocument()
+  })
+
+  it('shows text fallback when BMaC image fails to load', async () => {
+    renderWithSettings(<Header />)
+    const img = document.querySelector('img[alt="Buy Me A Coffee"]') as HTMLImageElement
+    if (img) {
+      await act(async () => {
+        fireEvent.error(img)
+      })
+    }
+    expect(screen.getByText(/buy me a coffee/i)).toBeInTheDocument()
   })
 })
 
@@ -223,5 +273,45 @@ describe('ShareModal — i18n', () => {
     renderWithLocale(<ShareModal url="https://example.com" onClose={vi.fn()} />, 'es')
     // copyLinkToShare in es = 'Copiar enlace para compartir'
     expect(screen.getByRole('button', { name: /copiar enlace/i })).toBeInTheDocument()
+  })
+
+  it('calls onClose when the ShareModal close callback is invoked', () => {
+    const onClose = vi.fn()
+    renderWithSettings(<ShareModal url="https://example.com" onClose={onClose} />)
+    fireEvent.click(screen.getByRole('button', { name: /close/i }))
+    expect(onClose).toHaveBeenCalledOnce()
+  })
+})
+
+// ── Header — export dropdown & share edge cases ────────────────────────────
+
+describe('Header — export dropdown edge cases', () => {
+  it('closes the export dropdown when a mousedown occurs outside the menu', () => {
+    renderWithSettings(<Header hasContent={true} isDeepLinkActive={true} />)
+    // Open the dropdown
+    fireEvent.click(screen.getByRole('button', { name: /share or export/i }))
+    expect(screen.getByText('Share link')).toBeInTheDocument()
+    // Mousedown outside the menu
+    fireEvent.mouseDown(document.body)
+    expect(screen.queryByText('Share link')).not.toBeInTheDocument()
+  })
+
+  it('shows a disabled share link badge when isDeepLinkActive is false', () => {
+    renderWithSettings(<Header hasContent={true} isDeepLinkActive={false} />)
+    fireEvent.click(screen.getByRole('button', { name: /share or export/i }))
+    // The share link item should render with a "Too large" indicator
+    expect(screen.getByText(/too large/i)).toBeInTheDocument()
+  })
+
+  it('export-menu PDF button closes the dropdown', () => {
+    // window.print is not available in jsdom; stub it to avoid an error
+    const printSpy = vi.spyOn(window, 'print').mockReturnValue(undefined)
+    renderWithSettings(<Header hasContent={true} isDeepLinkActive={true} />)
+    fireEvent.click(screen.getByRole('button', { name: /share or export/i }))
+    const pdfBtn = screen.getByText(/^export pdf$/i)
+    fireEvent.click(pdfBtn)
+    // After clicking, the dropdown should be closed
+    expect(screen.queryByText(/^export pdf$/i)).not.toBeInTheDocument()
+    printSpy.mockRestore()
   })
 })

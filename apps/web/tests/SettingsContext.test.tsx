@@ -102,10 +102,10 @@ describe('SettingsContext — loadSettings from localStorage', () => {
     expect(result.current.locale).toBe('fr')
   })
 
-  it('falls back to DEFAULT maxHistoryEntries (10) when stored value is invalid (e.g. 100)', () => {
+  it('falls back to DEFAULT maxHistoryEntries (10) when stored value is invalid (e.g. 999)', () => {
     localStorage.setItem(
       LS_KEY,
-      JSON.stringify({ historyEnabled: true, maxHistoryEntries: 100, locale: 'en' })
+      JSON.stringify({ historyEnabled: true, maxHistoryEntries: 999, locale: 'en' })
     )
     const { result } = renderHook(() => useSettings(), { wrapper })
     expect(result.current.maxHistoryEntries).toBe(10)

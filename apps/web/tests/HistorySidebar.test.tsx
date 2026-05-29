@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
+import { axe } from 'vitest-axe'
 import { HistorySidebar } from '../src/components/HistorySidebar.js'
 import type { HistoryEntry } from '../src/hooks/useDocumentHistory.js'
 
@@ -434,6 +435,70 @@ describe('HistorySidebar — import/export', () => {
 
     readTextSpy.mockRestore()
   })
+
+  it('calls onImportSuccess with the count of newly merged entries', async () => {
+    const onImportSuccess = vi.fn()
+
+    const readTextSpy = vi.spyOn(FileReader.prototype, 'readAsText').mockImplementation(function (
+      this: FileReader
+    ) {
+      Promise.resolve().then(() => {
+        Object.defineProperty(this, 'result', {
+          configurable: true,
+          get: () =>
+            JSON.stringify([
+              { id: 'fresh1', title: 'Fresh', content: '# Fresh', savedAt: 3_000_000 },
+            ]),
+        })
+        this.dispatchEvent(new ProgressEvent('load'))
+      })
+    })
+
+    render(
+      <HistorySidebar
+        {...baseProps}
+        history={[makeEntry('existing', '# Old', 'Old')]}
+        onImportSuccess={onImportSuccess}
+      />
+    )
+
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement
+    fireEvent.change(input, { target: { files: [new File(['[]'], 'h.json')] } })
+
+    await vi.waitFor(() => {
+      expect(onImportSuccess).toHaveBeenCalledWith(1)
+    })
+
+    readTextSpy.mockRestore()
+  })
+
+  it('calls onImportSuccess with 0 when all imported entries are duplicates', async () => {
+    const onImportSuccess = vi.fn()
+    const existing = makeEntry('dup2', '# Dup2', 'Dup2')
+
+    const readTextSpy = vi.spyOn(FileReader.prototype, 'readAsText').mockImplementation(function (
+      this: FileReader
+    ) {
+      Promise.resolve().then(() => {
+        Object.defineProperty(this, 'result', {
+          configurable: true,
+          get: () => JSON.stringify([{ id: 'dup2', title: 'Dup2', content: '# Dup2', savedAt: 1 }]),
+        })
+        this.dispatchEvent(new ProgressEvent('load'))
+      })
+    })
+
+    render(<HistorySidebar {...baseProps} history={[existing]} onImportSuccess={onImportSuccess} />)
+
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement
+    fireEvent.change(input, { target: { files: [new File(['[]'], 'h.json')] } })
+
+    await vi.waitFor(() => {
+      expect(onImportSuccess).toHaveBeenCalledWith(0)
+    })
+
+    readTextSpy.mockRestore()
+  })
 })
 
 // ── ti() aria-label interpolation ─────────────────────────────────────────────
@@ -516,5 +581,86 @@ describe('HistorySidebar — rename flow', () => {
     fireEvent.change(input, { target: { value: 'Blur Commit' } })
     fireEvent.blur(input)
     expect(onRenameEntry).toHaveBeenCalledWith('1', 'Blur Commit')
+  })
+})
+
+// ── Search / filter ───────────────────────────────────────────────────────────
+
+describe('HistorySidebar — search', () => {
+  const entries = [
+    makeEntry('1', '# Alpha doc', 'Alpha doc'),
+    makeEntry('2', '## Beta page', 'Beta page'),
+  ]
+
+  it('shows all entries when query is empty', () => {
+    render(<HistorySidebar {...baseProps} history={entries} />)
+    expect(screen.getByText('Alpha doc')).toBeInTheDocument()
+    expect(screen.getByText('Beta page')).toBeInTheDocument()
+  })
+
+  it('filters entries by title when a query is typed', () => {
+    render(<HistorySidebar {...baseProps} history={entries} />)
+    const input = screen.getByRole('textbox', { name: /search history/i })
+    fireEvent.change(input, { target: { value: 'alpha' } })
+    expect(screen.getByText('Alpha doc')).toBeInTheDocument()
+    expect(screen.queryByText('Beta page')).not.toBeInTheDocument()
+  })
+
+  it('shows "no match" message when search matches nothing', () => {
+    render(<HistorySidebar {...baseProps} history={entries} />)
+    const input = screen.getByRole('textbox', { name: /search history/i })
+    fireEvent.change(input, { target: { value: 'zzznomatch' } })
+    expect(screen.getByText(/zzznomatch/)).toBeInTheDocument()
+  })
+
+  it('clears the search when the clear button is clicked', () => {
+    render(<HistorySidebar {...baseProps} history={entries} />)
+    const input = screen.getByRole('textbox', { name: /search history/i })
+    fireEvent.change(input, { target: { value: 'alpha' } })
+    expect(screen.queryByText('Beta page')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /clear search/i }))
+    expect(screen.getByText('Beta page')).toBeInTheDocument()
+  })
+})
+
+// ── Axe accessibility ─────────────────────────────────────────────────────────
+describe('HistorySidebar — axe accessibility', () => {
+  it('has no WCAG violations in the empty state', async () => {
+    const { container } = render(<HistorySidebar {...baseProps} />)
+    const results = await axe(container, {
+      runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] },
+      rules: { 'color-contrast': { enabled: false } },
+    })
+    const summary = results.violations.map((v) => `  [${v.id}] ${v.help}`).join('\n')
+    expect(results.violations, `WCAG violations:\n${summary}`).toHaveLength(0)
+  })
+
+  it('has no WCAG violations when entries are present', async () => {
+    const entries = [
+      makeEntry('1', '# Doc One', 'Doc One'),
+      makeEntry('2', '## Doc Two', 'Doc Two'),
+    ]
+    const { container } = render(<HistorySidebar {...baseProps} history={entries} />)
+    const results = await axe(container, {
+      runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] },
+      rules: { 'color-contrast': { enabled: false } },
+    })
+    const summary = results.violations.map((v) => `  [${v.id}] ${v.help}`).join('\n')
+    expect(results.violations, `WCAG violations:\n${summary}`).toHaveLength(0)
+  })
+
+  it('has no WCAG violations in select mode', async () => {
+    const entries = [
+      makeEntry('1', '# Doc One', 'Doc One'),
+      makeEntry('2', '## Doc Two', 'Doc Two'),
+    ]
+    const { container } = render(<HistorySidebar {...baseProps} history={entries} />)
+    fireEvent.click(screen.getByRole('button', { name: /enter bulk selection mode/i }))
+    const results = await axe(container, {
+      runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] },
+      rules: { 'color-contrast': { enabled: false } },
+    })
+    const summary = results.violations.map((v) => `  [${v.id}] ${v.help}`).join('\n')
+    expect(results.violations, `WCAG violations:\n${summary}`).toHaveLength(0)
   })
 })

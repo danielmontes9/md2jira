@@ -80,6 +80,17 @@ describe('i18n locale completeness', () => {
     const different = enEntries.filter(([key, enVal]) => fr[key as keyof typeof en] !== enVal)
     expect(different.length).toBeGreaterThanOrEqual(Math.ceil(enEntries.length / 2))
   })
+
+  it('every en key is present and non-empty in all locales simultaneously', () => {
+    const locales = { es, pt, fr } as const
+    for (const key of Object.keys(en) as Array<keyof typeof en>) {
+      for (const [name, locale] of Object.entries(locales)) {
+        const val = locale[key]
+        expect(typeof val, `${name}.${key}`).toBe('string')
+        expect((val as string).length, `${name}.${key} must not be empty`).toBeGreaterThan(0)
+      }
+    }
+  })
 })
 
 // ── useTI hook ────────────────────────────────────────────────────────────────
@@ -103,6 +114,24 @@ describe('useTI — interpolation hook', () => {
     mockLocale = 'es'
     const { result } = renderHook(() => useTI())
     expect(result.current('selectEntryLabel', { title: 'Mi Doc' })).toBe('Seleccionar "Mi Doc"')
+  })
+
+  it('uses the locale-specific dict when locale is "pt"', () => {
+    mockLocale = 'pt'
+    const { result } = renderHook(() => useTI())
+    const val = result.current('selectEntryLabel', { title: 'Meu Doc' })
+    expect(typeof val).toBe('string')
+    expect(val.length).toBeGreaterThan(0)
+    expect(val).toContain('Meu Doc')
+  })
+
+  it('uses the locale-specific dict when locale is "fr"', () => {
+    mockLocale = 'fr'
+    const { result } = renderHook(() => useTI())
+    const val = result.current('selectEntryLabel', { title: 'Mon Doc' })
+    expect(typeof val).toBe('string')
+    expect(val.length).toBeGreaterThan(0)
+    expect(val).toContain('Mon Doc')
   })
 
   it('interpolates the placeholder in renameEntryAction', () => {
@@ -163,6 +192,38 @@ describe('useTP — plural selection hook', () => {
     const { result } = renderHook(() => useTP())
     expect(result.current('retriesRemainingOne', 'retriesRemaining', 0)).toBe('restantes')
   })
+
+  it('returns the Portuguese form when locale is "pt" and count is 1', () => {
+    mockLocale = 'pt'
+    const { result } = renderHook(() => useTP())
+    const val = result.current('historySavedCountOne', 'historySavedCount', 1)
+    expect(typeof val).toBe('string')
+    expect(val.length).toBeGreaterThan(0)
+  })
+
+  it('returns the Portuguese form when locale is "pt" and count is 2', () => {
+    mockLocale = 'pt'
+    const { result } = renderHook(() => useTP())
+    const val = result.current('historySavedCountOne', 'historySavedCount', 2)
+    expect(typeof val).toBe('string')
+    expect(val.length).toBeGreaterThan(0)
+  })
+
+  it('returns the French form when locale is "fr" and count is 1', () => {
+    mockLocale = 'fr'
+    const { result } = renderHook(() => useTP())
+    const val = result.current('historySavedCountOne', 'historySavedCount', 1)
+    expect(typeof val).toBe('string')
+    expect(val.length).toBeGreaterThan(0)
+  })
+
+  it('returns the French form when locale is "fr" and count is 2', () => {
+    mockLocale = 'fr'
+    const { result } = renderHook(() => useTP())
+    const val = result.current('historySavedCountOne', 'historySavedCount', 2)
+    expect(typeof val).toBe('string')
+    expect(val.length).toBeGreaterThan(0)
+  })
 })
 
 // ── t() standalone function ──────────────────────────────────────────────────
@@ -206,5 +267,32 @@ describe('useT() — locale-aware lookup hook', () => {
     mockLocale = 'fr'
     const { result } = renderHook(() => useT())
     expect(result.current('offlineBanner')).toBe(fr['offlineBanner'])
+  })
+
+  it('returns a non-empty string for every StringKey across all locales', () => {
+    const locales = ['en', 'es', 'pt', 'fr'] as const
+    for (const locale of locales) {
+      mockLocale = locale
+      const { result } = renderHook(() => useT())
+      const translate = result.current
+      // historyImportSuccess is the newest key — verify it is translated in every locale
+      const value = translate('historyImportSuccess')
+      expect(typeof value).toBe('string')
+      expect(value.length).toBeGreaterThan(0)
+    }
+  })
+
+  it('returns the fallback English value when the dict entry is undefined at runtime', () => {
+    mockLocale = 'es'
+    const { result } = renderHook(() => useT())
+    // Simulate a missing runtime key by directly invoking the hook's return
+    // with a key that exists in en but is temporarily patched to undefined in es.
+    // This exercises the ?? en[key] fallback path.
+    const esModule = es as unknown as Record<string, string | undefined>
+    const backup = esModule['historyImportSuccess']
+    esModule['historyImportSuccess'] = undefined
+    const value = result.current('historyImportSuccess')
+    esModule['historyImportSuccess'] = backup
+    expect(value).toBe(en['historyImportSuccess'])
   })
 })

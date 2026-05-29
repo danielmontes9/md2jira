@@ -629,8 +629,12 @@ describe('App – history sidebar', () => {
   it('clicking the close button in the history sidebar hides it', () => {
     render(<App />)
     fireEvent.click(screen.getByRole('button', { name: /document history/i }))
-    expect(screen.getByRole('dialog', { name: /recent documents/i })).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: /close document history/i }))
+    const sidebar = screen.getByRole('dialog', { name: /recent documents/i })
+    expect(sidebar).toBeInTheDocument()
+    // Two buttons share the "close document history" aria-label when the sidebar is open
+    // (header toggle + sidebar close button). Scope to the dialog to get the right one.
+    const { getByRole: getByRoleInDialog } = within(sidebar)
+    fireEvent.click(getByRoleInDialog('button', { name: /close document history/i }))
     expect(screen.queryByRole('dialog', { name: /recent documents/i })).not.toBeInTheDocument()
   })
 
@@ -644,5 +648,51 @@ describe('App – history sidebar', () => {
     await waitFor(() => {
       expect(screen.queryByRole('dialog', { name: /settings/i })).not.toBeInTheDocument()
     })
+  })
+
+  it('clicking the header history button a second time closes the sidebar (onToggleHistory)', () => {
+    render(<App />)
+    // Open the sidebar via the header toggle button
+    fireEvent.click(screen.getByRole('button', { name: /document history/i }))
+    expect(screen.getByRole('dialog', { name: /recent documents/i })).toBeInTheDocument()
+
+    // When the sidebar is open the header button changes its aria-label to closeHistory.
+    // Two elements share this label (header toggle + sidebar close). Scope to the <header>
+    // to reliably click the header toggle (onToggleHistory path).
+    const header = document.querySelector('header')!
+    fireEvent.click(within(header).getByRole('button', { name: /close document history/i }))
+    expect(screen.queryByRole('dialog', { name: /recent documents/i })).not.toBeInTheDocument()
+  })
+
+  it('clicking a history entry loads its content and closes the sidebar (onLoadEntry)', () => {
+    const entry = {
+      id: 'hist-001',
+      title: 'Saved Entry',
+      content: '## Loaded from History',
+      savedAt: Date.now(),
+    }
+    ;(localStorage.getItem as ReturnType<typeof vi.fn>).mockImplementation((key: string) =>
+      key === 'md2jira-doc-history' ? JSON.stringify([entry]) : null
+    )
+
+    render(<App />)
+
+    // Open history sidebar
+    fireEvent.click(screen.getByRole('button', { name: /document history/i }))
+    const sidebar = screen.getByRole('dialog', { name: /recent documents/i })
+
+    // Click the entry title button (the load-entry button has the title as text content)
+    const entryButtons = within(sidebar).getAllByRole('button', { name: /Saved Entry/i })
+    fireEvent.click(entryButtons[0]!)
+
+    // Sidebar should close
+    expect(screen.queryByRole('dialog', { name: /recent documents/i })).not.toBeInTheDocument()
+
+    // Editor textarea should reflect the loaded content
+    const textarea = screen.getByPlaceholderText('Paste your Markdown here...')
+    expect(textarea).toHaveValue('## Loaded from History')
+
+    // Reset the mock so other tests are not affected
+    ;(localStorage.getItem as ReturnType<typeof vi.fn>).mockReset()
   })
 })

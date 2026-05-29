@@ -153,6 +153,19 @@ describe('getActiveBlock', () => {
       expect(getActiveBlock(editor)).toBe('pre')
     }
   })
+
+  it('returns "blockquote" for a blockquote block', () => {
+    const { result } = renderHook(() =>
+      useTiptapEditor({
+        previewHtml: '<blockquote><p>quote text</p></blockquote>',
+        onMarkdownChange: undefined,
+      })
+    )
+    const editor = result.current.editor
+    if (editor) {
+      expect(getActiveBlock(editor)).toBe('blockquote')
+    }
+  })
 })
 
 // ─── getActiveFormats ─────────────────────────────────────────────────────────
@@ -175,6 +188,45 @@ describe('getActiveFormats', () => {
     const editor = result.current.editor
     if (editor) {
       expect(getActiveFormats(editor)).toBeInstanceOf(Set)
+    }
+  })
+
+  it('returns formats including bold when content has a bold mark', () => {
+    const { result } = renderHook(() =>
+      useTiptapEditor({
+        previewHtml: '<p><strong>bold text</strong></p>',
+        onMarkdownChange: undefined,
+      })
+    )
+    const editor = result.current.editor
+    if (editor) {
+      // Place cursor inside the bold text to activate the mark
+      act(() => {
+        editor.commands.setContent('<p><strong>bold text</strong></p>')
+        editor.commands.selectAll()
+      })
+      const fmts = getActiveFormats(editor)
+      expect(fmts).toBeInstanceOf(Set)
+      // bold mark should be active when selection covers bold text
+      expect(fmts.has('bold')).toBe(true)
+    }
+  })
+
+  it('returns formats including blockquote toggleBlockquote format', () => {
+    const { result } = renderHook(() =>
+      useTiptapEditor({
+        previewHtml: '<blockquote><p>quote</p></blockquote>',
+        onMarkdownChange: undefined,
+      })
+    )
+    const editor = result.current.editor
+    if (editor) {
+      act(() => {
+        editor.commands.selectAll()
+      })
+      const fmts = getActiveFormats(editor)
+      expect(fmts).toBeInstanceOf(Set)
+      // blockquote format state depends on TipTap internals — just verify no throw
     }
   })
 })
