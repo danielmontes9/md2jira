@@ -3,6 +3,7 @@ import { EditorContent } from '@tiptap/react'
 import type { Editor } from '@tiptap/react'
 import { highlightJson } from '../../utils/highlight-json.js'
 import { highlightWiki } from '../../utils/highlight-wiki.js'
+import { highlightXml } from '../../utils/highlight-xml.js'
 import type { OutputFormat, ViewMode } from '../../types.js'
 import { useT } from '../../i18n/index.js'
 
@@ -51,11 +52,8 @@ export function JiraOutputContent({
   // Memoize expensive syntax-highlight passes: only recompute when `value` changes.
   const highlightedJson = useMemo(() => highlightJson(value), [value])
   const highlightedWiki = useMemo(() => highlightWiki(value), [value])
-  // Confluence output is XHTML — just HTML-escape it, no syntax decoration.
-  const highlightedConfluence = useMemo(
-    () => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'),
-    [value]
-  )
+  // Confluence output is XHTML — highlight tags, attributes, CDATA, and text.
+  const highlightedConfluence = useMemo(() => highlightXml(value), [value])
 
   // Wiki textarea auto-resize: keep the ref + effect always at the top level
   // so hook order is stable across all render paths (code view, ADF, wiki preview, wiki edit).

@@ -482,6 +482,54 @@
     color: #22d3ee;
   }
 
+  /* ── XML / Confluence Storage Format syntax highlighting ── */
+  .xml-punct {
+    color: #6b7280;
+  } /* < > / delimiters — gray-500 */
+  .xml-tag {
+    color: #2563eb;
+    font-weight: 600;
+  } /* element names — blue-600 */
+  .xml-attr-name {
+    color: #d97706;
+  } /* attribute names — amber-600 */
+  .xml-attr-value {
+    color: #16a34a;
+  } /* attribute values — green-600 */
+  .xml-cdata-delim {
+    color: #7c3aed;
+    font-weight: 600;
+  } /* <![CDATA[ and ]]> — violet-700 */
+  .xml-cdata-content {
+    color: #374151;
+  } /* CDATA body — gray-700 */
+  .xml-comment {
+    color: #9ca3af;
+    font-style: italic;
+  } /* <!-- … --> — gray-400 */
+
+  .dark .xml-punct {
+    color: #9ca3af;
+  }
+  .dark .xml-tag {
+    color: #60a5fa;
+  } /* blue-400 */
+  .dark .xml-attr-name {
+    color: #fbbf24;
+  } /* amber-400 */
+  .dark .xml-attr-value {
+    color: #4ade80;
+  } /* green-400 */
+  .dark .xml-cdata-delim {
+    color: #c084fc;
+  } /* purple-400 */
+  .dark .xml-cdata-content {
+    color: #d1d5db;
+  } /* gray-300 */
+  .dark .xml-comment {
+    color: #6b7280;
+  } /* gray-500 */
+
   /* ── Insert panel templates (Info panel, Decision) ── */
   .jira-preview [data-type='info-panel'] {
     background: #deebff;
