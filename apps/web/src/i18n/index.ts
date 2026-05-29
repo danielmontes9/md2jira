@@ -41,7 +41,7 @@ export function t(key: StringKey): string {
 export function useT(): (key: StringKey) => string {
   const { locale } = useSettings()
   const dict = locale === 'es' ? es : locale === 'pt' ? pt : locale === 'fr' ? fr : en
-  return useCallback((key: StringKey) => dict[key], [dict])
+  return useCallback((key: StringKey) => dict[key] ?? en[key], [dict])
 }
 
 /**
@@ -57,7 +57,7 @@ export function useTI(): (key: StringKey, vars: Record<string, string>) => strin
   const dict = locale === 'es' ? es : locale === 'pt' ? pt : locale === 'fr' ? fr : en
   return useCallback(
     (key: StringKey, vars: Record<string, string>) =>
-      dict[key].replace(/\{(\w+)\}/g, (_, k: string) => vars[k] ?? `{${k}}`),
+      (dict[key] ?? en[key]).replace(/\{(\w+)\}/g, (_, k: string) => vars[k] ?? `{${k}}`),
     [dict]
   )
 }
@@ -77,7 +77,7 @@ export function useTP(): (oneKey: StringKey, otherKey: StringKey, count: number)
   return useCallback(
     (oneKey: StringKey, otherKey: StringKey, count: number) => {
       const rule = new Intl.PluralRules(locale).select(count)
-      return rule === 'one' ? dict[oneKey] : dict[otherKey]
+      return rule === 'one' ? (dict[oneKey] ?? en[oneKey]) : (dict[otherKey] ?? en[otherKey])
     },
     [dict, locale]
   )

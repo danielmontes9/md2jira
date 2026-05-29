@@ -20,6 +20,8 @@ interface HistorySidebarProps {
   onClose: () => void
   /** Called when the user renames an entry in-sidebar. */
   onRenameEntry?: (id: string, newTitle: string) => void
+  /** Called after a successful history import with the count of newly added entries. */
+  onImportSuccess?: (newCount: number) => void
 }
 
 function formatDate(ts: number): string {
@@ -57,6 +59,7 @@ export const HistorySidebar = memo(function HistorySidebar({
   onClearHistory,
   onClose,
   onRenameEntry,
+  onImportSuccess,
 }: HistorySidebarProps) {
   const sidebarRef = useRef<HTMLElement>(null)
   const previousFocusRef = useRef<HTMLElement | null>(null)
@@ -221,6 +224,7 @@ export const HistorySidebar = memo(function HistorySidebar({
               newValue: JSON.stringify(merged),
             })
           )
+          onImportSuccess?.(newEntries.length)
         } catch {
           // invalid JSON — ignore
         }
@@ -229,16 +233,12 @@ export const HistorySidebar = memo(function HistorySidebar({
       // Reset input so the same file can be re-imported
       e.target.value = ''
     },
-    [history, maxHistoryEntries]
+    [history, maxHistoryEntries, onImportSuccess]
   )
 
   return (
     <>
-      <div
-        aria-hidden="true"
-        className="fixed inset-0 z-30 bg-black/20 dark:bg-black/40"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 z-30 bg-black/20 dark:bg-black/40" onClick={onClose} />
       <aside
         ref={sidebarRef}
         role="dialog"

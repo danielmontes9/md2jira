@@ -72,6 +72,7 @@ export const es: Record<StringKey, string> = {
   clearAllPrompt: '\u00bfLimpiar todo?',
   historyExport: 'Exportar',
   historyImport: 'Importar',
+  historyImportSuccess: 'Historial importado',
   deleteEntry: 'Eliminar',
   renameEntry: 'Renombrar',
   confirmRename: 'Confirmar renombre',

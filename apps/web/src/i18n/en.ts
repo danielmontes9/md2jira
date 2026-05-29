@@ -80,6 +80,7 @@ export const en = {
   clearAllPrompt: 'Clear all?',
   historyExport: 'Export',
   historyImport: 'Import',
+  historyImportSuccess: 'History imported',
   deleteEntry: 'Delete',
   renameEntry: 'Rename',
   confirmRename: 'Confirm rename',

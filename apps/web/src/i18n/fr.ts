@@ -66,6 +66,7 @@ export const fr: Record<StringKey, string> = {
   clearAllPrompt: 'Tout effacer\u00a0?',
   historyExport: 'Exporter',
   historyImport: 'Importer',
+  historyImportSuccess: 'Historique importé',
   deleteEntry: 'Supprimer',
   renameEntry: 'Renommer',
   confirmRename: 'Confirmer le renommage',
