@@ -58,7 +58,7 @@ export function SettingsModal({ onClose, theme, onToggleTheme, historyCount }: S
           <div className="flex flex-col gap-0 overflow-y-auto max-h-[70dvh]">
             {/* 1. Language */}
             <section className="border-b border-neutral-100 px-5 py-4 dark:border-neutral-800">
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex flex-col gap-3">
                 <div className="flex flex-col gap-0.5">
                   <span
                     id={langId}
@@ -73,7 +73,7 @@ export function SettingsModal({ onClose, theme, onToggleTheme, historyCount }: S
                 <div
                   role="radiogroup"
                   aria-labelledby={langId}
-                  className="flex rounded-md border border-neutral-300 text-xs dark:border-neutral-700"
+                  className="flex rounded-md border border-neutral-300 text-xs dark:border-neutral-700 self-start"
                 >
                   {(['en', 'es', 'pt', 'fr'] as const).map((l, i) => (
                     <button
