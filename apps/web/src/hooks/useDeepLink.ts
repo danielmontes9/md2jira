@@ -58,8 +58,9 @@ export function useDeepLink(markdown: string, format: OutputFormat): { isDeepLin
           }
         }
         // Persist non-default format so shared URLs open in the right mode.
-        if (format === 'wiki') {
-          url.searchParams.set('fmt', 'wiki')
+        // 'adf' is the default — omit it to keep URLs clean.
+        if (format === 'wiki' || format === 'confluence') {
+          url.searchParams.set('fmt', format)
         } else {
           url.searchParams.delete('fmt')
         }

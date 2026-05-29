@@ -30,6 +30,16 @@ function sanitizeUrl(url: string): string {
 
 export function adfInlineToHtml(node: AdfInlineNode): string {
   if (node.type === 'hardBreak') return '<br>'
+  // Runtime guard for external ADF payloads that may contain inline node types
+  // not modelled in our type system (e.g. mention, emoji, status from the Jira
+  // REST API). TypeScript narrows to AdfTextNode here, but real-world ADF can
+  // differ. Attempt to extract text from known attribute shapes before falling back.
+  const raw = node as unknown as { text?: unknown; attrs?: { text?: unknown } }
+  if (typeof raw.text !== 'string') {
+    // Jira mention nodes carry the display text in attrs.text
+    const fallback = typeof raw.attrs?.text === 'string' ? raw.attrs.text : ''
+    return escapeHtml(fallback)
+  }
   let html = escapeHtml(node.text)
   if (node.marks) {
     for (const mark of node.marks) {
