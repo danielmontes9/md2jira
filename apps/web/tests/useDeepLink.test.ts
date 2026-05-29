@@ -130,8 +130,29 @@ describe('useDeepLink', () => {
     expect(url.searchParams.get('fmt')).toBe('wiki')
   })
 
+  it('adds ?fmt=confluence for confluence format', () => {
+    renderHook(() => useDeepLink('# Hello', 'confluence'))
+    act(() => {
+      vi.advanceTimersByTime(300)
+    })
+    const calledUrl = replaceStateSpy.mock.calls[0]![2] as string
+    const url = new URL(calledUrl)
+    expect(url.searchParams.get('fmt')).toBe('confluence')
+  })
+
   it('removes ?fmt= param for adf format', () => {
     setLocation('http://localhost/?fmt=wiki')
+    renderHook(() => useDeepLink('# Hello', 'adf'))
+    act(() => {
+      vi.advanceTimersByTime(300)
+    })
+    const calledUrl = replaceStateSpy.mock.calls[0]![2] as string
+    const url = new URL(calledUrl)
+    expect(url.searchParams.has('fmt')).toBe(false)
+  })
+
+  it('removes ?fmt=confluence when switching to adf', () => {
+    setLocation('http://localhost/?fmt=confluence')
     renderHook(() => useDeepLink('# Hello', 'adf'))
     act(() => {
       vi.advanceTimersByTime(300)
