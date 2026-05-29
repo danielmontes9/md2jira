@@ -1,4 +1,5 @@
 import { useEffect, useCallback, useRef, useMemo } from 'react'
+import { useEditorLossyMarks } from './useEditorLossyMarks.js'
 import { useEditor, type Editor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
@@ -113,16 +114,7 @@ export function useTiptapEditor({
   const onMarkdownChangeRef = useRef(onMarkdownChange)
   onMarkdownChangeRef.current = onMarkdownChange
 
-  const onColorWarningRef = useRef(onColorWarning)
-  onColorWarningRef.current = onColorWarning
-  // Tracks whether the color warning has been shown for the current editing session.
-  // Resets to false when all color marks are removed so the warning fires again
-  // if the user re-applies color after clearing it.
-  const colorWarnedRef = useRef(false)
-
-  const onUnderlineWarningRef = useRef(onUnderlineWarning)
-  onUnderlineWarningRef.current = onUnderlineWarning
-  const underlineWarnedRef = useRef(false)
+  const { checkLossyMarks } = useEditorLossyMarks({ onColorWarning, onUnderlineWarning })
 
   // Flag to prevent infinite update loop: when we set editor content from
   // external previewHtml, the onUpdate callback fires — we must ignore it.
@@ -182,27 +174,7 @@ export function useTiptapEditor({
         if (!onMarkdownChangeRef.current) return
         try {
           const doc = ed.state.doc
-
-          // Warn once when the user introduces color marks that will be
-          // stripped by the Jira conversion pipeline (no Jira color syntax).
-          const docHasColor = hasColorMarks(doc)
-          if (docHasColor && !colorWarnedRef.current) {
-            colorWarnedRef.current = true
-            onColorWarningRef.current?.()
-          } else if (!docHasColor) {
-            // Reset so the warning fires again if color is re-applied later.
-            colorWarnedRef.current = false
-          }
-
-          // Warn once when the user introduces underline marks. Markdown has no
-          // underline syntax so underline formatting will be lost in Jira output.
-          const docHasUnderline = hasUnderlineMarks(doc)
-          if (docHasUnderline && !underlineWarnedRef.current) {
-            underlineWarnedRef.current = true
-            onUnderlineWarningRef.current?.()
-          } else if (!docHasUnderline) {
-            underlineWarnedRef.current = false
-          }
+          checkLossyMarks(doc)
 
           const md = tiptapDocToMarkdown(doc)
           isExternalUpdateRef.current = true
