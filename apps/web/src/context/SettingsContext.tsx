@@ -3,7 +3,7 @@ import { createContext, useContext, useState, useEffect, useCallback, type React
 const LS_KEY = 'md2jira-settings'
 
 /** Allowed values for the history-size limit stored in Settings. */
-export type MaxHistoryEntries = 10 | 25 | 50
+export type MaxHistoryEntries = 10 | 25 | 50 | 100
 
 /** Supported UI locales. */
 export type Locale = 'en' | 'es' | 'pt' | 'fr'
@@ -44,7 +44,8 @@ function loadSettings(): SettingsState {
     return {
       historyEnabled:
         typeof parsed.historyEnabled === 'boolean' ? parsed.historyEnabled : DEFAULT.historyEnabled,
-      maxHistoryEntries: mx === 10 || mx === 25 || mx === 50 ? mx : DEFAULT.maxHistoryEntries,
+      maxHistoryEntries:
+        mx === 10 || mx === 25 || mx === 50 || mx === 100 ? mx : DEFAULT.maxHistoryEntries,
       locale:
         parsed.locale === 'en' ||
         parsed.locale === 'es' ||

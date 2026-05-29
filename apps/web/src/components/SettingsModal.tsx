@@ -200,7 +200,7 @@ export function SettingsModal({ onClose, theme, onToggleTheme, historyCount }: S
                     aria-label={t('maxEntriesLabel')}
                     className="flex rounded-md border border-neutral-300 text-xs dark:border-neutral-700"
                   >
-                    {([10, 25, 50] as const).map((n, i) => (
+                    {([10, 25, 50, 100] as const).map((n, i) => (
                       <button
                         key={n}
                         type="button"
@@ -209,7 +209,7 @@ export function SettingsModal({ onClose, theme, onToggleTheme, historyCount }: S
                         onClick={() => setMaxHistoryEntries(n)}
                         className={`px-3 py-1 font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500 ${
                           i === 0 ? 'rounded-l-md' : ''
-                        } ${i === 2 ? 'rounded-r-md' : ''} ${
+                        } ${i === 3 ? 'rounded-r-md' : ''} ${
                           i > 0 ? 'border-l border-neutral-300 dark:border-neutral-700' : ''
                         } ${
                           maxHistoryEntries === n
