@@ -1,3 +1,11 @@
+# [2.3.0](https://github.com/danielmontes9/md2jira/compare/v2.2.0...v2.3.0) (2026-05-29)
+
+
+### Features
+
+* **web:** add XML syntax highlighter for Confluence output ([8eddbe5](https://github.com/danielmontes9/md2jira/commit/8eddbe569e1abd56f6612fb7ee5144293f9561e1))
+* **web:** apply XML syntax highlighting to Confluence code view ([0d25228](https://github.com/danielmontes9/md2jira/commit/0d252285f4b43f351518368b9c01042349e33f73))
+
 # [2.2.0](https://github.com/danielmontes9/md2jira/compare/v2.1.0...v2.2.0) (2026-05-29)
 
 
