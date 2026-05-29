@@ -14,7 +14,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:visual": "playwright test --project=visual",
-    "test:e2e:update-snapshots": "playwright test --project=visual --update-snapshots"
+    "test:e2e:update-snapshots": "playwright test --project=visual --update-snapshots",
+    "build:analyze": "vite build --mode analyze"
   },
   "dependencies": {
     "@codemirror/commands": "^6.10.3",

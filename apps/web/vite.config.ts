@@ -26,7 +26,7 @@ function canonicalUrlPlugin(): PluginOption {
   }
 }
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [
     canonicalUrlPlugin(),
     react(),
@@ -102,9 +102,10 @@ export default defineConfig({
         ],
       },
     }),
-    // Bundle size visualizer — generates stats.html in dist/ when ANALYZE=true.
-    // Run: ANALYZE=true pnpm --filter web build
-    ...(process.env.ANALYZE === 'true'
+    // Bundle size visualizer — generates stats.html in dist/ when running in analyze mode.
+    // Run: pnpm --filter web build:analyze  (cross-platform via vite --mode analyze)
+    // Or:  ANALYZE=true pnpm --filter web build  (legacy env-var form, Unix only)
+    ...(process.env.ANALYZE === 'true' || mode === 'analyze'
       ? [
           visualizer({
             filename: 'dist/stats.html',
@@ -116,6 +117,9 @@ export default defineConfig({
       : []),
   ],
   base: process.env.VITE_BASE_URL ?? '/',
+  // In analyze mode, suppress the "rollup-plugin-visualizer" warning about
+  // running in non-production mode (mode is 'analyze', not 'production').
+  ...(mode === 'analyze' ? { define: { 'process.env.NODE_ENV': '"production"' } } : {}),
   resolve: {
     alias: {
       'md2jira-core': fileURLToPath(new URL('../../packages/core/src/index.ts', import.meta.url)),
@@ -123,6 +127,8 @@ export default defineConfig({
   },
   build: {
     target: 'esnext',
+    // Warn locally when a chunk approaches the CI gate of 500 kB.
+    chunkSizeWarningLimit: 500,
     rollupOptions: {
       output: {
         manualChunks(id) {
@@ -136,4 +142,4 @@ export default defineConfig({
       },
     },
   },
-})
+}))
