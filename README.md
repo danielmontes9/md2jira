@@ -2,7 +2,7 @@
 
 # md2jira
 
-**Convert Markdown to Jira Wiki Markup and Atlassian Document Format (ADF), instantly in your browser.**
+**Convert Markdown to Jira Wiki Markup, Atlassian Document Format (ADF), and Confluence Storage Format, instantly in your browser.**
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/danielmontes9/md2jira/ci.yml?branch=main&style=flat-square)](https://github.com/danielmontes9/md2jira/actions)
 [![npm version](https://img.shields.io/npm/v/md2jira-core?style=flat-square)](https://www.npmjs.com/package/md2jira-core)
@@ -65,7 +65,7 @@ Go to [danielmontes9.github.io/md2jira](https://danielmontes9.github.io/md2jira)
 ### JavaScript / TypeScript
 
 ```ts
-import { convert } from 'md2jira-core'
+import { convert, convertToAdf, convertToConfluence } from 'md2jira-core'
 
 const jira = convert(`
 # My Issue
@@ -82,6 +82,11 @@ console.log(jira)
 // || Field || Value ||
 // | Status | In Progress |
 // | Priority | *High* |
+
+// Confluence Storage Format (XHTML)
+const confluence = convertToConfluence('# Hello\n\n**world**')
+console.log(confluence)
+// <h1>Hello</h1><p><strong>world</strong></p>
 ```
 
 ### CLI
@@ -145,8 +150,8 @@ The core uses a `Markdown  AST (remark)  Transform  Jira string` pipeline. This 
 - [x] `md2jira-core` published to npm
 - [x] Atlassian Document Format (ADF) output
 - [x] CLI (`md2jira` command)
+- [x] Confluence Storage Format export
 - [ ] VSCode Extension
-- [ ] Confluence export
 
 ---
 
