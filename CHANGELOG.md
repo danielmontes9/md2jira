@@ -1,3 +1,25 @@
+# [2.2.0](https://github.com/danielmontes9/md2jira/compare/v2.1.0...v2.2.0) (2026-05-29)
+
+
+### Bug Fixes
+
+* **core:** split escapeHtml/escapeXml; Confluence uses XML escaping for > ([5c42500](https://github.com/danielmontes9/md2jira/commit/5c42500f5a66ae976789a13429128123443405bb))
+* **web:** defensive inline node fallback in adf-renderer; persist confluence fmt URL ([2ced960](https://github.com/danielmontes9/md2jira/commit/2ced960b500627fac8849d19b582ce0b2af5010d))
+* **web:** refactor MarkdownInput timer callbacks and sanitize guard for V8 coverage accuracy ([687e14c](https://github.com/danielmontes9/md2jira/commit/687e14c57a620c6b99fec302fe1a4d493b2395df))
+
+
+### Features
+
+* **cli:** add --format confluence support, update description, add trailing newline to output ([c768d1f](https://github.com/danielmontes9/md2jira/commit/c768d1f89d127a7cca8129f376f2efc55bde406e))
+* **cli:** add --watch / -w flag to re-run conversion on file change ([d626b08](https://github.com/danielmontes9/md2jira/commit/d626b082a2ef84e6edf889d40741a929a72be92e))
+* **cli:** use commander InvalidArgumentError for --format validation with case-insensitive normalisation ([db3be4a](https://github.com/danielmontes9/md2jira/commit/db3be4a33fb457c43a69e009e5652cc4c8af0e24))
+* **core:** add convertToConfluence() — Confluence Storage Format converter ([195184e](https://github.com/danielmontes9/md2jira/commit/195184e7408e91dada20c56666dcf67b5cb50a0c))
+* **core:** add language alias map, semantic table thead/tbody, and --quiet flag ([a4bf489](https://github.com/danielmontes9/md2jira/commit/a4bf48992b5cbb449e05e039035f0cb3d955f1d3))
+* **web:** add 100-entry option to max history size setting ([bf02f9a](https://github.com/danielmontes9/md2jira/commit/bf02f9a7f3a2f7b9b326db23a1dfaae4ca0251af))
+* **web:** add onImportSuccess callback to HistorySidebar and historyImportSuccess i18n key ([4e05068](https://github.com/danielmontes9/md2jira/commit/4e05068a7dc1ac42f8404afa3b63e3ef2711e6d1))
+* **web:** extend OutputFormat type to include 'confluence' ([898f617](https://github.com/danielmontes9/md2jira/commit/898f61727f90e01815e85876ea3a6c71fe428803))
+* **web:** wire Confluence format end-to-end in the UI ([80d6aa6](https://github.com/danielmontes9/md2jira/commit/80d6aa6c53c9bb82faf643e00f3babad96591151))
+
 # [2.1.0](https://github.com/danielmontes9/md2jira/compare/v2.0.0...v2.1.0) (2026-05-24)
 
 
