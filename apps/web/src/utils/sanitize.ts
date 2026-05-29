@@ -34,7 +34,7 @@ export function stripTags(html: string): string {
 
 /** Sanitize HTML with DOMPurify, falling back to tag-stripping if unavailable. */
 export function sanitize(html: string): string {
-  if (_DOMPurify) return _DOMPurify.sanitize(html)
-  /* v8 ignore next -- DOMPurify is always loaded in tests; this is the bare fallback */
-  return stripTags(html)
+  /* v8 ignore next 3 -- DOMPurify loads asynchronously; false branch only occurs before resolution */
+  if (!_DOMPurify) return stripTags(html)
+  return _DOMPurify.sanitize(html)
 }

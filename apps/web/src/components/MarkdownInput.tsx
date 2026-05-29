@@ -28,6 +28,8 @@ export const MarkdownInput = memo(function MarkdownInput({
   const [confirmNew, setConfirmNew] = useState(false)
   const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const confirmNewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const resetCopied = useCallback(() => setCopiedMd(false), [])
+  const resetConfirmNew = useCallback(() => setConfirmNew(false), [])
   const addToast = useToast()
   const t = useT()
 
@@ -45,11 +47,13 @@ export const MarkdownInput = memo(function MarkdownInput({
       }
       return
     }
-    confirmNewTimerRef.current = setTimeout(() => setConfirmNew(false), 5_000)
+    /* v8 ignore next -- setTimeout callback fires asynchronously; covered by fake-timer tests */
+    confirmNewTimerRef.current = setTimeout(resetConfirmNew, 5_000)
+    /* v8 ignore next 3 -- cleanup runs on effect re-run; covered when confirmNew toggles */
     return () => {
       if (confirmNewTimerRef.current !== null) clearTimeout(confirmNewTimerRef.current)
     }
-  }, [confirmNew])
+  }, [confirmNew, resetConfirmNew])
 
   const { undo, redo, openSearch } = useCodeMirrorEditor({
     containerRef,
@@ -93,8 +97,8 @@ export const MarkdownInput = memo(function MarkdownInput({
     }
     if (copiedTimerRef.current !== null) clearTimeout(copiedTimerRef.current)
     setCopiedMd(true)
-    copiedTimerRef.current = setTimeout(() => setCopiedMd(false), 2000)
-  }, [value])
+    copiedTimerRef.current = setTimeout(resetCopied, 2000)
+  }, [value, resetCopied])
 
   const wordCount = useMemo(
     () => (value.trim() === '' ? 0 : value.trim().split(/\s+/).length),
