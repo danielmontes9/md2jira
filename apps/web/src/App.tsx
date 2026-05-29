@@ -1,14 +1,4 @@
-import {
-  useState,
-  useMemo,
-  useDeferredValue,
-  useEffect,
-  useCallback,
-  useRef,
-  Suspense,
-} from 'react'
-import { convert, convertToAdf, convertToConfluence } from 'md2jira-core'
-import type { AdfDocument } from 'md2jira-core'
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import { Header } from './components/Header.js'
 import { MarkdownInput } from './components/MarkdownInput.js'
 import { JiraOutput } from './components/JiraOutput.js'
@@ -19,40 +9,98 @@ import type { OutputFormat } from './types.js'
 import { IconAlertOcticon } from './components/icons.js'
 import { useTheme } from './hooks/useTheme.js'
 import { useDeepLink } from './hooks/useDeepLink.js'
-import { useAdfHtmlWorker } from './hooks/useAdfHtmlWorker.js'
+import { useOutputConversion } from './hooks/useOutputConversion.js'
 import { useOfflineStatus } from './hooks/useOfflineStatus.js'
 import { usePwaUpdate } from './hooks/usePwaUpdate.js'
 import { getInitialMarkdown, PLACEHOLDER } from './utils/markdown-url.js'
+import { getStoredFormat } from './utils/format-storage.js'
 import { usePanelSplit, SPLIT_MIN, SPLIT_MAX } from './hooks/usePanelSplit.js'
 import { reportError } from './utils/report-error.js'
 import { useDocumentHistory } from './hooks/useDocumentHistory.js'
 import { lazyNamed } from './utils/lazy-named.js'
 import { HistorySidebar } from './components/HistorySidebar.js'
 import { useT, useTP } from './i18n/index.js'
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts.js'
 
 const SettingsModal = lazyNamed(() => import('./components/SettingsModal.js'), 'SettingsModal')
 
-/** Below this character count, convert() runs on every keystroke. */
-const LARGE_DOC_THRESHOLD = 10_000
-/** Debounce delay in ms applied to documents above LARGE_DOC_THRESHOLD. */
-const LARGE_DOC_DEBOUNCE_MS = 150
+// ── Status Banner components ──────────────────────────────────────────────────
 
-/** Reads the initial output format from the ?fmt= URL param, then localStorage, then 'adf'. */
-function getInitialFormat(search = window.location.search): OutputFormat {
-  const urlFmt = new URLSearchParams(search).get('fmt')
-  if (urlFmt === 'wiki' || urlFmt === 'adf' || urlFmt === 'confluence') return urlFmt
-  try {
-    const stored = localStorage.getItem('output-format')
-    if (stored === 'wiki' || stored === 'adf' || stored === 'confluence') return stored
-  } catch {
-    // localStorage unavailable (sandboxed iframe, privacy mode)
-  }
-  return 'adf'
+function OfflineBanner({ text }: { text: string }) {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="flex items-center gap-2 border-b border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-300"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-4 w-4 shrink-0"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <line x1="1" y1="1" x2="23" y2="23" />
+        <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55" />
+        <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39" />
+        <path d="M10.71 5.05A16 16 0 0 1 22.56 9" />
+        <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88" />
+        <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
+        <line x1="12" y1="20" x2="12.01" y2="20" />
+      </svg>
+      {text}
+    </div>
+  )
+}
+
+function UpdateBanner({
+  text,
+  applyLabel,
+  onApply,
+}: {
+  text: string
+  applyLabel: string
+  onApply: () => void
+}) {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="flex items-center gap-2 border-b border-blue-200 bg-blue-50 px-4 py-2 text-sm text-blue-800 dark:border-blue-800 dark:bg-blue-950/50 dark:text-blue-300"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-4 w-4 shrink-0"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <polyline points="23 4 23 10 17 10" />
+        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+      </svg>
+      {text}
+      <button
+        type="button"
+        onClick={onApply}
+        className="ml-1 font-medium underline hover:no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+      >
+        {applyLabel}
+      </button>
+    </div>
+  )
 }
 
 function AppContent() {
   const [markdown, setMarkdown] = useState(() => getInitialMarkdown(PLACEHOLDER))
-  const [format, setFormat] = useState<OutputFormat>(getInitialFormat)
+  const [format, setFormat] = useState<OutputFormat>(getStoredFormat)
   const handleFormatChange = useCallback((fmt: OutputFormat) => setFormat(fmt), [])
   const { theme, toggleTheme } = useTheme()
   const [showSettings, setShowSettings] = useState(false)
@@ -75,21 +123,6 @@ function AppContent() {
   const { split, setSplit, mainRef, handleDragStart, handleDragMove, handleDragEnd } =
     usePanelSplit('panel-split')
 
-  // useDeferredValue keeps the textarea fully responsive by deferring
-  // the expensive convert() / convertToAdf() calls until the browser is idle.
-  // For large documents an additional debounce prevents running convert() on
-  // every keystroke during rapid edits or bulk paste operations.
-  const [debouncedMarkdown, setDebouncedMarkdown] = useState(markdown)
-  useEffect(() => {
-    if (markdown.length <= LARGE_DOC_THRESHOLD) {
-      setDebouncedMarkdown(markdown)
-      return
-    }
-    const t = setTimeout(() => setDebouncedMarkdown(markdown), LARGE_DOC_DEBOUNCE_MS)
-    return () => clearTimeout(t)
-  }, [markdown])
-  const deferredMarkdown = useDeferredValue(debouncedMarkdown)
-
   // Persist format preference to localStorage whenever it changes.
   useEffect(() => {
     try {
@@ -103,117 +136,34 @@ function AppContent() {
   // Adaptive debounce: 300 ms for small docs, 800 ms for large docs.
   const { isDeepLinkActive } = useDeepLink(markdown, format)
 
-  // Global Ctrl+S / Cmd+S: save document to history.
-  // Registered even when focus is outside CodeMirror (e.g., the output panel).
-  useEffect(() => {
-    if (!historyEnabled) return
-    const handler = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault()
-        saveNow()
-      }
-    }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [historyEnabled, saveNow])
+  // Global keyboard shortcuts: Ctrl+S, Alt+H, Alt+N, Alt+Shift+A/W/C
+  useKeyboardShortcuts({
+    historyEnabled,
+    saveNow,
+    setFormat,
+    setShowHistory,
+    setMarkdown,
+  })
 
-  // Global keyboard shortcuts for switching output format + toggling history.
-  // Alt+Shift+A → Jira Cloud (ADF), Alt+Shift+W → Wiki Markup.
-  // Alt+H → toggle history sidebar.
-  // Alt+N → new document (saves to history first if history is enabled).
-  // Using Shift for format keys prevents conflicts with dead-key / compose
-  // sequences on macOS Latino keyboards where Alt+A produces å.
-  useEffect(() => {
-    const ac = new AbortController()
-    document.addEventListener(
-      'keydown',
-      (e: KeyboardEvent) => {
-        if (e.altKey && !e.shiftKey && e.key === 'h') {
-          e.preventDefault()
-          setShowHistory((v) => !v)
-          return
-        }
-        if (e.altKey && !e.shiftKey && e.key === 'n') {
-          e.preventDefault()
-          // Save current content before clearing (saveNow is a no-op on empty/disabled).
-          saveNowRef.current()
-          setMarkdown('')
-          return
-        }
-        if (!e.altKey || !e.shiftKey) return
-        if (e.key === 'A') {
-          e.preventDefault()
-          setFormat('adf')
-        } else if (e.key === 'W') {
-          e.preventDefault()
-          setFormat('wiki')
-        } else if (e.key === 'C') {
-          e.preventDefault()
-          setFormat('confluence')
-        }
-      },
-      { signal: ac.signal }
-    )
-    return () => ac.abort()
-  }, [])
-
-  // Stable ref for saveNow so the Alt+N global handler never goes stale
-  // without needing to re-register the event listener on every markdown change.
-  const saveNowRef = useRef(saveNow)
-  useEffect(() => {
-    saveNowRef.current = saveNow
-  }, [saveNow])
-
-  const { jiraOutput, adfDoc, hasConversionError } = useMemo<{
-    jiraOutput: string
-    adfDoc: AdfDocument | null
-    hasConversionError: boolean
-  }>(() => {
-    try {
-      if (format === 'adf') {
-        const adf = convertToAdf(deferredMarkdown)
-        return {
-          jiraOutput: JSON.stringify(adf, null, 2),
-          adfDoc: adf,
-          hasConversionError: false,
-        }
-      }
-      if (format === 'confluence') {
-        return {
-          jiraOutput: convertToConfluence(deferredMarkdown),
-          adfDoc: null,
-          hasConversionError: false,
-        }
-      }
-      return { jiraOutput: convert(deferredMarkdown), adfDoc: null, hasConversionError: false }
-    } catch {
-      return { jiraOutput: '', adfDoc: null, hasConversionError: true }
-    }
-  }, [deferredMarkdown, format])
-
-  // Renders the ADF document to HTML off-thread using a Web Worker.
-  // Shows a warning toast if the worker stalls and the 5 s fallback activates.
+  // Shows a warning toast if the ADF worker stalls and the 5 s fallback activates.
   const handleWorkerFallback = useCallback(() => {
     addToast(t('adfWorkerStalled'), 'warning')
   }, [addToast, t])
+
   const {
-    html: previewHtml,
+    jiraOutput,
+    adfDoc,
+    hasConversionError,
+    previewHtml,
     workerError,
     retryWorker,
-  } = useAdfHtmlWorker(adfDoc, handleWorkerFallback)
-
-  // isPending drives the spinner in the output panel header.
-  // Only show for large documents (> LARGE_DOC_THRESHOLD) where the 150 ms
-  // debounce introduces a real, perceptible delay. For small docs,
-  // `markdown !== deferredMarkdown` is true for only one render cycle
-  // (useEffect is async) and would flash on every keystroke.
-  // Capping on doc size ensures the spinner appears only when meaningful.
-  const isPending = markdown.length > LARGE_DOC_THRESHOLD && markdown !== deferredMarkdown
-
-  // isLoadingPreview: the ADF worker has been given a document to render but
-  // hasn't returned HTML yet. Shows a full-area spinner in JiraOutputContent
-  // on the initial load and when switching back to ADF format.
-  const isLoadingPreview = format === 'adf' && adfDoc !== null && previewHtml === '' && !workerError
+    isPending,
+    isLoadingPreview,
+  } = useOutputConversion({
+    markdown,
+    format,
+    onWorkerFallback: handleWorkerFallback,
+  })
 
   /* v8 ignore next 2 -- ErrorBoundary callbacks only fire on React render errors, untestable in jsdom */
   const handleBoundaryError = (err: Error, info: { componentStack?: string | null }) =>
@@ -239,63 +189,13 @@ function AppContent() {
         historyOpen={showHistory}
         historyEnabled={historyEnabled}
       />
-      {isOffline && (
-        <div
-          role="status"
-          aria-live="polite"
-          className="flex items-center gap-2 border-b border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-300"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4 shrink-0"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <line x1="1" y1="1" x2="23" y2="23" />
-            <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55" />
-            <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39" />
-            <path d="M10.71 5.05A16 16 0 0 1 22.56 9" />
-            <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88" />
-            <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
-            <line x1="12" y1="20" x2="12.01" y2="20" />
-          </svg>
-          {t('offlineBanner')}
-        </div>
-      )}
+      {isOffline && <OfflineBanner text={t('offlineBanner')} />}
       {needsUpdate && (
-        <div
-          role="status"
-          aria-live="polite"
-          className="flex items-center gap-2 border-b border-blue-200 bg-blue-50 px-4 py-2 text-sm text-blue-800 dark:border-blue-800 dark:bg-blue-950/50 dark:text-blue-300"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4 shrink-0"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <polyline points="23 4 23 10 17 10" />
-            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
-          </svg>
-          {t('updateAvailable')}
-          <button
-            type="button"
-            onClick={applyUpdate}
-            className="ml-1 font-medium underline hover:no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-          >
-            {t('updateNow')}
-          </button>
-        </div>
+        <UpdateBanner
+          text={t('updateAvailable')}
+          applyLabel={t('updateNow')}
+          onApply={applyUpdate}
+        />
       )}
       {hasConversionError && (
         <div
@@ -457,6 +357,9 @@ function AppContent() {
           onClearHistory={clearHistory}
           onClose={() => setShowHistory(false)}
           onRenameEntry={renameEntry}
+          onImportSuccess={(count) => {
+            if (count > 0) addToast(t('historyImportSuccess'), 'success')
+          }}
         />
       )}
       <Suspense fallback={null}>
