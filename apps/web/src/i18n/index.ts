@@ -18,6 +18,14 @@ import { useSettings } from '../context/SettingsContext.js'
 
 export type { StringKey }
 
+/** Returns the translation dictionary for the given locale, falling back to English. */
+function getDict(locale: string): Record<StringKey, string> {
+  if (locale === 'es') return es
+  if (locale === 'pt') return pt
+  if (locale === 'fr') return fr
+  return en
+}
+
 /**
  * Returns the English UI string for `key`.
  * For locale-aware rendering inside React components, use `useT()` instead.
@@ -40,7 +48,7 @@ export function t(key: StringKey): string {
  */
 export function useT(): (key: StringKey) => string {
   const { locale } = useSettings()
-  const dict = locale === 'es' ? es : locale === 'pt' ? pt : locale === 'fr' ? fr : en
+  const dict = getDict(locale)
   return useCallback((key: StringKey) => dict[key] ?? en[key], [dict])
 }
 
@@ -54,7 +62,7 @@ export function useT(): (key: StringKey) => string {
  */
 export function useTI(): (key: StringKey, vars: Record<string, string>) => string {
   const { locale } = useSettings()
-  const dict = locale === 'es' ? es : locale === 'pt' ? pt : locale === 'fr' ? fr : en
+  const dict = getDict(locale)
   return useCallback(
     (key: StringKey, vars: Record<string, string>) =>
       (dict[key] ?? en[key]).replace(/\{(\w+)\}/g, (_, k: string) => vars[k] ?? `{${k}}`),
@@ -73,7 +81,7 @@ export function useTI(): (key: StringKey, vars: Record<string, string>) => strin
  */
 export function useTP(): (oneKey: StringKey, otherKey: StringKey, count: number) => string {
   const { locale } = useSettings()
-  const dict = locale === 'es' ? es : locale === 'pt' ? pt : locale === 'fr' ? fr : en
+  const dict = getDict(locale)
   return useCallback(
     (oneKey: StringKey, otherKey: StringKey, count: number) => {
       const rule = new Intl.PluralRules(locale).select(count)

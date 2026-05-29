@@ -43,11 +43,15 @@ export const Header = memo(function Header({
   // Close dropdown when clicking outside
   useEffect(() => {
     if (!showExportMenu) return
-    function handler(e: MouseEvent) {
-      if (!menuRef.current?.contains(e.target as Node)) setShowExportMenu(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
+    const ac = new AbortController()
+    document.addEventListener(
+      'mousedown',
+      (e: MouseEvent) => {
+        if (!menuRef.current?.contains(e.target as Node)) setShowExportMenu(false)
+      },
+      { signal: ac.signal }
+    )
+    return () => ac.abort()
   }, [showExportMenu])
 
   return (
