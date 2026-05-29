@@ -219,6 +219,48 @@ test('importing a .md file populates the Markdown input', async ({ page }) => {
   await expect(textarea).toContainText('# Sample', { timeout: 3000 })
 })
 
+// ─── Confluence format ────────────────────────────────────────────────────────
+
+test('Confluence format converts markdown to Confluence Storage Format', async ({ page }) => {
+  await page.goto('/')
+
+  const textarea = page.getByRole('textbox', { name: 'Markdown input' })
+  await textarea.fill('# Hello Confluence\n\nSome **bold** text.')
+
+  // Switch to Confluence format
+  await page.getByRole('button', { name: 'Confluence' }).click()
+  // Switch to Code view to see raw output
+  await page.getByRole('button', { name: 'Code' }).click()
+
+  const codeRegion = page.getByRole('region', { name: 'Confluence storage format code' })
+  await expect(codeRegion).toBeVisible()
+  await expect(codeRegion).toContainText('<h1>')
+})
+
+// ─── Panel resize handle ──────────────────────────────────────────────────────
+
+test('resize handle is keyboard-accessible and responds to ArrowRight', async ({ page }) => {
+  // The separator is hidden below the sm: breakpoint — ensure a desktop viewport.
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await page.goto('/')
+
+  const resizeHandle = page.getByRole('separator', { name: /resize panels/i })
+  await expect(resizeHandle).toBeVisible()
+
+  // Focus the resize handle and check ARIA attributes
+  await resizeHandle.focus()
+  await expect(resizeHandle).toBeFocused()
+  await expect(resizeHandle).toHaveAttribute('aria-orientation', 'vertical')
+  await expect(resizeHandle).toHaveAttribute('aria-valuemin', '20')
+  await expect(resizeHandle).toHaveAttribute('aria-valuemax', '80')
+
+  // Press ArrowRight — split should increase by 1
+  const before = parseInt((await resizeHandle.getAttribute('aria-valuenow')) ?? '50', 10)
+  await page.keyboard.press('ArrowRight')
+  const after = parseInt((await resizeHandle.getAttribute('aria-valuenow')) ?? '50', 10)
+  expect(after).toBe(before + 1)
+})
+
 // ─── Mobile panel tabs ────────────────────────────────────────────────────────
 
 test('mobile tab strip is hidden at desktop viewport', async ({ page }) => {
@@ -378,4 +420,81 @@ test('Settings — language selector switches UI to French', async ({ page }) =>
   await page.getByRole('button', { name: /open settings|ouvrir/i }).click()
   await page.getByRole('radio', { name: 'English' }).click()
   await page.keyboard.press('Escape')
+})
+
+// ─── Wiki Markup edit mode ────────────────────────────────────────────────────
+
+test('Wiki edit mode: Edit button reveals editable textarea and typed content persists', async ({
+  page,
+}) => {
+  await page.goto('/')
+
+  // Switch to Wiki Markup format
+  await page.getByRole('button', { name: 'Wiki Markup' }).click()
+  await expect(page.getByRole('button', { name: 'Wiki Markup' })).toHaveAttribute(
+    'aria-pressed',
+    'true'
+  )
+
+  // The Edit button should be available in wiki mode (canEdit = true for wiki)
+  const editBtn = page.getByRole('button', { name: 'Edit' })
+  await expect(editBtn).toBeVisible()
+  await expect(editBtn).toHaveAttribute('aria-pressed', 'false')
+
+  // Click Edit — the wiki markup textarea should appear
+  await editBtn.click()
+  await expect(editBtn).toHaveAttribute('aria-pressed', 'true')
+
+  const wikiTextarea = page.getByRole('textbox', { name: 'Wiki Markup editor' })
+  await expect(wikiTextarea).toBeVisible()
+
+  // Type custom wiki content into the textarea
+  await wikiTextarea.fill('*custom bold text*')
+  await expect(wikiTextarea).toHaveValue('*custom bold text*')
+
+  // Click View to exit edit mode — textarea should disappear
+  const viewBtn = page.getByRole('button', { name: 'View' })
+  await expect(viewBtn).toBeVisible()
+  await viewBtn.click()
+  await expect(wikiTextarea).not.toBeVisible()
+})
+
+// ─── History sidebar: export / import round-trip ──────────────────────────────
+
+test('history sidebar: save, export JSON, clear, and re-import restores entries', async ({
+  page,
+}) => {
+  await page.goto('/')
+
+  // Put distinct content in the editor and save it to history via Ctrl+S
+  const textarea = page.getByRole('textbox', { name: 'Markdown input' })
+  await textarea.fill('# History Export Test\n\nContent for export.')
+  await page.keyboard.press('Control+s')
+
+  // Open the history sidebar
+  await page.getByRole('button', { name: /document history/i }).click()
+  const sidebar = page.getByRole('dialog')
+  await expect(sidebar).toBeVisible()
+
+  // Wait for the saved entry to appear in the list
+  await expect(page.getByText('History Export Test')).toBeVisible({ timeout: 4000 })
+
+  // Export history — intercept the download
+  const downloadPromise = page.waitForEvent('download')
+  await sidebar.getByRole('button', { name: /export history/i }).click()
+  const download = await downloadPromise
+  const downloadPath = await download.path()
+  if (!downloadPath) throw new Error('Download path was null — export failed')
+
+  // Clear the history to verify the import truly restores data
+  await sidebar.getByRole('button', { name: /clear all/i }).click()
+  await page.getByRole('button', { name: /^yes$/i }).click()
+  await expect(page.getByText(/no saved documents yet/i)).toBeVisible()
+
+  // Re-import the exported JSON using the hidden file input inside the sidebar
+  const importInput = sidebar.locator('input[type="file"]')
+  await importInput.setInputFiles(downloadPath)
+
+  // The entry should be restored
+  await expect(page.getByText('History Export Test')).toBeVisible({ timeout: 4000 })
 })
