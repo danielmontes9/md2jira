@@ -1,11 +1,54 @@
-import { memo, useRef, useEffect, useState, useCallback, useId } from 'react'
+import { memo, useRef, useEffect, useState, useCallback, useId, useMemo } from 'react'
 import type { KeyboardEvent as ReactKeyboardEvent, ChangeEvent } from 'react'
 import { IconHistory, IconClose, IconSearch } from './icons.js'
 import type { HistoryEntry } from '../hooks/useDocumentHistory.js'
 import { LS_KEY, isValidEntry } from '../hooks/useDocumentHistory.js'
+import { Modal } from './Modal.js'
 import { useSettings } from '../context/SettingsContext.js'
 import { useT, useTI } from '../i18n/index.js'
 import type { StringKey } from '../i18n/en.js'
+
+type DiffLine = { type: 'eq' | 'add' | 'del'; text: string }
+
+/** LCS table is capped to prevent O(m×n) freeze on large documents. */
+const MAX_DIFF_LINES = 500
+
+function computeLineDiff(a: string, b: string): { lines: DiffLine[]; truncated: boolean } {
+  const aAll = a.split('\n')
+  const bAll = b.split('\n')
+  const truncated = aAll.length > MAX_DIFF_LINES || bAll.length > MAX_DIFF_LINES
+  const aLines = aAll.slice(0, MAX_DIFF_LINES)
+  const bLines = bAll.slice(0, MAX_DIFF_LINES)
+  // Simple Myers-LCS using dynamic programming
+  const m = aLines.length
+  const n = bLines.length
+  const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0) as number[])
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      dp[i]![j] =
+        aLines[i - 1] === bLines[j - 1]
+          ? dp[i - 1]![j - 1]! + 1
+          : Math.max(dp[i - 1]![j]!, dp[i]![j - 1]!)
+    }
+  }
+  const result: DiffLine[] = []
+  let i = m,
+    j = n
+  while (i > 0 || j > 0) {
+    if (i > 0 && j > 0 && aLines[i - 1] === bLines[j - 1]) {
+      result.unshift({ type: 'eq', text: aLines[i - 1]! })
+      i--
+      j--
+    } else if (j > 0 && (i === 0 || dp[i]![j - 1]! >= dp[i - 1]![j]!)) {
+      result.unshift({ type: 'add', text: bLines[j - 1]! })
+      j--
+    } else {
+      result.unshift({ type: 'del', text: aLines[i - 1]! })
+      i--
+    }
+  }
+  return { lines: result, truncated }
+}
 
 const FOCUSABLE_SELECTOR =
   'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
@@ -50,6 +93,349 @@ function dateGroup(ts: number): DateGroupKey {
 
 const GROUP_ORDER: DateGroupKey[] = ['dateToday', 'dateYesterday', 'dateThisWeek', 'dateOlder']
 
+// ── HistorySearchBar ─────────────────────────────────────────────────────────
+
+interface HistorySearchBarProps {
+  searchId: string
+  query: string
+  onQueryChange: (q: string) => void
+}
+
+/** Search input for the history sidebar — searches both title and document content. */
+function HistorySearchBar({ searchId, query, onQueryChange }: HistorySearchBarProps) {
+  const t = useT()
+  return (
+    <div className="border-b border-neutral-100 px-3 py-2 dark:border-neutral-800">
+      <div className="flex items-center gap-2 rounded-md border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 dark:border-neutral-700 dark:bg-neutral-800">
+        <IconSearch className="h-3.5 w-3.5 shrink-0 text-neutral-400 dark:text-neutral-500" />
+        <label htmlFor={searchId} className="sr-only">
+          {t('searchHistory')}
+        </label>
+        <input
+          id={searchId}
+          type="text"
+          value={query}
+          onChange={(e) => onQueryChange(e.target.value)}
+          placeholder={t('searchPlaceholder')}
+          className="min-w-0 flex-1 bg-transparent text-xs text-neutral-800 placeholder-neutral-400 outline-none dark:text-neutral-200 dark:placeholder-neutral-500"
+        />
+        {query && (
+          <button
+            type="button"
+            onClick={() => onQueryChange('')}
+            className="shrink-0 rounded p-0.5 text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
+            aria-label={t('clearSearch')}
+          >
+            <IconClose className="h-3 w-3" />
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ── HistoryEntryRow ──────────────────────────────────────────────────────────
+
+interface HistoryEntryRowProps {
+  entry: HistoryEntry
+  isActive: boolean
+  isRenaming: boolean
+  isSelected: boolean
+  selectMode: boolean
+  currentMarkdown?: string
+  renameValue: string
+  onLoad: () => void
+  onDelete: () => void
+  onToggleSelect: () => void
+  onStartRename: () => void
+  onCommitRename: () => void
+  onCancelRename: () => void
+  onRenameValueChange: (v: string) => void
+  onOpenDiff: () => void
+}
+
+/** Renders a single history entry row with load, rename, diff, and delete actions. */
+function HistoryEntryRow({
+  entry,
+  isActive,
+  isRenaming,
+  isSelected,
+  selectMode,
+  currentMarkdown,
+  renameValue,
+  onLoad,
+  onDelete,
+  onToggleSelect,
+  onStartRename,
+  onCommitRename,
+  onCancelRename,
+  onRenameValueChange,
+  onOpenDiff,
+}: HistoryEntryRowProps) {
+  const t = useT()
+  const ti = useTI()
+  return (
+    <li
+      className={`group flex flex-col rounded-lg border px-3 py-2.5 transition-colors ${
+        isSelected
+          ? 'border-blue-400 bg-blue-50 dark:border-blue-600 dark:bg-blue-950/40'
+          : isActive
+            ? 'border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-950/40'
+            : 'border-neutral-100 bg-neutral-50 hover:border-blue-200 hover:bg-blue-50/50 dark:border-neutral-800 dark:bg-neutral-800/40 dark:hover:border-blue-900 dark:hover:bg-blue-950/30'
+      }`}
+    >
+      <div className="flex items-start justify-between gap-1">
+        {selectMode ? (
+          <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-2">
+            <input
+              type="checkbox"
+              checked={isSelected}
+              onChange={onToggleSelect}
+              className="h-3.5 w-3.5 shrink-0 rounded border-neutral-300 text-blue-600 focus:ring-blue-500 dark:border-neutral-600"
+              aria-label={ti('selectEntryLabel', { title: entry.title })}
+            />
+            <span className="min-w-0 truncate text-sm font-medium text-neutral-800 dark:text-neutral-200">
+              {entry.title}
+            </span>
+          </label>
+        ) : isRenaming ? (
+          <input
+            type="text"
+            value={renameValue}
+            onChange={(e) => onRenameValueChange(e.target.value)}
+            onBlur={onCommitRename}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') onCommitRename()
+              if (e.key === 'Escape') onCancelRename()
+              e.stopPropagation()
+            }}
+            autoFocus
+            className="min-w-0 flex-1 rounded border border-blue-400 bg-white px-1.5 py-0.5 text-sm text-neutral-800 outline-none focus:ring-2 focus:ring-blue-400 dark:border-blue-600 dark:bg-neutral-900 dark:text-neutral-200"
+            aria-label={t('renameEntryLabel')}
+          />
+        ) : (
+          <button
+            type="button"
+            onClick={onLoad}
+            className={`min-w-0 flex-1 truncate text-left text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500 ${
+              isActive
+                ? 'text-blue-700 dark:text-blue-400'
+                : 'text-neutral-800 hover:text-blue-600 dark:text-neutral-200 dark:hover:text-blue-400'
+            }`}
+            title={entry.title}
+          >
+            {isActive && (
+              <span
+                role="img"
+                data-testid="active-indicator"
+                className="mr-1 text-blue-500"
+                aria-label={t('currentlyLoaded')}
+              >
+                {'\u25CF'}
+              </span>
+            )}
+            {entry.title}
+          </button>
+        )}
+        {!isRenaming && !selectMode && (
+          <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+            {currentMarkdown !== undefined && currentMarkdown !== entry.content && (
+              <button
+                type="button"
+                onClick={onOpenDiff}
+                className="rounded p-0.5 text-neutral-300 hover:text-indigo-500 dark:text-neutral-600 dark:hover:text-indigo-400 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500 text-[10px] font-mono leading-none px-1"
+                aria-label={t('historyDiff')}
+                title={t('historyDiff')}
+              >
+                diff
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onStartRename}
+              className="rounded p-0.5 text-neutral-300 hover:text-blue-500 dark:text-neutral-600 dark:hover:text-blue-400 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
+              aria-label={ti('renameEntryAction', { title: entry.title })}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                className="h-3 w-3"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              onClick={onDelete}
+              className="rounded p-0.5 text-neutral-300 hover:text-red-500 dark:text-neutral-600 dark:hover:text-red-400 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
+              aria-label={ti('deleteEntryLabel', { title: entry.title })}
+            >
+              <IconClose className="h-3 w-3" />
+            </button>
+          </div>
+        )}
+      </div>
+      <span className="mt-0.5 text-xs text-neutral-400 dark:text-neutral-500">
+        {formatDate(entry.savedAt)} {'\u00B7'} {entry.content.length.toLocaleString()}{' '}
+        {t('charsLabel')}
+      </span>
+    </li>
+  )
+}
+
+// ── HistoryBulkBar ───────────────────────────────────────────────────────────
+
+interface HistoryBulkBarProps {
+  selectedCount: number
+  totalFiltered: number
+  onDeleteSelected: () => void
+  onToggleSelectAll: () => void
+  onCancel: () => void
+}
+
+/** Footer toolbar shown in select mode — delete selected, select/deselect all, cancel. */
+function HistoryBulkBar({
+  selectedCount,
+  totalFiltered,
+  onDeleteSelected,
+  onToggleSelectAll,
+  onCancel,
+}: HistoryBulkBarProps) {
+  const t = useT()
+  const [confirmBulkDelete, setConfirmBulkDelete] = useState(false)
+
+  // Reset confirm state when nothing is selected (e.g. user deselects all)
+  useEffect(() => {
+    if (selectedCount === 0) setConfirmBulkDelete(false)
+  }, [selectedCount])
+
+  return (
+    <div className="flex items-center gap-1.5">
+      <button
+        type="button"
+        onClick={() => {
+          if (confirmBulkDelete) {
+            onDeleteSelected()
+            setConfirmBulkDelete(false)
+          } else {
+            setConfirmBulkDelete(true)
+          }
+        }}
+        disabled={selectedCount === 0}
+        className={`rounded px-2.5 py-1 text-xs font-medium text-red-500 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 dark:text-red-400 dark:hover:bg-red-950/30 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500${confirmBulkDelete ? ' ring-1 ring-red-400 dark:ring-red-600' : ''}`}
+      >
+        {confirmBulkDelete ? t('historyDeleteSelectedConfirm') : t('historyDeleteSelected')}
+        {selectedCount > 0 ? ` (${selectedCount})` : ''}
+      </button>
+      <button
+        type="button"
+        onClick={onToggleSelectAll}
+        className="rounded px-2.5 py-1 text-xs text-neutral-500 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
+      >
+        {selectedCount === totalFiltered && totalFiltered > 0
+          ? t('historyDeselectAll')
+          : t('historySelectAll')}
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          setConfirmBulkDelete(false)
+          onCancel()
+        }}
+        className="rounded px-2.5 py-1 text-xs text-neutral-500 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
+      >
+        {t('historyCancelSelect')}
+      </button>
+    </div>
+  )
+}
+
+// ── DiffModal ────────────────────────────────────────────────────────────────
+
+function DiffModal({
+  entry,
+  currentMarkdown,
+  onClose,
+}: {
+  entry: HistoryEntry
+  currentMarkdown: string
+  onClose: () => void
+}) {
+  const t = useT()
+  const modalId = useId()
+  const { lines: diff, truncated: diffTruncated } = useMemo(
+    () => computeLineDiff(entry.content, currentMarkdown),
+    [entry.content, currentMarkdown]
+  )
+  const hasChanges = diff.some((l) => l.type !== 'eq')
+
+  return (
+    <Modal onClose={onClose} ariaLabelledBy={modalId}>
+      <div className="flex max-h-[80dvh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-2xl dark:border-neutral-700 dark:bg-neutral-900">
+        <div className="flex items-center justify-between border-b border-neutral-200 px-5 py-3 dark:border-neutral-700">
+          <h2 id={modalId} className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+            {t('historyDiffModalTitle')}
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded p-1 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
+            aria-label={t('close')}
+          >
+            <IconClose className="h-4 w-4" />
+          </button>
+        </div>
+        <div className="flex gap-4 border-b border-neutral-100 px-5 py-2 text-xs text-neutral-500 dark:border-neutral-800 dark:text-neutral-400">
+          <span className="flex items-center gap-1">
+            <span className="inline-block h-2 w-2 rounded-full bg-red-400" />
+            {t('historyDiffLabelBefore')}
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="inline-block h-2 w-2 rounded-full bg-green-400" />
+            {t('historyDiffLabelAfter')}
+          </span>
+        </div>
+        <div className="flex-1 overflow-y-auto px-1 py-1 font-mono text-xs">
+          {diffTruncated && (
+            <p className="border-b border-amber-200 bg-amber-50 px-4 py-1.5 text-center text-xs text-amber-700 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+              {t('historyDiffTruncated').replace('{n}', String(MAX_DIFF_LINES))}
+            </p>
+          )}
+          {!hasChanges ? (
+            <p className="px-4 py-3 text-center text-sm text-neutral-500 dark:text-neutral-400">
+              {t('historyDiffNoChanges')}
+            </p>
+          ) : (
+            diff.map((line, i) => (
+              <div
+                key={i}
+                className={`flex gap-1 px-3 py-0.5 leading-5 ${
+                  line.type === 'add'
+                    ? 'bg-green-50 text-green-800 dark:bg-green-950/30 dark:text-green-300'
+                    : line.type === 'del'
+                      ? 'bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-300'
+                      : 'text-neutral-400 dark:text-neutral-500'
+                }`}
+              >
+                <span className="w-4 shrink-0 select-none">
+                  {line.type === 'add' ? '+' : line.type === 'del' ? '-' : ' '}
+                </span>
+                <span className="min-w-0 break-all">{line.text || '\u00a0'}</span>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </Modal>
+  )
+}
+
 export const HistorySidebar = memo(function HistorySidebar({
   history,
   currentMarkdown,
@@ -68,6 +454,7 @@ export const HistorySidebar = memo(function HistorySidebar({
   const [renamingId, setRenamingId] = useState<string | null>(null)
   const [renameValue, setRenameValue] = useState('')
   const [selectMode, setSelectMode] = useState(false)
+  const [diffEntry, setDiffEntry] = useState<HistoryEntry | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const searchId = useId()
   const t = useT()
@@ -280,33 +667,7 @@ export const HistorySidebar = memo(function HistorySidebar({
 
         {/* ── Search bar ── */}
         {history.length > 0 && (
-          <div className="border-b border-neutral-100 px-3 py-2 dark:border-neutral-800">
-            <div className="flex items-center gap-2 rounded-md border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 dark:border-neutral-700 dark:bg-neutral-800">
-              <IconSearch className="h-3.5 w-3.5 shrink-0 text-neutral-400 dark:text-neutral-500" />
-              <label htmlFor={searchId} className="sr-only">
-                {t('searchHistory')}
-              </label>
-              <input
-                id={searchId}
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder={t('searchPlaceholder')}
-                className="min-w-0 flex-1 bg-transparent text-xs text-neutral-800 placeholder-neutral-400 outline-none dark:text-neutral-200 dark:placeholder-neutral-500"
-                aria-label={t('searchHistory')}
-              />
-              {query && (
-                <button
-                  type="button"
-                  onClick={() => setQuery('')}
-                  className="shrink-0 rounded p-0.5 text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
-                  aria-label={t('clearSearch')}
-                >
-                  <IconClose className="h-3 w-3" />
-                </button>
-              )}
-            </div>
-          </div>
+          <HistorySearchBar searchId={searchId} query={query} onQueryChange={setQuery} />
         )}
 
         {/* ── Entry list ── */}
@@ -337,108 +698,24 @@ export const HistorySidebar = memo(function HistorySidebar({
                       const isRenaming = entry.id === renamingId
                       const isSelected = selectedIds.has(entry.id)
                       return (
-                        <li
+                        <HistoryEntryRow
                           key={entry.id}
-                          className={`group flex flex-col rounded-lg border px-3 py-2.5 transition-colors ${
-                            isSelected
-                              ? 'border-blue-400 bg-blue-50 dark:border-blue-600 dark:bg-blue-950/40'
-                              : isActive
-                                ? 'border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-950/40'
-                                : 'border-neutral-100 bg-neutral-50 hover:border-blue-200 hover:bg-blue-50/50 dark:border-neutral-800 dark:bg-neutral-800/40 dark:hover:border-blue-900 dark:hover:bg-blue-950/30'
-                          }`}
-                        >
-                          <div className="flex items-start justify-between gap-1">
-                            {selectMode ? (
-                              <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-2">
-                                <input
-                                  type="checkbox"
-                                  checked={isSelected}
-                                  onChange={() => toggleSelect(entry.id)}
-                                  className="h-3.5 w-3.5 shrink-0 rounded border-neutral-300 text-blue-600 focus:ring-blue-500 dark:border-neutral-600"
-                                  aria-label={ti('selectEntryLabel', { title: entry.title })}
-                                />
-                                <span className="min-w-0 truncate text-sm font-medium text-neutral-800 dark:text-neutral-200">
-                                  {entry.title}
-                                </span>
-                              </label>
-                            ) : isRenaming ? (
-                              <input
-                                type="text"
-                                value={renameValue}
-                                onChange={(e) => setRenameValue(e.target.value)}
-                                onBlur={() => commitRename(entry.id)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') commitRename(entry.id)
-                                  if (e.key === 'Escape') setRenamingId(null)
-                                  e.stopPropagation()
-                                }}
-                                autoFocus
-                                className="min-w-0 flex-1 rounded border border-blue-400 bg-white px-1.5 py-0.5 text-sm text-neutral-800 outline-none focus:ring-2 focus:ring-blue-400 dark:border-blue-600 dark:bg-neutral-900 dark:text-neutral-200"
-                                aria-label={t('renameEntryLabel')}
-                              />
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={() => onLoadEntry(entry.id)}
-                                className={`min-w-0 flex-1 truncate text-left text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500 ${
-                                  isActive
-                                    ? 'text-blue-700 dark:text-blue-400'
-                                    : 'text-neutral-800 hover:text-blue-600 dark:text-neutral-200 dark:hover:text-blue-400'
-                                }`}
-                                title={entry.title}
-                              >
-                                {isActive && (
-                                  <span
-                                    role="img"
-                                    data-testid="active-indicator"
-                                    className="mr-1 text-blue-500"
-                                    aria-label={t('currentlyLoaded')}
-                                  >
-                                    {'\u25CF'}
-                                  </span>
-                                )}
-                                {entry.title}
-                              </button>
-                            )}
-                            {!isRenaming && !selectMode && (
-                              <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
-                                <button
-                                  type="button"
-                                  onClick={() => startRename(entry)}
-                                  className="rounded p-0.5 text-neutral-300 hover:text-blue-500 dark:text-neutral-600 dark:hover:text-blue-400 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
-                                  aria-label={ti('renameEntryAction', { title: entry.title })}
-                                >
-                                  {/* Pencil icon */}
-                                  <svg
-                                    viewBox="0 0 24 24"
-                                    className="h-3 w-3"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth={2}
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    aria-hidden="true"
-                                  >
-                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                                  </svg>
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => onDeleteEntry(entry.id)}
-                                  className="rounded p-0.5 text-neutral-300 hover:text-red-500 dark:text-neutral-600 dark:hover:text-red-400 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
-                                  aria-label={ti('deleteEntryLabel', { title: entry.title })}
-                                >
-                                  <IconClose className="h-3 w-3" />
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                          <span className="mt-0.5 text-xs text-neutral-400 dark:text-neutral-500">
-                            {formatDate(entry.savedAt)} {'\u00B7'}{' '}
-                            {entry.content.length.toLocaleString()} {t('charsLabel')}
-                          </span>
-                        </li>
+                          entry={entry}
+                          isActive={isActive}
+                          isRenaming={isRenaming}
+                          isSelected={isSelected}
+                          selectMode={selectMode}
+                          currentMarkdown={currentMarkdown}
+                          renameValue={renameValue}
+                          onLoad={() => onLoadEntry(entry.id)}
+                          onDelete={() => onDeleteEntry(entry.id)}
+                          onToggleSelect={() => toggleSelect(entry.id)}
+                          onStartRename={() => startRename(entry)}
+                          onCommitRename={() => commitRename(entry.id)}
+                          onCancelRename={() => setRenamingId(null)}
+                          onRenameValueChange={setRenameValue}
+                          onOpenDiff={() => setDiffEntry(entry)}
+                        />
                       )
                     })}
                   </ul>
@@ -451,33 +728,13 @@ export const HistorySidebar = memo(function HistorySidebar({
         {/* ── Footer actions ── */}
         <div className="shrink-0 border-t border-neutral-200 px-3 py-2.5 dark:border-neutral-800">
           {selectMode ? (
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={handleDeleteSelected}
-                disabled={selectedIds.size === 0}
-                className="rounded px-2.5 py-1 text-xs font-medium text-red-500 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 dark:text-red-400 dark:hover:bg-red-950/30 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
-              >
-                {t('historyDeleteSelected')}
-                {selectedIds.size > 0 ? ` (${selectedIds.size})` : ''}
-              </button>
-              <button
-                type="button"
-                onClick={handleToggleSelectAll}
-                className="rounded px-2.5 py-1 text-xs text-neutral-500 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
-              >
-                {selectedIds.size === filtered.length && filtered.length > 0
-                  ? t('historyDeselectAll')
-                  : t('historySelectAll')}
-              </button>
-              <button
-                type="button"
-                onClick={exitSelectMode}
-                className="rounded px-2.5 py-1 text-xs text-neutral-500 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
-              >
-                {t('historyCancelSelect')}
-              </button>
-            </div>
+            <HistoryBulkBar
+              selectedCount={selectedIds.size}
+              totalFiltered={filtered.length}
+              onDeleteSelected={handleDeleteSelected}
+              onToggleSelectAll={handleToggleSelectAll}
+              onCancel={exitSelectMode}
+            />
           ) : (
             <div className="flex items-center gap-1.5">
               {/* Import — always available */}
@@ -549,6 +806,13 @@ export const HistorySidebar = memo(function HistorySidebar({
           )}
         </div>
       </aside>
+      {diffEntry !== null && currentMarkdown !== undefined && (
+        <DiffModal
+          entry={diffEntry}
+          currentMarkdown={currentMarkdown}
+          onClose={() => setDiffEntry(null)}
+        />
+      )}
     </>
   )
 })

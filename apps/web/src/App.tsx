@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, Suspense } from 'react'
+import { useState, useEffect, useCallback, Suspense, useMemo, useRef } from 'react'
 import { Header } from './components/Header.js'
 import { MarkdownInput } from './components/MarkdownInput.js'
 import { JiraOutput } from './components/JiraOutput.js'
@@ -57,6 +57,25 @@ function OfflineBanner({ text }: { text: string }) {
   )
 }
 
+function AutoSaveLabel({ lastSavedAt }: { lastSavedAt: number }) {
+  const t = useT()
+  const [now, setNow] = useState(Date.now())
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 30_000)
+    return () => clearInterval(id)
+  }, [])
+  const label = useMemo(() => {
+    const diff = Math.floor((now - lastSavedAt) / 60_000)
+    if (diff < 1) return t('autoSavedJustNow')
+    return t('autoSavedMinutesAgo').replace('{n}', String(diff))
+  }, [now, lastSavedAt, t])
+  return (
+    <span className="ml-1.5 text-[10px] font-normal text-neutral-400 dark:text-neutral-500">
+      {label}
+    </span>
+  )
+}
+
 function UpdateBanner({
   text,
   applyLabel,
@@ -105,14 +124,22 @@ function AppContent() {
   const { theme, toggleTheme } = useTheme()
   const [showSettings, setShowSettings] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
-  const { historyEnabled, maxHistoryEntries } = useSettings()
+  const { historyEnabled, maxHistoryEntries, baseUrl } = useSettings()
   const addToast = useToast()
-  const { history, loadEntry, deleteEntry, deleteEntries, clearHistory, saveNow, renameEntry } =
-    useDocumentHistory({
-      markdown,
-      enabled: historyEnabled,
-      maxEntries: maxHistoryEntries,
-    })
+  const {
+    history,
+    loadEntry,
+    deleteEntry,
+    deleteEntries,
+    clearHistory,
+    saveNow,
+    renameEntry,
+    lastSavedAt,
+  } = useDocumentHistory({
+    markdown,
+    enabled: historyEnabled,
+    maxEntries: maxHistoryEntries,
+  })
   const isOffline = useOfflineStatus()
   const { needsUpdate, applyUpdate } = usePwaUpdate()
   const t = useT()
@@ -122,6 +149,24 @@ function AppContent() {
   const [activePanel, setActivePanel] = useState<'input' | 'output'>('input')
   const { split, setSplit, mainRef, handleDragStart, handleDragMove, handleDragEnd } =
     usePanelSplit('panel-split')
+
+  // Touch tracking for swipe-to-switch-panel gesture (mobile only).
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null)
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    const touch = e.touches[0]
+    if (touch) touchStartRef.current = { x: touch.clientX, y: touch.clientY }
+  }, [])
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (!touchStartRef.current) return
+    const touch = e.changedTouches[0]
+    if (!touch) return
+    const dx = touch.clientX - touchStartRef.current.x
+    const dy = touch.clientY - touchStartRef.current.y
+    touchStartRef.current = null
+    // Only respond when horizontal dominates and exceeds 50 px threshold.
+    if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy)) return
+    setActivePanel(dx < 0 ? 'output' : 'input')
+  }, [])
 
   // Persist format preference to localStorage whenever it changes.
   useEffect(() => {
@@ -162,6 +207,7 @@ function AppContent() {
   } = useOutputConversion({
     markdown,
     format,
+    baseUrl: baseUrl || undefined,
     onWorkerFallback: handleWorkerFallback,
   })
 
@@ -247,6 +293,7 @@ function AppContent() {
           }`}
         >
           {t('markdownPanelLabel')}
+          {lastSavedAt !== null && historyEnabled && <AutoSaveLabel lastSavedAt={lastSavedAt} />}
         </button>
         <button
           type="button"
@@ -266,6 +313,8 @@ function AppContent() {
         id="main-content"
         aria-label={t('mainContent')}
         className="flex flex-1 flex-col gap-2 overflow-auto p-2 sm:flex-row sm:gap-0 sm:overflow-hidden sm:p-0"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
       >
         <section
           aria-label={t('markdownInputSection')}
@@ -297,6 +346,9 @@ function AppContent() {
           aria-valuenow={Math.round(split)}
           aria-valuemin={20}
           aria-valuemax={80}
+          aria-valuetext={t('resizeValueText')
+            .replace('{left}', String(Math.round(split)))
+            .replace('{right}', String(100 - Math.round(split)))}
           tabIndex={0}
           className="group hidden shrink-0 cursor-col-resize select-none items-center justify-center rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 sm:flex sm:w-4"
           onPointerDown={handleDragStart}

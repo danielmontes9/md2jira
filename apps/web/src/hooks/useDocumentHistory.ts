@@ -66,6 +66,8 @@ interface UseDocumentHistoryReturn {
   clearHistory: () => void
   saveNow: () => void
   renameEntry: (id: string, newTitle: string) => void
+  /** Timestamp (ms since epoch) of the last autosave, or null if not yet saved. */
+  lastSavedAt: number | null
 }
 
 export function useDocumentHistory({
@@ -74,6 +76,7 @@ export function useDocumentHistory({
   maxEntries,
 }: UseDocumentHistoryOptions): UseDocumentHistoryReturn {
   const [history, setHistory] = useState<HistoryEntry[]>(() => (enabled ? loadHistory() : []))
+  const [lastSavedAt, setLastSavedAt] = useState<number | null>(null)
 
   // Reload from storage when feature is enabled
   useEffect(() => {
@@ -91,8 +94,9 @@ export function useDocumentHistory({
     const handler = (e: StorageEvent) => {
       if (e.key === LS_KEY) setHistory(loadHistory())
     }
-    window.addEventListener('storage', handler)
-    return () => window.removeEventListener('storage', handler)
+    const ac = new AbortController()
+    window.addEventListener('storage', handler, { signal: ac.signal })
+    return () => ac.abort()
   }, [enabled])
 
   // Auto-save with debounce — only when enabled and content is non-empty
@@ -101,18 +105,23 @@ export function useDocumentHistory({
 
     const t = setTimeout(() => {
       setHistory((prev) => {
+        // Normalise line-endings to avoid CRLF vs LF duplicates.
+        const norm = (s: string) => s.trim().replace(/\r\n/g, '\n')
+        // Skip saving if the most recent entry already has identical content —
+        // prevents unnecessary localStorage writes when the user edits and
+        // reverts back to a previously saved state.
+        if (prev.length > 0 && norm(prev[0]!.content) === norm(markdown)) return prev
         const entry: HistoryEntry = {
           id: crypto.randomUUID(),
           title: extractTitle(markdown),
           content: markdown,
           savedAt: Date.now(),
         }
-        // Drop any existing entry with identical content (normalise line-endings
-        // so CRLF vs LF differences across platforms don't create duplicates).
-        const norm = (s: string) => s.trim().replace(/\r\n/g, '\n')
+        // Drop any existing entry with identical content further down the list.
         const deduplicated = prev.filter((e) => norm(e.content) !== norm(markdown))
         const updated = [entry, ...deduplicated].slice(0, maxEntries ?? 10)
         saveHistory(updated)
+        setLastSavedAt(Date.now())
         return updated
       })
     }, SAVE_DEBOUNCE_MS)
@@ -179,5 +188,14 @@ export function useDocumentHistory({
     })
   }, [])
 
-  return { history, loadEntry, deleteEntry, deleteEntries, clearHistory, saveNow, renameEntry }
+  return {
+    history,
+    loadEntry,
+    deleteEntry,
+    deleteEntries,
+    clearHistory,
+    saveNow,
+    renameEntry,
+    lastSavedAt,
+  }
 }

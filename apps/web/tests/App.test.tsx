@@ -495,6 +495,27 @@ describe('App – resize panel keyboard (WCAG 4.1.2)', () => {
     fireEvent.keyDown(sep, { key: 'ArrowLeft' })
     expect(parseInt(sep.getAttribute('aria-valuenow')!, 10)).toBe(20)
   })
+
+  it('aria-valuetext contains left and right percentages matching aria-valuenow', () => {
+    render(<App />)
+    const sep = screen.getByRole('separator', { name: /resize panels/i })
+    const valuenow = parseInt(sep.getAttribute('aria-valuenow')!, 10)
+    const right = 100 - valuenow
+    const valuetext = sep.getAttribute('aria-valuetext') ?? ''
+    expect(valuetext).toContain(String(valuenow))
+    expect(valuetext).toContain(String(right))
+  })
+
+  it('aria-valuetext updates when split changes via keyboard', () => {
+    render(<App />)
+    const sep = screen.getByRole('separator', { name: /resize panels/i })
+    fireEvent.keyDown(sep, { key: 'ArrowRight' })
+    const valuenow = parseInt(sep.getAttribute('aria-valuenow')!, 10)
+    const right = 100 - valuenow
+    const valuetext = sep.getAttribute('aria-valuetext') ?? ''
+    expect(valuetext).toContain(String(valuenow))
+    expect(valuetext).toContain(String(right))
+  })
 })
 
 describe('App – global keyboard shortcuts (Alt+Shift+A/W)', () => {

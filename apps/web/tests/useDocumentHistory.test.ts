@@ -288,3 +288,60 @@ describe('useDocumentHistory — renameEntry', () => {
     expect(stored[0]?.title).toBe('Persisted Title')
   })
 })
+
+// ── Autosave duplicate guard ──────────────────────────────────────────────
+
+describe('useDocumentHistory — autosave duplicate guard', () => {
+  it('does not create a new entry when content matches the most recent entry', async () => {
+    vi.useFakeTimers()
+    const { result } = renderHook(() =>
+      useDocumentHistory({ markdown: '# Same Content', enabled: true })
+    )
+    // First autosave creates the entry
+    await act(async () => {
+      vi.advanceTimersByTime(3_100)
+    })
+    expect(result.current.history).toHaveLength(1)
+    const firstId = result.current.history[0]!.id
+
+    // Autosave fires again with identical content — should be a no-op
+    await act(async () => {
+      vi.advanceTimersByTime(3_100)
+    })
+    expect(result.current.history).toHaveLength(1)
+    expect(result.current.history[0]!.id).toBe(firstId)
+    vi.useRealTimers()
+  })
+
+  it('does not autosave whitespace-only content', async () => {
+    vi.useFakeTimers()
+    const { result } = renderHook(() => useDocumentHistory({ markdown: '   \n  ', enabled: true }))
+    await act(async () => {
+      vi.advanceTimersByTime(3_100)
+    })
+    expect(result.current.history).toHaveLength(0)
+    vi.useRealTimers()
+  })
+
+  it('treats CRLF and LF as identical for duplicate detection', async () => {
+    vi.useFakeTimers()
+    const { result, rerender } = renderHook(
+      ({ markdown }) => useDocumentHistory({ markdown, enabled: true }),
+      { initialProps: { markdown: '# Hello\nworld' } }
+    )
+    await act(async () => {
+      vi.advanceTimersByTime(3_100)
+    })
+    expect(result.current.history).toHaveLength(1)
+    const firstId = result.current.history[0]!.id
+
+    // Switch to CRLF line endings — should not create a duplicate
+    rerender({ markdown: '# Hello\r\nworld' })
+    await act(async () => {
+      vi.advanceTimersByTime(3_100)
+    })
+    expect(result.current.history).toHaveLength(1)
+    expect(result.current.history[0]!.id).toBe(firstId)
+    vi.useRealTimers()
+  })
+})

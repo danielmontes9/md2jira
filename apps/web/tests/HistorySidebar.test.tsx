@@ -291,6 +291,40 @@ describe('HistorySidebar — select mode & bulk delete', () => {
     fireEvent.click(screen.getByLabelText(/select "Doc Two"/i))
     expect(screen.getByRole('button', { name: /delete selected \(2\)/i })).toBeInTheDocument()
   })
+
+  it('first click on Delete selected shows confirm state', () => {
+    render(<HistorySidebar {...baseProps} history={entries} />)
+    fireEvent.click(screen.getByRole('button', { name: /enter bulk selection mode/i }))
+    fireEvent.click(screen.getByLabelText(/select "Doc One"/i))
+    fireEvent.click(screen.getByRole('button', { name: /delete selected \(1\)/i }))
+    // Button label should have changed to the confirmation text
+    expect(screen.getByRole('button', { name: /confirm delete\?/i })).toBeInTheDocument()
+  })
+
+  it('second click on confirm button executes the deletion', () => {
+    const onDeleteEntries = vi.fn()
+    render(<HistorySidebar {...baseProps} history={entries} onDeleteEntries={onDeleteEntries} />)
+    fireEvent.click(screen.getByRole('button', { name: /enter bulk selection mode/i }))
+    fireEvent.click(screen.getByLabelText(/select "Doc One"/i))
+    // First click — confirm mode
+    fireEvent.click(screen.getByRole('button', { name: /delete selected \(1\)/i }))
+    // Second click — execute
+    fireEvent.click(screen.getByRole('button', { name: /confirm delete\?/i }))
+    expect(onDeleteEntries).toHaveBeenCalledWith(['1'])
+  })
+
+  it('confirm state resets when all entries are deselected', () => {
+    render(<HistorySidebar {...baseProps} history={entries} />)
+    fireEvent.click(screen.getByRole('button', { name: /enter bulk selection mode/i }))
+    fireEvent.click(screen.getByLabelText(/select "Doc One"/i))
+    // Enter confirm mode
+    fireEvent.click(screen.getByRole('button', { name: /delete selected \(1\)/i }))
+    expect(screen.getByRole('button', { name: /confirm delete\?/i })).toBeInTheDocument()
+    // Deselect — confirm state should reset
+    fireEvent.click(screen.getByLabelText(/select "Doc One"/i))
+    expect(screen.queryByRole('button', { name: /confirm delete\?/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /delete selected$/i })).toBeDisabled()
+  })
 })
 
 // ── Import / Export ──────────────────────────────────────────────────────────
@@ -620,6 +654,42 @@ describe('HistorySidebar — search', () => {
     expect(screen.queryByText('Beta page')).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: /clear search/i }))
     expect(screen.getByText('Beta page')).toBeInTheDocument()
+  })
+})
+
+// ── Diff button ───────────────────────────────────────────────────────────────
+
+describe('HistorySidebar — diff button', () => {
+  const entryContent = '# Old doc\n\nSome content.'
+  const entries = [makeEntry('1', entryContent, 'Old doc')]
+
+  it('shows the diff button when currentMarkdown differs from the entry', () => {
+    render(<HistorySidebar {...baseProps} history={entries} currentMarkdown="# New doc" />)
+    expect(screen.getByRole('button', { name: /^diff$/i })).toBeInTheDocument()
+  })
+
+  it('does not show the diff button when currentMarkdown matches the entry', () => {
+    render(<HistorySidebar {...baseProps} history={entries} currentMarkdown={entryContent} />)
+    expect(screen.queryByRole('button', { name: /^diff$/i })).not.toBeInTheDocument()
+  })
+
+  it('does not show the diff button when currentMarkdown is undefined', () => {
+    render(<HistorySidebar {...baseProps} history={entries} />)
+    expect(screen.queryByRole('button', { name: /^diff$/i })).not.toBeInTheDocument()
+  })
+
+  it('opens the diff modal when the diff button is clicked', () => {
+    render(<HistorySidebar {...baseProps} history={entries} currentMarkdown="# New doc" />)
+    fireEvent.click(screen.getByRole('button', { name: /^diff$/i }))
+    expect(screen.getByText(/compare with current document/i)).toBeInTheDocument()
+  })
+
+  it('closes the diff modal when the close button inside it is clicked', () => {
+    render(<HistorySidebar {...baseProps} history={entries} currentMarkdown="# New doc" />)
+    fireEvent.click(screen.getByRole('button', { name: /^diff$/i }))
+    expect(screen.getByText(/compare with current document/i)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /^close$/i }))
+    expect(screen.queryByText(/compare with current document/i)).not.toBeInTheDocument()
   })
 })
 
