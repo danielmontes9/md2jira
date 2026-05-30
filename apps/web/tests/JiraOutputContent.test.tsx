@@ -185,3 +185,72 @@ describe('JiraOutputContent — wiki edit mode', () => {
     expect(onWikiDraftChange).toHaveBeenCalledWith('new draft')
   })
 })
+
+describe('JiraOutputContent — confluence edit mode', () => {
+  it('renders confluence textarea when format=confluence and editMode=true', () => {
+    renderWithSettings(
+      <JiraOutputContent
+        {...baseProps}
+        format="confluence"
+        viewMode="preview"
+        editMode={true}
+        canEdit={true}
+        value="<h1>Hello</h1>"
+      />
+    )
+    expect(
+      screen.getByRole('textbox', { name: /confluence storage format editor/i })
+    ).toBeInTheDocument()
+  })
+
+  it('textarea shows confluenceDraft value when provided', () => {
+    renderWithSettings(
+      <JiraOutputContent
+        {...baseProps}
+        format="confluence"
+        viewMode="preview"
+        editMode={true}
+        canEdit={true}
+        value="<h1>Original</h1>"
+        confluenceDraft="<h1>Draft</h1>"
+      />
+    )
+    const textarea = screen.getByRole('textbox', {
+      name: /confluence storage format editor/i,
+    }) as HTMLTextAreaElement
+    expect(textarea.value).toBe('<h1>Draft</h1>')
+  })
+
+  it('calls onConfluenceDraftChange when confluence textarea value changes', () => {
+    const onConfluenceDraftChange = vi.fn()
+    renderWithSettings(
+      <JiraOutputContent
+        {...baseProps}
+        format="confluence"
+        viewMode="preview"
+        editMode={true}
+        canEdit={true}
+        value="<h1>Hello</h1>"
+        confluenceDraft="<h1>Hello</h1>"
+        onConfluenceDraftChange={onConfluenceDraftChange}
+      />
+    )
+    const textarea = screen.getByRole('textbox', { name: /confluence storage format editor/i })
+    fireEvent.change(textarea, { target: { value: '<h1>Changed</h1>' } })
+    expect(onConfluenceDraftChange).toHaveBeenCalledWith('<h1>Changed</h1>')
+  })
+
+  it('renders confluence preview pre when not in edit mode', () => {
+    renderWithSettings(
+      <JiraOutputContent
+        {...baseProps}
+        format="confluence"
+        viewMode="preview"
+        editMode={false}
+        value="<h1>Hello</h1>"
+      />
+    )
+    expect(screen.getByRole('region')).toBeInTheDocument()
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
+  })
+})

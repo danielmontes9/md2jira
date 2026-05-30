@@ -22,6 +22,9 @@ interface JiraOutputContentProps {
   /** Locally-edited Wiki Markup draft (only relevant in wiki edit mode). */
   wikiDraft?: string
   onWikiDraftChange?: (v: string) => void
+  /** Locally-edited Confluence Storage Format draft (only relevant in confluence edit mode). */
+  confluenceDraft?: string
+  onConfluenceDraftChange?: (v: string) => void
 }
 
 /**
@@ -43,9 +46,11 @@ export function JiraOutputContent({
   editMode,
   isPending,
   isLoadingPreview,
-  renderingPreviewLabel = 'Rendering preview\u2026',
+  renderingPreviewLabel,
   wikiDraft,
   onWikiDraftChange,
+  confluenceDraft,
+  onConfluenceDraftChange,
 }: JiraOutputContentProps) {
   const t = useT()
   // ── All hooks must be declared unconditionally before any early return ─────
@@ -66,6 +71,16 @@ export function JiraOutputContent({
     el.style.minHeight = 'auto'
     el.style.minHeight = `${el.scrollHeight}px`
   }, [wikiValue])
+  // Confluence textarea auto-resize (same pattern as wiki)
+  const confluenceTextareaRef = useRef<HTMLTextAreaElement>(null)
+  const confluenceValue = confluenceDraft ?? value
+  useEffect(() => {
+    const el = confluenceTextareaRef.current
+    if (!el) return
+    /* v8 ignore next 2 -- scrollHeight is not available in jsdom */
+    el.style.minHeight = 'auto'
+    el.style.minHeight = `${el.scrollHeight}px`
+  }, [confluenceValue])
   // ── End of hooks ────────────────────────────────────────────────────────────
 
   if (viewMode === 'code') {
@@ -120,7 +135,9 @@ export function JiraOutputContent({
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
             />
           </svg>
-          <p className="text-sm text-neutral-400 dark:text-neutral-500">{renderingPreviewLabel}</p>
+          <p className="text-sm text-neutral-400 dark:text-neutral-500">
+            {renderingPreviewLabel ?? t('renderingPreview')}
+          </p>
         </div>
       )
     }
@@ -139,6 +156,19 @@ export function JiraOutputContent({
 
   // Confluence output — plain HTML-escaped XHTML, no wiki syntax decoration.
   if (format === 'confluence') {
+    // Edit mode: editable textarea for fine-tuning the Confluence Storage Format XML.
+    if (editMode) {
+      return (
+        <textarea
+          ref={confluenceTextareaRef}
+          value={confluenceValue}
+          onChange={(e) => onConfluenceDraftChange?.(e.target.value)}
+          aria-label={t('confluenceMarkupEditor')}
+          spellCheck={false}
+          className="flex-1 resize-none overflow-hidden p-4 font-mono text-sm leading-6 text-neutral-900 outline-none ring-1 ring-inset ring-blue-300 dark:text-neutral-100 dark:ring-blue-700"
+        />
+      )
+    }
     return (
       <pre
         role="region"
