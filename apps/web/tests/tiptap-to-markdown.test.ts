@@ -22,14 +22,19 @@ import TableHeader from '@tiptap/extension-table-header'
 import TableCell from '@tiptap/extension-table-cell'
 import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
+import Image from '@tiptap/extension-image'
 import {
   tiptapDocToMarkdown,
   hasColorMarks,
   hasUnderlineMarks,
 } from '../src/utils/tiptap-to-markdown.js'
+import { AlignedTableCell, AlignedTableHeader } from '../src/hooks/useTiptapEditor.js'
 
-/** Extension set that mirrors useTiptapEditor so the PM schema is identical. */
-const EXTENSIONS = [
+/**
+ * Base extensions shared between EXTENSIONS and ALIGNED_EXTENSIONS so adding
+ * a new extension only requires one change rather than two.
+ */
+const BASE_EXTENSIONS = [
   StarterKit.configure({
     heading: { levels: [1, 2, 3, 4, 5, 6] },
     underline: false,
@@ -41,11 +46,13 @@ const EXTENSIONS = [
   Color,
   Table.configure({ resizable: false }),
   TableRow,
-  TableHeader,
-  TableCell,
   TaskList,
   TaskItem.configure({ nested: true }),
+  Image.configure({ inline: false }),
 ]
+
+/** Extension set that mirrors useTiptapEditor so the PM schema is identical. */
+const EXTENSIONS = [...BASE_EXTENSIONS, TableHeader, TableCell]
 
 /**
  * Creates a ProseMirror document by parsing HTML through a TipTap editor.
@@ -132,6 +139,195 @@ describe('tiptapDocToMarkdown — block nodes', () => {
 
 // ── Inline marks ──────────────────────────────────────────────────────────────
 
+describe('tiptapDocToMarkdown — images', () => {
+  it('serializes a standalone image', () => {
+    const doc = htmlToDoc('<img src="https://example.com/img.png" alt="Alt text">')
+    const md = tiptapDocToMarkdown(doc)
+    expect(md).toContain('![Alt text](https://example.com/img.png)')
+  })
+
+  it('serializes an image with a title', () => {
+    const doc = htmlToDoc('<img src="https://example.com/img.png" alt="Photo" title="My title">')
+    const md = tiptapDocToMarkdown(doc)
+    expect(md).toContain('![Photo](https://example.com/img.png "My title")')
+  })
+
+  it('serializes an image with empty alt', () => {
+    const doc = htmlToDoc('<img src="https://example.com/img.png" alt="">')
+    const md = tiptapDocToMarkdown(doc)
+    expect(md).toContain('![](https://example.com/img.png)')
+  })
+
+  it('produces empty src for an image with no src attribute', () => {
+    // src='' is valid — ![alt]() — and must not become ![alt](#).
+    const doc = htmlToDoc('<img src="" alt="no src">')
+    const md = tiptapDocToMarkdown(doc)
+    expect(md).toContain('![no src]()')
+  })
+
+  it('serializes an image inside a figure wrapper (ADF mediaSingle pattern)', () => {
+    const doc = htmlToDoc(
+      '<figure class="adf-media-single"><img src="https://example.com/banner.jpg" alt="Banner"></figure>'
+    )
+    const md = tiptapDocToMarkdown(doc)
+    expect(md).toContain('![Banner](https://example.com/banner.jpg)')
+  })
+
+  it('escapes double quotes inside image title', () => {
+    // A title containing " must be escaped to prevent malformed Markdown output.
+    const doc = htmlToDoc(
+      '<img src="https://example.com/img.png" alt="Photo" title="say &quot;hello&quot;">'
+    )
+    const md = tiptapDocToMarkdown(doc)
+    expect(md).toContain('![Photo](https://example.com/img.png "say \\"hello\\"")')
+  })
+
+  it('escapes ] inside image alt to prevent broken Markdown link syntax', () => {
+    // An unescaped ] would close the ![...] span prematurely.
+    const doc = htmlToDoc('<img src="https://example.com/img.png" alt="click]here">')
+    const md = tiptapDocToMarkdown(doc)
+    expect(md).toContain('![click\\]here](https://example.com/img.png)')
+  })
+
+  it('replaces unsafe src scheme with # in serialized Markdown', () => {
+    // javascript: URLs must not be propagated into the exported Markdown.
+    // TipTap normalises javascript:alert(1) to about:blank on some builds;
+    // we check both: either it was replaced with # or it is no longer javascript:
+    const doc = htmlToDoc('<img src="javascript:alert(1)" alt="xss">')
+    const md = tiptapDocToMarkdown(doc)
+    const srcMatch = md.match(/!\[xss\]\(([^)]+)\)/)
+    expect(srcMatch).not.toBeNull()
+    const serializedSrc = srcMatch![1]
+    expect(serializedSrc).not.toMatch(/^javascript:/i)
+  })
+
+  it('preserves root-relative src paths unchanged', () => {
+    // /images/banner.jpg is a valid relative URL with no scheme risk.
+    const doc = htmlToDoc('<img src="/images/banner.jpg" alt="Banner">')
+    const md = tiptapDocToMarkdown(doc)
+    expect(md).toContain('![Banner](/images/banner.jpg)')
+  })
+
+  it('preserves ./-relative src paths unchanged', () => {
+    const doc = htmlToDoc('<img src="./assets/photo.png" alt="Photo">')
+    const md = tiptapDocToMarkdown(doc)
+    expect(md).toContain('![Photo](./assets/photo.png)')
+  })
+
+  it('preserves ../-relative src paths unchanged', () => {
+    const doc = htmlToDoc('<img src="../images/photo.png" alt="Photo">')
+    const md = tiptapDocToMarkdown(doc)
+    expect(md).toContain('![Photo](../images/photo.png)')
+  })
+
+  it('preserves uppercase-scheme https URLs unchanged', () => {
+    // RFC 3986 allows scheme in any case; HTTPS:// must not be sanitized to #.
+    // TipTap's HTML parser may normalize the scheme to lowercase — both outcomes
+    // are acceptable as long as the URL is not replaced with '#'.
+    const doc = htmlToDoc('<img src="HTTPS://example.com/img.png" alt="Alt">')
+    const md = tiptapDocToMarkdown(doc)
+    expect(md).toMatch(/!\[Alt\]\(https?:\/\/example\.com\/img\.png\)/i)
+  })
+
+  it('blocks a protocol-relative src (//host)', () => {
+    // //evil.com inherits the page protocol — cannot be validated statically.
+    // TipTap may normalize //host to https://host during HTML parsing; either
+    // way the URL must not appear verbatim as //evil.com in the output.
+    const doc = htmlToDoc('<img src="//evil.com/img.png" alt="evil">')
+    const md = tiptapDocToMarkdown(doc)
+    expect(md).not.toMatch(/!\[evil\]\(\/\//)
+  })
+
+  it('preserves a safe data:image/png URI unchanged', () => {
+    const doc = htmlToDoc('<img src="data:image/png;base64,abc" alt="inline">')
+    const md = tiptapDocToMarkdown(doc)
+    // The full URI must be preserved — not just the MIME type prefix.
+    expect(md).toContain('data:image/png;base64,abc')
+    expect(md).not.toContain('![inline](#)')
+  })
+
+  it('blocks data:image/svg+xml URI (SVG can embed scripts)', () => {
+    // SVG can contain <script> — only raster subtypes are permitted.
+    const doc = htmlToDoc('<img src="data:image/svg+xml;base64,PHN2Zyc+" alt="svg">')
+    const md = tiptapDocToMarkdown(doc)
+    expect(md).not.toMatch(/data:image\/svg/i)
+    // The src must have been replaced with '#' or empty string (TipTap may strip it first).
+    expect(md).toMatch(/!\[svg\]\(#?\)/)
+  })
+
+  it('blocks a data: URI whose subtype shares a prefix with a safe subtype (prefix bypass regression)', () => {
+    // SAFE_SRC_RE uses (?=[;,]) after the subtype group to prevent "pngEVIL"
+    // from matching via the "png" prefix. This test guards against accidentally
+    // removing that lookahead during future regex edits.
+    const doc = htmlToDoc('<img src="data:image/pngEVIL;base64,abc" alt="bypass">')
+    const md = tiptapDocToMarkdown(doc)
+    expect(md).not.toMatch(/data:image\/pngEVIL/i)
+    // The malicious src must have been replaced with '#' or empty string.
+    expect(md).toMatch(/!\[bypass\]\(#?\)/)
+  })
+})
+
+// ── Link mark — sanitization ─────────────────────────────────────────────────
+
+describe('tiptapDocToMarkdown — link sanitization', () => {
+  it('serializes a standard https link', () => {
+    const doc = htmlToDoc('<p><a href="https://example.com">Example</a></p>')
+    expect(tiptapDocToMarkdown(doc)).toBe('[Example](https://example.com)')
+  })
+
+  it('replaces a javascript: href with #', () => {
+    // OWASP A03: javascript: links must not appear in the exported Markdown.
+    const doc = htmlToDoc('<p><a href="javascript:alert(1)">click</a></p>')
+    const md = tiptapDocToMarkdown(doc)
+    expect(md).not.toMatch(/javascript:/i)
+    expect(md).toContain('[click]')
+  })
+
+  it('preserves a root-relative href unchanged', () => {
+    const doc = htmlToDoc('<p><a href="/docs/page">/docs/page</a></p>')
+    expect(tiptapDocToMarkdown(doc)).toContain('[/docs/page](/docs/page)')
+  })
+
+  it('preserves a fragment-only href (#anchor) unchanged', () => {
+    // #section is a common in-page anchor — must not be replaced with a bare #.
+    const doc = htmlToDoc('<p><a href="#section">Back to top</a></p>')
+    expect(tiptapDocToMarkdown(doc)).toContain('[Back to top](#section)')
+  })
+
+  it('preserves a mailto: href unchanged', () => {
+    const doc = htmlToDoc('<p><a href="mailto:team@example.com">Contact</a></p>')
+    expect(tiptapDocToMarkdown(doc)).toContain('[Contact](mailto:team@example.com)')
+  })
+
+  it('escapes double quotes inside a link title', () => {
+    const doc = htmlToDoc(
+      '<p><a href="https://example.com" title="say &quot;hi&quot;">link</a></p>'
+    )
+    const md = tiptapDocToMarkdown(doc)
+    expect(md).toContain('[link](https://example.com "say \\"hi\\"")')
+  })
+
+  it('preserves a tel: href unchanged', () => {
+    const doc = htmlToDoc('<p><a href="tel:+34600000000">Call us</a></p>')
+    expect(tiptapDocToMarkdown(doc)).toContain('[Call us](tel:+34600000000)')
+  })
+
+  it('produces an empty href for a link with no href attribute', () => {
+    // href='' is valid CommonMark — [text]() — and must not become [text](#).
+    const doc = htmlToDoc('<p><a href="">empty</a></p>')
+    const md = tiptapDocToMarkdown(doc)
+    expect(md).toContain('[empty]()')
+  })
+
+  it('blocks a protocol-relative href (//host) by replacing with #', () => {
+    // //evil.com inherits the page protocol — cannot be validated statically.
+    const doc = htmlToDoc('<p><a href="//evil.com/page">evil</a></p>')
+    const md = tiptapDocToMarkdown(doc)
+    expect(md).not.toContain('//evil.com')
+    expect(md).toContain('[evil]')
+  })
+})
+
 describe('tiptapDocToMarkdown — inline marks', () => {
   it('serializes bold', () => {
     expect(tiptapDocToMarkdown(htmlToDoc('<p><strong>bold</strong></p>'))).toBe('**bold**')
@@ -151,11 +347,6 @@ describe('tiptapDocToMarkdown — inline marks', () => {
 
   it('serializes inline code', () => {
     expect(tiptapDocToMarkdown(htmlToDoc('<p><code>snippet</code></p>'))).toBe('`snippet`')
-  })
-
-  it('serializes a hyperlink', () => {
-    const doc = htmlToDoc('<p><a href="https://example.com">Example</a></p>')
-    expect(tiptapDocToMarkdown(doc)).toBe('[Example](https://example.com)')
   })
 
   it('serializes subscript as HTML <sub>', () => {
@@ -319,51 +510,10 @@ describe('tiptapDocToMarkdown — special chars inside marks', () => {
 })
 
 // ── Table column alignment ──────────────────────────────────────────────────
-// These tests extend TableCell/TableHeader with an `alignment` attribute that
-// maps the text-align CSS property — mirroring the AlignedTable* extensions
-// in useTiptapEditor — so the serializer can emit :---: / ---: markers.
+// AlignedTableCell and AlignedTableHeader are imported from useTiptapEditor so
+// the test schema is guaranteed to match production — no local copy to drift.
 
-const AlignedTableCell = TableCell.extend({
-  addAttributes() {
-    return {
-      ...this.parent?.(),
-      alignment: {
-        default: null,
-        parseHTML: (element: HTMLElement) =>
-          (element.style.textAlign || null) as 'left' | 'center' | 'right' | null,
-        renderHTML: (attrs: Record<string, unknown>) => {
-          const a = attrs['alignment'] as string | null
-          return a ? { style: `text-align: ${a}` } : {}
-        },
-      },
-    }
-  },
-})
-
-const AlignedTableHeader = TableHeader.extend({
-  addAttributes() {
-    return {
-      ...this.parent?.(),
-      alignment: {
-        default: null,
-        parseHTML: (element: HTMLElement) =>
-          (element.style.textAlign || null) as 'left' | 'center' | 'right' | null,
-        renderHTML: (attrs: Record<string, unknown>) => {
-          const a = attrs['alignment'] as string | null
-          return a ? { style: `text-align: ${a}` } : {}
-        },
-      },
-    }
-  },
-})
-
-const ALIGNED_EXTENSIONS = [
-  StarterKit.configure({ heading: { levels: [1, 2, 3, 4, 5, 6] }, underline: false }),
-  Table.configure({ resizable: false }),
-  TableRow,
-  AlignedTableHeader,
-  AlignedTableCell,
-]
+const ALIGNED_EXTENSIONS = [...BASE_EXTENSIONS, AlignedTableHeader, AlignedTableCell]
 
 function htmlToAlignedDoc(html: string) {
   const editor = new Editor({ extensions: ALIGNED_EXTENSIONS, content: html })
