@@ -3,7 +3,7 @@ import type { KeyboardEvent as ReactKeyboardEvent, ChangeEvent } from 'react'
 import { IconHistory, IconClose, IconSearch } from './icons.js'
 import type { HistoryEntry } from '../hooks/useDocumentHistory.js'
 import { LS_KEY, isValidEntry } from '../hooks/useDocumentHistory.js'
-import { Modal } from './Modal.js'
+import { Modal, ModalCloseButton, ConfirmModal } from './Modal.js'
 import { useSettings } from '../context/SettingsContext.js'
 import { useT, useTI } from '../i18n/index.js'
 import type { StringKey } from '../i18n/en.js'
@@ -50,12 +50,18 @@ function computeLineDiff(a: string, b: string): { lines: DiffLine[]; truncated: 
   return { lines: result, truncated }
 }
 
+/** Duration of the sidebar close animation in ms — must match `.sidebar-panel-closing` in index.css. */
+const SIDEBAR_CLOSE_MS = 250
+
 const FOCUSABLE_SELECTOR =
   'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
 interface HistorySidebarProps {
   history: HistoryEntry[]
   currentMarkdown?: string
+  /** ID of the history entry currently loaded in the editor. When provided,
+   * the active indicator uses an O(1) ID lookup instead of an O(n) content scan. */
+  activeEntryId?: string | null
   onLoadEntry: (id: string) => void
   onDeleteEntry: (id: string) => void
   onDeleteEntries?: (ids: string[]) => void
@@ -217,7 +223,7 @@ function HistoryEntryRow({
           <button
             type="button"
             onClick={onLoad}
-            className={`min-w-0 flex-1 truncate text-left text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500 ${
+            className={`min-w-0 flex-1 cursor-pointer truncate text-left text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500 ${
               isActive
                 ? 'text-blue-700 dark:text-blue-400'
                 : 'text-neutral-800 hover:text-blue-600 dark:text-neutral-200 dark:hover:text-blue-400'
@@ -308,29 +314,16 @@ function HistoryBulkBar({
   onCancel,
 }: HistoryBulkBarProps) {
   const t = useT()
-  const [confirmBulkDelete, setConfirmBulkDelete] = useState(false)
-
-  // Reset confirm state when nothing is selected (e.g. user deselects all)
-  useEffect(() => {
-    if (selectedCount === 0) setConfirmBulkDelete(false)
-  }, [selectedCount])
 
   return (
     <div className="flex items-center gap-1.5">
       <button
         type="button"
-        onClick={() => {
-          if (confirmBulkDelete) {
-            onDeleteSelected()
-            setConfirmBulkDelete(false)
-          } else {
-            setConfirmBulkDelete(true)
-          }
-        }}
+        onClick={onDeleteSelected}
         disabled={selectedCount === 0}
-        className={`rounded px-2.5 py-1 text-xs font-medium text-red-500 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 dark:text-red-400 dark:hover:bg-red-950/30 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500${confirmBulkDelete ? ' ring-1 ring-red-400 dark:ring-red-600' : ''}`}
+        className="rounded px-2.5 py-1 text-xs font-medium text-red-500 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 dark:text-red-400 dark:hover:bg-red-950/30 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
       >
-        {confirmBulkDelete ? t('historyDeleteSelectedConfirm') : t('historyDeleteSelected')}
+        {t('historyDeleteSelected')}
         {selectedCount > 0 ? ` (${selectedCount})` : ''}
       </button>
       <button
@@ -344,10 +337,7 @@ function HistoryBulkBar({
       </button>
       <button
         type="button"
-        onClick={() => {
-          setConfirmBulkDelete(false)
-          onCancel()
-        }}
+        onClick={onCancel}
         className="rounded px-2.5 py-1 text-xs text-neutral-500 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
       >
         {t('historyCancelSelect')}
@@ -382,14 +372,12 @@ function DiffModal({
           <h2 id={modalId} className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
             {t('historyDiffModalTitle')}
           </h2>
-          <button
-            type="button"
-            onClick={onClose}
+          <ModalCloseButton
             className="rounded p-1 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
             aria-label={t('close')}
           >
             <IconClose className="h-4 w-4" />
-          </button>
+          </ModalCloseButton>
         </div>
         <div className="flex gap-4 border-b border-neutral-100 px-5 py-2 text-xs text-neutral-500 dark:border-neutral-800 dark:text-neutral-400">
           <span className="flex items-center gap-1">
@@ -439,6 +427,7 @@ function DiffModal({
 export const HistorySidebar = memo(function HistorySidebar({
   history,
   currentMarkdown,
+  activeEntryId,
   onLoadEntry,
   onDeleteEntry,
   onDeleteEntries,
@@ -450,20 +439,33 @@ export const HistorySidebar = memo(function HistorySidebar({
   const sidebarRef = useRef<HTMLElement>(null)
   const previousFocusRef = useRef<HTMLElement | null>(null)
   const [confirmClear, setConfirmClear] = useState(false)
+  const [isClosing, setIsClosing] = useState(false)
   const [query, setQuery] = useState('')
   const [renamingId, setRenamingId] = useState<string | null>(null)
   const [renameValue, setRenameValue] = useState('')
   const [selectMode, setSelectMode] = useState(false)
   const [diffEntry, setDiffEntry] = useState<HistoryEntry | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<HistoryEntry | null>(null)
+  const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const searchId = useId()
   const t = useT()
   const ti = useTI()
   const { maxHistoryEntries } = useSettings()
 
-  const activeId = currentMarkdown?.trim()
-    ? history.find((e) => e.content === currentMarkdown)?.id
-    : undefined
+  // When the caller passes `activeEntryId` (even as `null`), trust it completely:
+  //   string  → that entry is active (O(1) lookup, no content scan needed)
+  //   null    → explicitly nothing loaded; never show the indicator
+  //   undefined (prop omitted) → fall back to O(n) content comparison for
+  //             callers that don't track the loaded ID (e.g. tests, future consumers)
+  const activeId: string | undefined =
+    activeEntryId !== undefined
+      ? activeEntryId === null
+        ? undefined
+        : activeEntryId
+      : currentMarkdown?.trim()
+        ? history.find((e) => e.content === currentMarkdown)?.id
+        : undefined
 
   // Filter by query — searches both title and content so users can find
   // documents by any word they remember, not just the first-line title.
@@ -490,6 +492,15 @@ export const HistorySidebar = memo(function HistorySidebar({
     }
   }, [])
 
+  const isClosingRef = useRef(false)
+  const triggerClose = useCallback(() => {
+    if (isClosingRef.current) return
+    isClosingRef.current = true
+    setIsClosing(true)
+    setConfirmClear(false) // reset any pending confirm state before close animation
+    setTimeout(() => onClose(), SIDEBAR_CLOSE_MS)
+  }, [onClose])
+
   const handleKeyDown = useCallback(
     (e: ReactKeyboardEvent<HTMLElement>) => {
       if (e.key === 'Escape') {
@@ -500,7 +511,7 @@ export const HistorySidebar = memo(function HistorySidebar({
           return
         }
         e.preventDefault()
-        onClose()
+        triggerClose()
         return
       }
       if (e.key !== 'Tab') return
@@ -518,7 +529,7 @@ export const HistorySidebar = memo(function HistorySidebar({
         first.focus()
       }
     },
-    [onClose, renamingId]
+    [triggerClose, renamingId]
   )
 
   const startRename = useCallback((entry: HistoryEntry) => {
@@ -625,13 +636,16 @@ export const HistorySidebar = memo(function HistorySidebar({
 
   return (
     <>
-      <div className="fixed inset-0 z-30 bg-black/20 dark:bg-black/40" onClick={onClose} />
+      <div
+        className={`fixed inset-0 z-30 bg-black/20 dark:bg-black/40 ${isClosing ? 'sidebar-backdrop-closing' : 'sidebar-backdrop'}`}
+        onClick={triggerClose}
+      />
       <aside
         ref={sidebarRef}
         role="dialog"
         aria-modal="true"
         aria-label={t('recentDocuments')}
-        className="fixed inset-y-0 right-0 z-40 flex w-80 flex-col border-l border-neutral-200 bg-white shadow-xl dark:border-neutral-800 dark:bg-neutral-900"
+        className={`fixed inset-y-0 right-0 z-40 flex w-80 flex-col border-l border-neutral-200 bg-white shadow-xl dark:border-neutral-800 dark:bg-neutral-900 ${isClosing ? 'sidebar-panel-closing' : 'sidebar-panel'}`}
         onKeyDown={handleKeyDown}
       >
         {/* ── Header ── */}
@@ -646,7 +660,7 @@ export const HistorySidebar = memo(function HistorySidebar({
           </span>
           <button
             type="button"
-            onClick={onClose}
+            onClick={triggerClose}
             className="rounded p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-500 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
             aria-label={t('closeHistory')}
           >
@@ -708,7 +722,7 @@ export const HistorySidebar = memo(function HistorySidebar({
                           currentMarkdown={currentMarkdown}
                           renameValue={renameValue}
                           onLoad={() => onLoadEntry(entry.id)}
-                          onDelete={() => onDeleteEntry(entry.id)}
+                          onDelete={() => setDeleteTarget(entry)}
                           onToggleSelect={() => toggleSelect(entry.id)}
                           onStartRename={() => startRename(entry)}
                           onCommitRename={() => commitRename(entry.id)}
@@ -731,7 +745,7 @@ export const HistorySidebar = memo(function HistorySidebar({
             <HistoryBulkBar
               selectedCount={selectedIds.size}
               totalFiltered={filtered.length}
-              onDeleteSelected={handleDeleteSelected}
+              onDeleteSelected={() => setShowBulkDeleteConfirm(true)}
               onToggleSelectAll={handleToggleSelectAll}
               onCancel={exitSelectMode}
             />
@@ -811,6 +825,34 @@ export const HistorySidebar = memo(function HistorySidebar({
           entry={diffEntry}
           currentMarkdown={currentMarkdown}
           onClose={() => setDiffEntry(null)}
+        />
+      )}
+      {deleteTarget !== null && (
+        <ConfirmModal
+          title={t('historyDeleteSelectedConfirm')}
+          description={ti('deleteEntryLabel', { title: deleteTarget.title })}
+          confirmLabel={t('deleteEntry')}
+          confirmVariant="red"
+          cancelLabel={t('historyCancelSelect')}
+          onConfirm={() => {
+            onDeleteEntry(deleteTarget.id)
+            setDeleteTarget(null)
+          }}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
+      {showBulkDeleteConfirm && (
+        <ConfirmModal
+          title={t('historyBulkDeleteTitle')}
+          description={t('historyBulkDeleteWarning')}
+          confirmLabel={t('deleteEntry')}
+          confirmVariant="red"
+          cancelLabel={t('historyCancelSelect')}
+          onConfirm={() => {
+            handleDeleteSelected()
+            setShowBulkDeleteConfirm(false)
+          }}
+          onCancel={() => setShowBulkDeleteConfirm(false)}
         />
       )}
     </>
