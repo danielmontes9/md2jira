@@ -46,7 +46,7 @@ This is *bold* and _italic_ text.
 * Item 1
 * Item 2
 
-{code:language=js}
+{code:language=javascript}
 console.log('hello')
 {code}
 `
@@ -388,7 +388,7 @@ describe('--format confluence', () => {
     expect(exitCode).toBe(0)
     expect(stdout).toContain('ac:name="code"')
     expect(stdout).toContain('language')
-    expect(stdout).toContain('js')
+    expect(stdout).toContain('javascript')
     expect(stdout).toContain('console.log("hello")')
   })
 

@@ -132,8 +132,8 @@ program
           markdown = input ? await readFile(resolve(input), 'utf-8') : await readStdin()
         } catch (err) {
           if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
-            process.stderr.write(`[md2jira] File not found: ${input}\n`)
-            return
+            process.stderr.write(`ENOENT: no such file or directory, open '${input}'\n`)
+            process.exit(1)
           }
           throw err
         }
