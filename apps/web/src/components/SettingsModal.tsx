@@ -1,5 +1,5 @@
 import { useState, useId, useCallback, Suspense } from 'react'
-import { Modal } from './Modal.js'
+import { Modal, ModalCloseButton } from './Modal.js'
 import { useSettings } from '../context/SettingsContext.js'
 import { useT, useTP } from '../i18n/index.js'
 import { IconClose, IconInfoCircle } from './icons.js'
@@ -64,14 +64,12 @@ export function SettingsModal({ onClose, theme, onToggleTheme, historyCount }: S
             >
               {t('settingsTitle')}
             </h2>
-            <button
-              type="button"
-              onClick={onClose}
+            <ModalCloseButton
               className="rounded p-1 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
               aria-label={t('closeSettings')}
             >
               <IconClose className="h-4 w-4" />
-            </button>
+            </ModalCloseButton>
           </div>
 
           {/* Body */}
