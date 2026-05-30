@@ -120,13 +120,13 @@ describe('SettingsContext — loadSettings from localStorage', () => {
     expect(result.current.maxHistoryEntries).toBe(10)
   })
 
-  it('falls back to a valid locale when stored locale is unsupported (e.g. "de")', () => {
+  it('falls back to a valid locale when stored locale is unsupported (e.g. "ja")', () => {
     localStorage.setItem(
       LS_KEY,
-      JSON.stringify({ historyEnabled: true, maxHistoryEntries: 10, locale: 'de' })
+      JSON.stringify({ historyEnabled: true, maxHistoryEntries: 10, locale: 'ja' })
     )
     const { result } = renderHook(() => useSettings(), { wrapper })
-    expect(['en', 'es', 'pt', 'fr']).toContain(result.current.locale)
+    expect(['en', 'es', 'pt', 'fr', 'de']).toContain(result.current.locale)
   })
 
   it('falls back to DEFAULT state when localStorage contains malformed JSON', () => {

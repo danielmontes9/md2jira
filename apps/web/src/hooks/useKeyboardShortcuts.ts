@@ -33,7 +33,7 @@ export function useKeyboardShortcuts({
   useEffect(() => {
     if (!historyEnabled) return
     const ac = new AbortController()
-    document.addEventListener(
+    window.addEventListener(
       'keydown',
       (e: KeyboardEvent) => {
         if ((e.ctrlKey || e.metaKey) && e.key === 's') {

@@ -22,7 +22,7 @@ function extractTitle(content: string): string {
     const end = content.indexOf('\n', start)
     const line = (end === -1 ? content.slice(start) : content.slice(start, end)).trim()
     if (line.length > 0) {
-      const titleText = line.replace(/^#+\s+/, '')
+      const titleText = line.replace(/^#+\s*/, '')
       return titleText.length > 60 ? `${titleText.slice(0, 60)}…` : titleText || 'Untitled'
     }
     if (end === -1) break
@@ -179,7 +179,15 @@ export function useDocumentHistory({
   useEffect(() => {
     if (!enabled) return
     const handler = (e: StorageEvent) => {
-      if (e.key === LS_KEY) setHistory(loadHistory())
+      if (e.key === LS_KEY) {
+        if (e.newValue === null) {
+          // Another tab called localStorage.removeItem(LS_KEY) — clear local history.
+          setHistory([])
+          setLastSavedAt(null)
+        } else {
+          setHistory(loadHistory())
+        }
+      }
     }
     const ac = new AbortController()
     window.addEventListener('storage', handler, { signal: ac.signal })

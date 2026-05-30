@@ -56,14 +56,21 @@ describe('useOfflineStatus', () => {
 
   it('removes event listeners on unmount', () => {
     const addSpy = vi.spyOn(window, 'addEventListener')
-    const removeSpy = vi.spyOn(window, 'removeEventListener')
 
     const { unmount } = renderHook(() => useOfflineStatus())
     unmount()
 
-    expect(addSpy).toHaveBeenCalledWith('offline', expect.any(Function))
-    expect(addSpy).toHaveBeenCalledWith('online', expect.any(Function))
-    expect(removeSpy).toHaveBeenCalledWith('offline', expect.any(Function))
-    expect(removeSpy).toHaveBeenCalledWith('online', expect.any(Function))
+    // Hook uses AbortController: listeners are registered with a { signal } option
+    // and cleaned up via ac.abort() rather than explicit removeEventListener calls.
+    expect(addSpy).toHaveBeenCalledWith(
+      'offline',
+      expect.any(Function),
+      expect.objectContaining({ signal: expect.any(AbortSignal) })
+    )
+    expect(addSpy).toHaveBeenCalledWith(
+      'online',
+      expect.any(Function),
+      expect.objectContaining({ signal: expect.any(AbortSignal) })
+    )
   })
 })

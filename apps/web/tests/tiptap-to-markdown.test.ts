@@ -65,6 +65,36 @@ function htmlToDoc(html: string) {
   return doc
 }
 
+/**
+ * Creates a ProseMirror document containing a single block-image node with
+ * the given src/alt, bypassing TipTap's HTML parser which strips data: URIs.
+ * Used to test the serializer's SAFE_SRC_RE logic directly.
+ */
+function makeImageDoc(src: string, alt: string) {
+  const editor = new Editor({ extensions: EXTENSIONS, content: '' })
+  const schema = editor.schema
+  const imageNode = schema.nodes['image']!.create({ src, alt })
+  const doc = schema.topNodeType.create(null, imageNode)
+  editor.destroy()
+  return doc
+}
+
+/**
+ * Creates a ProseMirror document containing a paragraph with a single link-
+ * marked text node, bypassing TipTap's HTML parser which strips unsafe hrefs.
+ * Used to test the serializer's link-mark sanitization logic directly.
+ */
+function makeLinkDoc(href: string, text: string) {
+  const editor = new Editor({ extensions: EXTENSIONS, content: '' })
+  const schema = editor.schema
+  const linkMark = schema.marks['link']!.create({ href })
+  const textNode = schema.text(text, [linkMark])
+  const para = schema.nodes['paragraph']!.create(null, textNode)
+  const doc = schema.topNodeType.create(null, para)
+  editor.destroy()
+  return doc
+}
+
 // ── Block nodes ───────────────────────────────────────────────────────────────
 
 describe('tiptapDocToMarkdown — block nodes', () => {
@@ -239,7 +269,9 @@ describe('tiptapDocToMarkdown — images', () => {
   })
 
   it('preserves a safe data:image/png URI unchanged', () => {
-    const doc = htmlToDoc('<img src="data:image/png;base64,abc" alt="inline">')
+    // htmlToDoc strips data: URIs during HTML parsing; create the node directly
+    // so we can test the serializer's SAFE_SRC_RE allowlist for raster subtypes.
+    const doc = makeImageDoc('data:image/png;base64,abc', 'inline')
     const md = tiptapDocToMarkdown(doc)
     // The full URI must be preserved — not just the MIME type prefix.
     expect(md).toContain('data:image/png;base64,abc')
@@ -248,22 +280,24 @@ describe('tiptapDocToMarkdown — images', () => {
 
   it('blocks data:image/svg+xml URI (SVG can embed scripts)', () => {
     // SVG can contain <script> — only raster subtypes are permitted.
-    const doc = htmlToDoc('<img src="data:image/svg+xml;base64,PHN2Zyc+" alt="svg">')
+    // Create the node directly because htmlToDoc strips data: URIs.
+    const doc = makeImageDoc('data:image/svg+xml;base64,PHN2Zyc+', 'svg')
     const md = tiptapDocToMarkdown(doc)
     expect(md).not.toMatch(/data:image\/svg/i)
-    // The src must have been replaced with '#' or empty string (TipTap may strip it first).
-    expect(md).toMatch(/!\[svg\]\(#?\)/)
+    // The src must have been replaced with '#' (unsafe scheme, non-empty src).
+    expect(md).toMatch(/!\[svg\]\(#\)/)
   })
 
   it('blocks a data: URI whose subtype shares a prefix with a safe subtype (prefix bypass regression)', () => {
     // SAFE_SRC_RE uses (?=[;,]) after the subtype group to prevent "pngEVIL"
     // from matching via the "png" prefix. This test guards against accidentally
     // removing that lookahead during future regex edits.
-    const doc = htmlToDoc('<img src="data:image/pngEVIL;base64,abc" alt="bypass">')
+    // Create the node directly because htmlToDoc strips data: URIs.
+    const doc = makeImageDoc('data:image/pngEVIL;base64,abc', 'bypass')
     const md = tiptapDocToMarkdown(doc)
     expect(md).not.toMatch(/data:image\/pngEVIL/i)
-    // The malicious src must have been replaced with '#' or empty string.
-    expect(md).toMatch(/!\[bypass\]\(#?\)/)
+    // The malicious src must have been replaced with '#' (unsafe, non-empty src).
+    expect(md).toMatch(/!\[bypass\]\(#\)/)
   })
 })
 
@@ -277,7 +311,9 @@ describe('tiptapDocToMarkdown — link sanitization', () => {
 
   it('replaces a javascript: href with #', () => {
     // OWASP A03: javascript: links must not appear in the exported Markdown.
-    const doc = htmlToDoc('<p><a href="javascript:alert(1)">click</a></p>')
+    // TipTap's HTML parser strips the link mark for unsafe hrefs; create the
+    // node directly so the serializer's SAFE_SRC_RE guard is exercised.
+    const doc = makeLinkDoc('javascript:alert(1)', 'click')
     const md = tiptapDocToMarkdown(doc)
     expect(md).not.toMatch(/javascript:/i)
     expect(md).toContain('[click]')
@@ -314,7 +350,9 @@ describe('tiptapDocToMarkdown — link sanitization', () => {
 
   it('produces an empty href for a link with no href attribute', () => {
     // href='' is valid CommonMark — [text]() — and must not become [text](#).
-    const doc = htmlToDoc('<p><a href="">empty</a></p>')
+    // TipTap's HTML parser strips empty-href link marks; create the node
+    // directly so the serializer's falsy-href path is exercised.
+    const doc = makeLinkDoc('', 'empty')
     const md = tiptapDocToMarkdown(doc)
     expect(md).toContain('[empty]()')
   })

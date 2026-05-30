@@ -647,7 +647,7 @@ describe('App – history sidebar', () => {
     expect(screen.getByRole('dialog', { name: /recent documents/i })).toBeInTheDocument()
   })
 
-  it('clicking the close button in the history sidebar hides it', () => {
+  it('clicking the close button in the history sidebar hides it', async () => {
     render(<App />)
     fireEvent.click(screen.getByRole('button', { name: /document history/i }))
     const sidebar = screen.getByRole('dialog', { name: /recent documents/i })
@@ -656,7 +656,12 @@ describe('App – history sidebar', () => {
     // (header toggle + sidebar close button). Scope to the dialog to get the right one.
     const { getByRole: getByRoleInDialog } = within(sidebar)
     fireEvent.click(getByRoleInDialog('button', { name: /close document history/i }))
-    expect(screen.queryByRole('dialog', { name: /recent documents/i })).not.toBeInTheDocument()
+    // The sidebar uses a CSS closing animation (250 ms) before unmounting.
+    // waitFor polls until the element is removed from the DOM.
+    await waitFor(
+      () => expect(screen.queryByRole('dialog', { name: /recent documents/i })).not.toBeInTheDocument(),
+      { timeout: 500 }
+    )
   })
 
   it('clicking the Settings button opens the settings modal, and closing it hides it', async () => {

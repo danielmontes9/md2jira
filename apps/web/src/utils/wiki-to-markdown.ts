@@ -43,7 +43,7 @@ export function wikiToMarkdown(wiki: string): string {
     const headingMatch = line.match(/^h([1-6])\. (.*)$/)
     if (headingMatch) {
       const level = parseInt(headingMatch[1]!, 10)
-      out.push('#'.repeat(level) + ' ' + headingMatch[2])
+      out.push('#'.repeat(level) + ' ' + convertInlineWikiToMd(headingMatch[2]!))
       continue
     }
 
@@ -102,7 +102,9 @@ function convertInlineWikiToMd(text: string): string {
       // Links: [text|url] → [text](url)
       .replace(/\[([^\]|]+)\|([^\]]+)\]/g, '[$1]($2)')
       // Links without text: [url] → [url](url)  (bare Jira link)
-      .replace(/\[([^\]|]+)\]/g, '[$1]($1)')
+      // (?!\() negative lookahead prevents re-matching [text] that is already
+      // part of a converted [text](url) Markdown link from the previous rule.
+      .replace(/\[([^\]|]+)\](?!\()/g, '[$1]($1)')
       // Images: !url! → ![](url)
       // Images with params: !url|width=200! → ![](url)  (drop params)
       .replace(/!([^!\n|]+)(?:\|[^!]*)?!/g, '![]($1)')

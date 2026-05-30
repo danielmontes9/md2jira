@@ -191,22 +191,23 @@ describe('useKeyboardShortcuts — format shortcuts', () => {
 // ---------------------------------------------------------------------------
 
 describe('useKeyboardShortcuts — saveNow ref stability', () => {
-  it('calls the latest saveNow when Alt+N is pressed after a re-render', () => {
-    const firstSave = vi.fn()
-    const secondSave = vi.fn()
+  it('calls the latest onTriggerNewDocument when Alt+N is pressed after a re-render', () => {
+    const firstTrigger = vi.fn()
+    const secondTrigger = vi.fn()
 
     const { rerender } = renderHook(
-      ({ saveNow }: { saveNow: () => void }) => useKeyboardShortcuts(makeOpts({ saveNow })),
-      { initialProps: { saveNow: firstSave } }
+      ({ onTriggerNewDocument }: { onTriggerNewDocument: () => void }) =>
+        useKeyboardShortcuts(makeOpts({ onTriggerNewDocument })),
+      { initialProps: { onTriggerNewDocument: firstTrigger } }
     )
 
-    // Re-render with a new saveNow
-    rerender({ saveNow: secondSave })
+    // Re-render with a new onTriggerNewDocument — the effect should pick up the new ref
+    rerender({ onTriggerNewDocument: secondTrigger })
 
     key(document, 'n', { altKey: true })
 
-    expect(firstSave).not.toHaveBeenCalled()
-    expect(secondSave).toHaveBeenCalledOnce()
+    expect(firstTrigger).not.toHaveBeenCalled()
+    expect(secondTrigger).toHaveBeenCalledOnce()
   })
 
   it('calls the latest saveNow when Ctrl+S is pressed after a re-render with historyEnabled', () => {
