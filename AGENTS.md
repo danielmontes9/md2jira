@@ -181,6 +181,7 @@ BREAKING CHANGE: second argument is now ConvertOptions object
 
 - Do NOT add HTML support out of scope
 - Do NOT implement nested table support out of scope for MVP
+- Do NOT add a native ADF inline image type — ADF has none. Inline images are already handled by lifting them to adjacent `mediaSingle` block nodes (see `liftImagesFromParagraph` in `adf-converter.ts`)
 - Do NOT import browser APIs inside `packages/core/`
 - Do NOT add `any` type without a comment explaining why
 - Do NOT skip writing tests when adding a new transform
@@ -219,16 +220,17 @@ pnpm typecheck
 
 ## Error Handling Expectations
 
-| Case                        | Expected behavior                          |
-| --------------------------- | ------------------------------------------ |
-| Empty input                 | Return empty string, no error              |
-| Invalid Markdown            | Parse what's possible, no crash            |
-| Table without separator row | Treat first row as header                  |
-| Table with unequal columns  | Pad missing cells with empty string        |
-| Heading level > 6           | Normalize to h6                            |
-| Code block without language | Output `{code}` without language attribute |
-| Link with no text `[](url)` | Output `[url]`                             |
-| Image `![alt](src)`         | Ignore silently (out of scope)             |
+| Case                                        | Expected behavior                                                         |
+| ------------------------------------------- | ------------------------------------------------------------------------- |
+| Empty input                                 | Return empty string, no error                                             |
+| Invalid Markdown                            | Parse what's possible, no crash                                           |
+| Table without separator row                 | Treat first row as header                                                 |
+| Table with unequal columns                  | Pad missing cells with empty string                                       |
+| Heading level > 6                           | Normalize to h6                                                           |
+| Code block without language                 | Output `{code}` without language attribute                                |
+| Link with no text `[](url)`                 | Output `[url]`                                                            |
+| Image `![alt](src)`                         | Convert to `!url!` (Wiki), `mediaSingle` (ADF), `<ac:image>` (Confluence) |
+| Image with params `![alt](src "width=200")` | Append Jira params: `!url\|width=200!` (Wiki only)                        |
 
 ---
 

@@ -39,5 +39,17 @@ test(core): add edge cases for empty table cells
 
 - HTML passthrough in Markdown
 - Nested tables
-- Image conversion (`![alt](src)` — ignore silently)
 - Frontmatter (YAML/TOML headers — skip silently)
+- ADF inline images — ADF spec has no inline image node; images mixed with text in a paragraph are silently dropped
+
+## Image Conversion (implemented)
+
+| Pipeline                  | Input                     | Output                                                                    |
+| ------------------------- | ------------------------- | ------------------------------------------------------------------------- |
+| Wiki Markup               | `![alt](url)`             | `!url!`                                                                   |
+| Wiki Markup (with params) | `![alt](url "width=200")` | `!url\|width=200!`                                                        |
+| ADF (Jira Cloud)          | Standalone `![alt](url)`  | `mediaSingle` block node                                                  |
+| ADF (Jira Cloud)          | Inline mixed with text    | Lifted to adjacent `mediaSingle` block (no inline image type in ADF spec) |
+| Confluence                | `![alt](url)`             | `<ac:image><ri:url ri:value="url"/></ac:image>`                           |
+
+Jira image params use the Markdown title field: `![alt](img.png "width=200,align=right")`
