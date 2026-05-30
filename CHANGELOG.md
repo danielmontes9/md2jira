@@ -1,3 +1,10 @@
+## [2.4.4](https://github.com/danielmontes9/md2jira/compare/v2.4.3...v2.4.4) (2026-05-30)
+
+
+### Bug Fixes
+
+* **web:** stripTags now removes script/style content, not just tags ([a6982d3](https://github.com/danielmontes9/md2jira/commit/a6982d34e7434a44fd568ddb6fb06f9924a70651))
+
 ## [2.4.3](https://github.com/danielmontes9/md2jira/compare/v2.4.2...v2.4.3) (2026-05-30)
 
 
