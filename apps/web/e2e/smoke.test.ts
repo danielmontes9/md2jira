@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test'
-import path from 'node:path'
 
 /**
  * Smoke tests — verify core user flows work end-to-end in a real browser.
@@ -56,6 +55,65 @@ test('Markdown textarea is visible and accepts input', async ({ page }) => {
 test('output format radiogroup is present', async ({ page }) => {
   await page.goto('/')
   await expect(page.getByRole('radiogroup', { name: /output format/i })).toBeVisible()
+})
+
+test('settings modal opens and closes', async ({ page }) => {
+  await page.goto('/')
+  // Open settings
+  await page.getByRole('button', { name: /settings/i }).click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog).toBeVisible()
+  // Close via the close button inside the modal
+  await dialog.getByRole('button', { name: /close/i }).click()
+  await expect(dialog).not.toBeVisible()
+})
+
+test('history sidebar opens when toggled', async ({ page }) => {
+  await page.goto('/')
+  // Open the history sidebar
+  await page.getByRole('button', { name: /history/i }).click()
+  // The sidebar renders as role="dialog"
+  const sidebar = page.getByRole('dialog', { name: /recent documents/i })
+  await expect(sidebar).toBeVisible()
+})
+
+test('format switching: Wiki → ADF → Confluence', async ({ page }) => {
+  await page.goto('/')
+  const textarea = page.getByRole('textbox', { name: 'Markdown input' })
+  await textarea.fill('# Switch Test')
+
+  // Switch to Wiki Markup
+  await page.getByRole('button', { name: 'Wiki Markup' }).click()
+  await expect(page.getByRole('button', { name: 'Wiki Markup' })).toHaveAttribute(
+    'aria-pressed',
+    'true'
+  )
+
+  // Switch to Jira Cloud (ADF)
+  await page.getByRole('button', { name: 'Jira Cloud' }).click()
+  await expect(page.getByRole('button', { name: 'Jira Cloud' })).toHaveAttribute(
+    'aria-pressed',
+    'true'
+  )
+
+  // Switch to Confluence
+  await page.getByRole('button', { name: 'Confluence' }).click()
+  await expect(page.getByRole('button', { name: 'Confluence' })).toHaveAttribute(
+    'aria-pressed',
+    'true'
+  )
+})
+
+test('keyboard shortcut Alt+Shift+W switches to Wiki Markup', async ({ page }) => {
+  await page.goto('/')
+  // Start on ADF (Jira Cloud) format
+  await page.getByRole('button', { name: 'Jira Cloud' }).click()
+  // Trigger the keyboard shortcut
+  await page.keyboard.press('Alt+Shift+W')
+  await expect(page.getByRole('button', { name: 'Wiki Markup' })).toHaveAttribute(
+    'aria-pressed',
+    'true'
+  )
 })
 
 test('Copy for Jira button is visible on load', async ({ page }) => {
