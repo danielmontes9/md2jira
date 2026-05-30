@@ -1,4 +1,4 @@
-import { useState, useId, Suspense } from 'react'
+import { useState, useId, useCallback, Suspense } from 'react'
 import { Modal } from './Modal.js'
 import { useSettings } from '../context/SettingsContext.js'
 import { useT, useTP } from '../i18n/index.js'
@@ -23,6 +23,8 @@ export function SettingsModal({ onClose, theme, onToggleTheme, historyCount }: S
     setMaxHistoryEntries,
     locale,
     setLocale,
+    baseUrl,
+    setBaseUrl,
   } = useSettings()
   const t = useT()
   const tp = useTP()
@@ -30,7 +32,25 @@ export function SettingsModal({ onClose, theme, onToggleTheme, historyCount }: S
   const langId = useId()
   const themeToggleId = useId()
   const historyToggleId = useId()
+  const baseUrlId = useId()
   const [infoOpen, setInfoOpen] = useState(false)
+  const [baseUrlDraft, setBaseUrlDraft] = useState(baseUrl)
+  const [baseUrlError, setBaseUrlError] = useState(false)
+
+  const handleBaseUrlBlur = useCallback(() => {
+    if (baseUrlDraft === '') {
+      setBaseUrlError(false)
+      setBaseUrl('')
+      return
+    }
+    try {
+      new URL(baseUrlDraft)
+      setBaseUrlError(false)
+      setBaseUrl(baseUrlDraft.replace(/\/+$/, ''))
+    } catch {
+      setBaseUrlError(true)
+    }
+  }, [baseUrlDraft, setBaseUrl])
 
   return (
     <>
@@ -226,6 +246,40 @@ export function SettingsModal({ onClose, theme, onToggleTheme, historyCount }: S
             )}
 
             {/* 3. About */}
+            {/* Base URL */}
+            <section className="border-b border-neutral-100 px-5 py-4 dark:border-neutral-800">
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-0.5">
+                  <label
+                    htmlFor={baseUrlId}
+                    className="text-sm font-medium text-neutral-900 dark:text-neutral-100"
+                  >
+                    {t('settingsBaseUrlLabel')}
+                  </label>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                    {t('settingsBaseUrlDescription')}
+                  </p>
+                </div>
+                <input
+                  id={baseUrlId}
+                  type="url"
+                  value={baseUrlDraft}
+                  onChange={(e) => {
+                    setBaseUrlDraft(e.target.value)
+                    setBaseUrlError(false)
+                  }}
+                  onBlur={handleBaseUrlBlur}
+                  placeholder={t('settingsBaseUrlPlaceholder')}
+                  className={`w-full rounded-md border px-3 py-1.5 text-sm bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-500 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500 ${
+                    baseUrlError
+                      ? 'border-red-400 dark:border-red-500'
+                      : 'border-neutral-300 dark:border-neutral-700'
+                  }`}
+                />
+              </div>
+            </section>
+
+            {/* About */}
             <section className="px-5 py-4">
               <button
                 type="button"

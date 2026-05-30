@@ -13,6 +13,8 @@ interface UseOutputConversionOptions {
   /** Current (live) markdown text — drives debounce and isPending detection. */
   markdown: string
   format: OutputFormat
+  /** Optional base URL prepended to relative links during conversion. */
+  baseUrl?: string
   /**
    * Called when the ADF worker stalls and falls back to synchronous rendering.
    * Typically used to show a warning toast.
@@ -46,6 +48,7 @@ interface UseOutputConversionReturn {
 export function useOutputConversion({
   markdown,
   format,
+  baseUrl,
   onWorkerFallback,
 }: UseOutputConversionOptions): UseOutputConversionReturn {
   // Debounce large documents to avoid running convert() on every keystroke.
@@ -69,9 +72,10 @@ export function useOutputConversion({
     adfDoc: AdfDocument | null
     hasConversionError: boolean
   }>(() => {
+    const opts = baseUrl ? { baseUrl } : undefined
     try {
       if (format === 'adf') {
-        const adf = convertToAdf(deferredMarkdown)
+        const adf = convertToAdf(deferredMarkdown, opts)
         return {
           jiraOutput: JSON.stringify(adf, null, 2),
           adfDoc: adf,
@@ -80,16 +84,20 @@ export function useOutputConversion({
       }
       if (format === 'confluence') {
         return {
-          jiraOutput: convertToConfluence(deferredMarkdown),
+          jiraOutput: convertToConfluence(deferredMarkdown, opts),
           adfDoc: null,
           hasConversionError: false,
         }
       }
-      return { jiraOutput: convert(deferredMarkdown), adfDoc: null, hasConversionError: false }
+      return {
+        jiraOutput: convert(deferredMarkdown, opts),
+        adfDoc: null,
+        hasConversionError: false,
+      }
     } catch {
       return { jiraOutput: '', adfDoc: null, hasConversionError: true }
     }
-  }, [deferredMarkdown, format])
+  }, [deferredMarkdown, format, baseUrl])
 
   const { html: previewHtml, workerError, retryWorker } = useAdfHtmlWorker(adfDoc, onWorkerFallback)
 
