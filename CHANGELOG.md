@@ -1,3 +1,10 @@
+## [2.4.3](https://github.com/danielmontes9/md2jira/compare/v2.4.2...v2.4.3) (2026-05-30)
+
+
+### Bug Fixes
+
+* **cli:** resolve 6 failing CLI tests ([4688000](https://github.com/danielmontes9/md2jira/commit/4688000c41a9d8710dc9b4c4cadeaae40bf4eea4))
+
 ## [2.4.2](https://github.com/danielmontes9/md2jira/compare/v2.4.1...v2.4.2) (2026-05-30)
 
 
