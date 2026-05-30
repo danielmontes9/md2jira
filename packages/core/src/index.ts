@@ -28,4 +28,6 @@ export type {
   AdfTableHeaderNode,
   AdfTableCellNode,
   AdfPanelNode,
+  AdfMediaNode,
+  AdfMediaSingleNode,
 } from './adf-types.js'

@@ -6,9 +6,10 @@ import {
   transformEmphasis,
   transformDelete,
   transformInlineCode,
+  transformImage,
   transformLink,
 } from '../src/transforms/formatting.js'
-import type { PhrasingContent, Link, Strong, Emphasis, Delete, InlineCode } from 'mdast'
+import type { PhrasingContent, Link, Strong, Emphasis, Delete, InlineCode, Image } from 'mdast'
 
 const text = (value: string): PhrasingContent => ({ type: 'text', value })
 const strong = (children: PhrasingContent[]): Strong => ({ type: 'strong', children })
@@ -70,6 +71,61 @@ describe('transformInlineCode', () => {
   })
 })
 
+describe('transformImage', () => {
+  const img = (url: string, alt = '', title: string | null = null): Image => ({
+    type: 'image',
+    url,
+    alt,
+    title,
+  })
+
+  it('wraps url in Jira image syntax', () => {
+    expect(transformImage(img('image.png', 'alt'))).toBe('!image.png!')
+  })
+
+  it('works with absolute URLs', () => {
+    expect(transformImage(img('https://example.com/logo.png'))).toBe(
+      '!https://example.com/logo.png!'
+    )
+  })
+
+  it('returns empty string when url is empty', () => {
+    expect(transformImage(img(''))).toBe('')
+  })
+
+  it('appends single Jira param from title', () => {
+    expect(transformImage(img('img.png', 'alt', 'thumbnail'))).toBe('!img.png|thumbnail!')
+  })
+
+  it('appends multiple Jira params from title', () => {
+    expect(transformImage(img('img.png', 'alt', 'width=200,height=100'))).toBe(
+      '!img.png|width=200,height=100!'
+    )
+  })
+
+  it('appends params with baseUrl resolution', () => {
+    expect(transformImage(img('/banner.png', '', 'align=right'), 'https://wiki.example.com')).toBe(
+      '!https://wiki.example.com/banner.png|align=right!'
+    )
+  })
+
+  it('strips ! from title to prevent tag termination', () => {
+    expect(transformImage(img('img.png', '', 'width=200!bad'))).toBe('!img.png|width=200bad!')
+  })
+
+  it('strips | from title to prevent extra separator', () => {
+    expect(transformImage(img('img.png', '', 'width=200|bad'))).toBe('!img.png|width=200bad!')
+  })
+
+  it('omits params when title sanitizes to empty string', () => {
+    expect(transformImage(img('img.png', '', '!!||'))).toBe('!img.png!')
+  })
+
+  it('null title produces no params', () => {
+    expect(transformImage(img('img.png', 'alt', null))).toBe('!img.png!')
+  })
+})
+
 describe('transformLink', () => {
   it('converts link with text to [text|url]', () => {
     expect(transformLink(link('https://example.com', [text('Example')]))).toBe(
@@ -117,14 +173,21 @@ describe('convertInlineNode', () => {
     expect(convertInlineNode(text('hello'))).toBe('hello')
   })
 
-  it('converts image to empty string (silently ignored)', () => {
+  it('converts image to Jira image syntax', () => {
     const img: PhrasingContent = {
       type: 'image',
       url: 'img.png',
       alt: 'alt',
       title: null,
     }
-    expect(convertInlineNode(img)).toBe('')
+    expect(convertInlineNode(img)).toBe('!img.png!')
+  })
+
+  it('resolves relative image URL with baseUrl', () => {
+    const img: PhrasingContent = { type: 'image', url: '/logo.png', alt: '', title: null }
+    expect(convertInlineNode(img, 'https://wiki.example.com')).toBe(
+      '!https://wiki.example.com/logo.png!'
+    )
   })
 
   it('converts line break to newline', () => {

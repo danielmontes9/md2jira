@@ -192,11 +192,83 @@ describe('convertToAdf', () => {
     })
   })
 
-  it('ignores images silently', () => {
-    const result = convertToAdf('![alt](image.png)')
+  it('converts standalone image to mediaSingle block', () => {
+    const result = convertToAdf('![alt text](https://example.com/logo.png)')
+    expect(result.content[0]).toMatchObject({
+      type: 'mediaSingle',
+      attrs: { layout: 'center' },
+      content: [
+        {
+          type: 'media',
+          attrs: { type: 'external', url: 'https://example.com/logo.png', alt: 'alt text' },
+        },
+      ],
+    })
+  })
+
+  it('converts standalone image without alt to mediaSingle block', () => {
+    const result = convertToAdf('![](image.png)')
+    expect(result.content[0]).toMatchObject({
+      type: 'mediaSingle',
+      attrs: { layout: 'center' },
+      content: [{ type: 'media', attrs: { type: 'external', url: 'image.png' } }],
+    })
+  })
+
+  it('lifts image mixed with text into adjacent mediaSingle blocks', () => {
+    const result = convertToAdf('See ![logo](logo.png) here')
+    // Paragraph text before image → mediaSingle → paragraph text after image
+    expect(result.content).toHaveLength(3)
     expect(result.content[0]).toMatchObject({
       type: 'paragraph',
-      content: [],
+      content: [{ type: 'text', text: 'See ' }],
+    })
+    expect(result.content[1]).toMatchObject({
+      type: 'mediaSingle',
+      content: [{ type: 'media', attrs: { type: 'external', url: 'logo.png' } }],
+    })
+    expect(result.content[2]).toMatchObject({
+      type: 'paragraph',
+      content: [{ type: 'text', text: ' here' }],
+    })
+  })
+
+  it('lifts multiple images from a single paragraph', () => {
+    const result = convertToAdf('A ![one](1.png) B ![two](2.png) C')
+    // paragraph("A ") → mediaSingle(1.png) → paragraph(" B ") → mediaSingle(2.png) → paragraph(" C")
+    expect(result.content).toHaveLength(5)
+    expect(result.content[0]).toMatchObject({ type: 'paragraph' })
+    expect(result.content[1]).toMatchObject({
+      type: 'mediaSingle',
+      content: [{ attrs: { url: '1.png' } }],
+    })
+    expect(result.content[2]).toMatchObject({ type: 'paragraph' })
+    expect(result.content[3]).toMatchObject({
+      type: 'mediaSingle',
+      content: [{ attrs: { url: '2.png' } }],
+    })
+    expect(result.content[4]).toMatchObject({ type: 'paragraph' })
+  })
+
+  it('ignores image with empty url silently', () => {
+    // Markdown parser may not generate image nodes with empty url in practice
+    const result = convertToAdf('![alt]()')
+    // remark produces a paragraph with image child — empty url → mediaSingle skipped
+    expect(result.content[0]?.type).not.toBe('mediaSingle')
+  })
+
+  it('resolves relative image URL with baseUrl into mediaSingle', () => {
+    const result = convertToAdf('![logo](/images/logo.png)', {
+      baseUrl: 'https://wiki.example.com',
+    })
+    expect(result.content[0]).toMatchObject({
+      type: 'mediaSingle',
+      content: [
+        {
+          type: 'media',
+          attrs: { type: 'external', url: 'https://wiki.example.com/images/logo.png' },
+        },
+      ],
     })
   })
 })

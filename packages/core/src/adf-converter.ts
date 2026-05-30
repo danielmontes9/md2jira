@@ -2,6 +2,7 @@ import type {
   Blockquote,
   Code,
   Heading,
+  Image,
   List,
   Paragraph,
   PhrasingContent,
@@ -18,6 +19,7 @@ import type {
   AdfInlineNode,
   AdfListItemNode,
   AdfMark,
+  AdfMediaSingleNode,
   AdfTableCellNode,
   AdfTableHeaderNode,
   AdfTableRowNode,
@@ -71,10 +73,19 @@ function convertInlineToAdf(
     case 'break':
       return [{ type: 'hardBreak' }]
     case 'image':
+      // Images become block-level mediaSingle nodes — skip inline emission
       return []
     default:
       return []
   }
+}
+
+function transformImageToMediaSingle(node: Image, baseUrl?: string): AdfMediaSingleNode {
+  const url = resolveUrl(node.url, baseUrl)
+  const media = node.alt
+    ? { type: 'media' as const, attrs: { type: 'external' as const, url, alt: node.alt } }
+    : { type: 'media' as const, attrs: { type: 'external' as const, url } }
+  return { type: 'mediaSingle', attrs: { layout: 'center' }, content: [media] }
 }
 
 function convertChildrenToAdf(children: PhrasingContent[], baseUrl?: string): AdfInlineNode[] {
@@ -94,6 +105,63 @@ function transformParagraphToAdf(node: Paragraph, baseUrl?: string): AdfBlockNod
     type: 'paragraph',
     content: convertChildrenToAdf(node.children, baseUrl),
   }
+}
+
+/**
+ * Converts a paragraph to one or more ADF blocks.
+ * If the paragraph contains any image nodes they are lifted to adjacent
+ * mediaSingle blocks (ADF has no inline image type). Otherwise returns a
+ * single paragraph block. Used by blockquote, panel, and list transforms so
+ * images are never silently discarded in nested contexts.
+ */
+function paragraphToBlocks(node: Paragraph, baseUrl?: string): AdfBlockNode[] {
+  const hasImages = node.children.some((c) => c.type === 'image' && c.url)
+  return hasImages
+    ? liftImagesFromParagraph(node, baseUrl)
+    : [transformParagraphToAdf(node, baseUrl)]
+}
+
+/**
+ * Splits a mixed paragraph (text + images) into a sequence of ADF blocks:
+ *   - Text runs become `paragraph` nodes.
+ *   - Image nodes become `mediaSingle` block nodes.
+ *
+ * ADF does not have an inline image type, so images must be lifted to block
+ * level. This preserves all content instead of silently discarding images.
+ *
+ * Example:
+ *   "See ![logo](a.png) and ![banner](b.png) here"
+ *   → paragraph("See ")
+ *   → mediaSingle(a.png)
+ *   → paragraph(" and ")
+ *   → mediaSingle(b.png)
+ *   → paragraph(" here")
+ */
+function liftImagesFromParagraph(node: Paragraph, baseUrl?: string): AdfBlockNode[] {
+  const blocks: AdfBlockNode[] = []
+  let textBuffer: PhrasingContent[] = []
+
+  const flushBuffer = () => {
+    if (textBuffer.length === 0) return
+    const inlineContent = convertChildrenToAdf(textBuffer, baseUrl)
+    // Only emit the paragraph if it has non-empty inline content
+    if (inlineContent.length > 0) {
+      blocks.push({ type: 'paragraph', content: inlineContent })
+    }
+    textBuffer = []
+  }
+
+  for (const child of node.children) {
+    if (child.type === 'image' && child.url) {
+      flushBuffer()
+      blocks.push(transformImageToMediaSingle(child, baseUrl))
+    } else {
+      textBuffer.push(child)
+    }
+  }
+  flushBuffer()
+
+  return blocks
 }
 
 /** Mutable context threaded through the transform functions to avoid module-level state. */
@@ -116,7 +184,7 @@ function transformListToAdf(node: List, ctx: AdfConvertContext): AdfBlockNode {
     const listIdx = ctx.taskListIdx++
     const taskItems: AdfTaskItemNode[] = listItems.map((item, idx) => {
       const paragraphs = item.children.filter((c): c is Paragraph => c.type === 'paragraph')
-      const content: AdfBlockNode[] = paragraphs.map((p) => transformParagraphToAdf(p, ctx.baseUrl))
+      const content: AdfBlockNode[] = paragraphs.flatMap((p) => paragraphToBlocks(p, ctx.baseUrl))
       return {
         type: 'taskItem',
         attrs: { localId: `task-${listIdx}-${idx}`, state: item.checked ? 'DONE' : 'TODO' },
@@ -135,7 +203,7 @@ function transformListToAdf(node: List, ctx: AdfConvertContext): AdfBlockNode {
     const content: AdfBlockNode[] = []
     for (const child of item.children) {
       if (child.type === 'paragraph') {
-        content.push(transformParagraphToAdf(child, ctx.baseUrl))
+        content.push(...paragraphToBlocks(child, ctx.baseUrl))
       } else if (child.type === 'list') {
         content.push(transformListToAdf(child, ctx))
       }
@@ -161,7 +229,7 @@ function transformBlockquoteToAdf(node: Blockquote, ctx: AdfConvertContext): Adf
   const content: AdfBlockNode[] = []
   for (const child of node.children) {
     if (child.type === 'paragraph') {
-      content.push(transformParagraphToAdf(child, ctx.baseUrl))
+      content.push(...paragraphToBlocks(child, ctx.baseUrl))
     } else if (child.type === 'blockquote') {
       // Nested blockquote: ADF blockquote can contain another blockquote
       content.push(transformBlockquoteToAdf(child, ctx))
@@ -185,10 +253,16 @@ function transformPanelToAdf(
   for (let i = 0; i < node.children.length; i++) {
     const child = node.children[i]!
     if (child.type === 'paragraph') {
-      const children = i === 0 ? stripAlertMarker(child.children) : child.children
-      const inlineContent = convertChildrenToAdf(children, ctx.baseUrl)
-      if (inlineContent.length > 0) {
-        content.push({ type: 'paragraph', content: inlineContent })
+      const pChildren = i === 0 ? stripAlertMarker(child.children) : child.children
+      const hasImages = pChildren.some((c) => c.type === 'image' && c.url)
+      if (hasImages) {
+        const syntheticPara: Paragraph = { ...child, children: pChildren }
+        content.push(...liftImagesFromParagraph(syntheticPara, ctx.baseUrl))
+      } else {
+        const inlineContent = convertChildrenToAdf(pChildren, ctx.baseUrl)
+        if (inlineContent.length > 0) {
+          content.push({ type: 'paragraph', content: inlineContent })
+        }
       }
     } else if (child.type === 'list') {
       content.push(transformListToAdf(child, ctx))
@@ -243,13 +317,23 @@ function transformTableToAdf(node: Table, baseUrl?: string): AdfBlockNode {
   }
 }
 
-function transformNodeToAdf(node: RootContent, ctx: AdfConvertContext): AdfBlockNode | null {
+function transformNodeToAdf(
+  node: RootContent,
+  ctx: AdfConvertContext
+): AdfBlockNode | AdfBlockNode[] | null {
   if (ctx.disabled.size > 0 && ctx.disabled.has(node.type)) return null
   switch (node.type) {
     case 'heading':
       return transformHeadingToAdf(node, ctx.baseUrl)
-    case 'paragraph':
+    case 'paragraph': {
+      // If the paragraph contains any image nodes, lift them to mediaSingle blocks.
+      // This handles standalone images (1 image child) and mixed paragraphs (text + images).
+      const hasImages = node.children.some((c) => c.type === 'image' && c.url)
+      if (hasImages) {
+        return liftImagesFromParagraph(node, ctx.baseUrl)
+      }
       return transformParagraphToAdf(node, ctx.baseUrl)
+    }
     case 'list':
       return transformListToAdf(node, ctx)
     case 'code':
@@ -306,7 +390,10 @@ export function convertToAdf(md: string, options?: ConvertOptions): AdfDocument 
   const content: AdfBlockNode[] = []
   for (const node of tree.children) {
     const result = transformNodeToAdf(node, ctx)
-    if (result !== null) {
+    if (result === null) continue
+    if (Array.isArray(result)) {
+      content.push(...result)
+    } else {
       content.push(result)
     }
   }

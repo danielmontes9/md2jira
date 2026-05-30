@@ -35,9 +35,11 @@ function inlineNode(node: PhrasingContent, baseUrl?: string): string {
         node.children.length > 0 ? inlineChildren(node.children, baseUrl) : escapeXml(href)
       return `<a href="${escapeAttr(href)}">${label}</a>`
     }
-    case 'image':
-      // Out of scope — ignore silently per AGENTS.md
-      return ''
+    case 'image': {
+      const url = resolveUrl(node.url, baseUrl)
+      if (!url) return ''
+      return `<ac:image><ri:url ri:value="${escapeAttr(url)}"/></ac:image>`
+    }
     case 'break':
       return '<br/>'
     case 'html':
@@ -206,8 +208,17 @@ function transformNode(node: RootContent, ctx: ConfluenceContext): string | null
   switch (node.type) {
     case 'heading':
       return confluenceHeading(node, ctx.baseUrl)
-    case 'paragraph':
+    case 'paragraph': {
+      // A paragraph consisting of a single image becomes a block-level ac:image
+      // (wrapping in <p> produces invalid Confluence Storage Format markup)
+      const ch = node.children
+      if (ch.length === 1 && ch[0]?.type === 'image') {
+        const url = resolveUrl(ch[0].url, ctx.baseUrl)
+        if (!url) return null
+        return `<ac:image><ri:url ri:value="${escapeAttr(url)}"/></ac:image>`
+      }
       return `<p>${inlineChildren(node.children, ctx.baseUrl)}</p>`
+    }
     case 'list':
       return confluenceList(node, ctx.baseUrl)
     case 'code':

@@ -107,6 +107,17 @@ export interface AdfPanelNode {
   content: AdfBlockNode[]
 }
 
+export interface AdfMediaNode {
+  type: 'media'
+  attrs: { type: 'external'; url: string; alt?: string }
+}
+
+export interface AdfMediaSingleNode {
+  type: 'mediaSingle'
+  attrs: { layout: 'center' }
+  content: [AdfMediaNode]
+}
+
 export type AdfBlockNode =
   | AdfHeadingNode
   | AdfParagraphNode
@@ -118,6 +129,7 @@ export type AdfBlockNode =
   | AdfPanelNode
   | AdfRuleNode
   | AdfTableNode
+  | AdfMediaSingleNode
 
 export interface AdfDocument {
   version: 1

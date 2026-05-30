@@ -89,8 +89,23 @@ describe('convertToConfluence — paragraphs', () => {
       '<p><a href="https://other.com">x</a></p>'
     )
   })
-  it('ignores images silently', () => {
-    expect(convertToConfluence('![alt](image.png)')).toBe('<p></p>')
+  it('converts standalone image to block-level ac:image (no wrapping p)', () => {
+    expect(convertToConfluence('![alt](image.png)')).toBe(
+      '<ac:image><ri:url ri:value="image.png"/></ac:image>'
+    )
+  })
+  it('converts image with absolute URL', () => {
+    expect(convertToConfluence('![logo](https://example.com/logo.png)')).toBe(
+      '<ac:image><ri:url ri:value="https://example.com/logo.png"/></ac:image>'
+    )
+  })
+  it('resolves relative image URL with baseUrl', () => {
+    expect(
+      convertToConfluence('![logo](/images/logo.png)', { baseUrl: 'https://wiki.example.com' })
+    ).toBe('<ac:image><ri:url ri:value="https://wiki.example.com/images/logo.png"/></ac:image>')
+  })
+  it('ignores image with empty url silently', () => {
+    expect(convertToConfluence('![alt]()')).toBe('')
   })
   it('converts hard line break to <br/>', () => {
     // mdast text nodes around a hard break do not include a literal '\n'

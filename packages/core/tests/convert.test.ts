@@ -203,12 +203,20 @@ bq. A quote`
 })
 
 describe('images', () => {
-  it('ignores images silently', () => {
-    expect(convert('![alt](image.png)')).toBe('')
+  it('converts standalone image to Jira syntax', () => {
+    expect(convert('![alt](image.png)')).toBe('!image.png!')
+  })
+
+  it('converts image with absolute URL', () => {
+    expect(convert('![logo](https://example.com/logo.png)')).toBe('!https://example.com/logo.png!')
   })
 
   it('preserves surrounding text when image is in paragraph', () => {
-    expect(convert('text ![alt](img.png) more')).toBe('text  more')
+    expect(convert('text ![alt](img.png) more')).toBe('text !img.png! more')
+  })
+
+  it('ignores image with empty url silently', () => {
+    expect(convert('![alt]()')).toBe('')
   })
 })
 
