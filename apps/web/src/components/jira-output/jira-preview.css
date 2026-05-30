@@ -620,4 +620,29 @@
     background: #0a2e1f;
     border-left-color: #57d9a3;
   }
+
+  /* ── ADF mediaSingle (image block) ── */
+  /* Rule 1: figure wrapper emitted by adf-renderer (used in non-TipTap contexts) */
+  .jira-preview figure.adf-media-single {
+    margin: 0.75em 0;
+    display: flex;
+    justify-content: center;
+  }
+
+  .jira-preview figure.adf-media-single img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    display: block;
+  }
+
+  /* Rule 2: TipTap Image extension (inline: false) drops the <figure> wrapper
+     and renders a bare <img> as a ProseMirror block node inside .ProseMirror */
+  .jira-preview .ProseMirror img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 0.75em auto;
+    border-radius: 4px;
+  }
 } /* end @layer components */

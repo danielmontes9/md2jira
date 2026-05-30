@@ -32,11 +32,12 @@
            that generates CSP nonces/hashes for Tailwind's runtime injection.
            When Tailwind ships a static-extraction mode, replace 'unsafe-inline'
            with a nonce-based approach. Track: https://github.com/tailwindlabs/tailwindcss/discussions
-         - img-src: allow data URIs (favicons) + Buy Me a Coffee CDN.
+         - img-src: allow data URIs (favicons) + Buy Me a Coffee CDN + any HTTPS
+           image (user Markdown may reference external images previewed in ADF mode).
     -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://cdn.buymeacoffee.com; connect-src 'self'; font-src 'self'; frame-src 'none'; object-src 'none';"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: https://cdn.buymeacoffee.com; connect-src 'self'; font-src 'self'; frame-src 'none'; object-src 'none';"
     />
 
     <!-- Open Graph -->

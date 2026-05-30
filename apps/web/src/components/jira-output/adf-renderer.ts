@@ -3,12 +3,12 @@ import type {
   AdfBlockNode,
   AdfInlineNode,
   AdfListItemNode,
+  AdfMediaSingleNode,
   AdfTaskItemNode,
   AdfTextNode,
   AdfTableRowNode,
   AdfTableHeaderNode,
   AdfTableCellNode,
-  AdfPanelNode,
 } from 'md2jira-core'
 import { escapeHtml } from '../../utils/escape-html.js'
 
@@ -128,6 +128,13 @@ const BLOCK_HANDLERS: BlockHandlerMap = {
       return `<tr>${cells.join('')}</tr>`
     })
     return `<table>${rows.join('')}</table>`
+  },
+  mediaSingle: (node: AdfMediaSingleNode) => {
+    const media = node.content[0]
+    const src = sanitizeUrl(media.attrs.url)
+    const safeSrc = src.replace(/"/g, '%22')
+    const alt = media.attrs.alt ? escapeHtml(media.attrs.alt) : ''
+    return `<figure class="adf-media-single"><img src="${safeSrc}" alt="${alt}"></figure>`
   },
 }
 
