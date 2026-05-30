@@ -1,3 +1,10 @@
+## [2.4.2](https://github.com/danielmontes9/md2jira/compare/v2.4.1...v2.4.2) (2026-05-30)
+
+
+### Bug Fixes
+
+* **web:** resolve 16 failing tests in apps/web test suite ([134f36c](https://github.com/danielmontes9/md2jira/commit/134f36c49146283bd7c5df20cdd4ffbeadd77649))
+
 ## [2.4.1](https://github.com/danielmontes9/md2jira/compare/v2.4.0...v2.4.1) (2026-05-30)
 
 
