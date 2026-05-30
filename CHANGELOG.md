@@ -1,3 +1,10 @@
+## [2.4.5](https://github.com/danielmontes9/md2jira/compare/v2.4.4...v2.4.5) (2026-05-30)
+
+
+### Performance Improvements
+
+* **web:** split codemirror and remark into separate chunks ([81d34ba](https://github.com/danielmontes9/md2jira/commit/81d34ba79374eca4361cfe6ab8979dac76f22891))
+
 ## [2.4.4](https://github.com/danielmontes9/md2jira/compare/v2.4.3...v2.4.4) (2026-05-30)
 
 
