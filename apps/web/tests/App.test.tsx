@@ -659,7 +659,8 @@ describe('App – history sidebar', () => {
     // The sidebar uses a CSS closing animation (250 ms) before unmounting.
     // waitFor polls until the element is removed from the DOM.
     await waitFor(
-      () => expect(screen.queryByRole('dialog', { name: /recent documents/i })).not.toBeInTheDocument(),
+      () =>
+        expect(screen.queryByRole('dialog', { name: /recent documents/i })).not.toBeInTheDocument(),
       { timeout: 500 }
     )
   })
