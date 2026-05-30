@@ -137,6 +137,25 @@ export default defineConfig(({ mode }) => ({
           // and the react-vendor chunk, inflating the initial download.
           if (id.includes('@tiptap/')) return 'tiptap'
           if (id.includes('dompurify')) return 'dompurify'
+          // CodeMirror editor packages and lezer parser framework split into
+          // two chunks so neither exceeds the CI 500 kB gate.
+          // @lezer/* (parser runtime + language grammars) is separated from
+          // @codemirror/* (editor view + extensions) because they are
+          // independently loadable and together would exceed the limit.
+          if (id.includes('@codemirror/')) return 'codemirror'
+          if (id.includes('@lezer/')) return 'lezer'
+          // remark / unified markdown-parsing ecosystem pulled in by md2jira-core.
+          if (
+            id.includes('/unified') ||
+            id.includes('/remark-') ||
+            id.includes('/micromark') ||
+            id.includes('/unist-util-') ||
+            id.includes('/mdast-util-') ||
+            id.includes('/vfile') ||
+            id.includes('/trough') ||
+            id.includes('/bail')
+          )
+            return 'remark'
           if (id.includes('react-dom') || id.includes('react/')) return 'react-vendor'
         },
       },
