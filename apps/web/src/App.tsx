@@ -307,7 +307,6 @@ function AppContent() {
 
   const {
     jiraOutput,
-    adfDoc,
     hasConversionError,
     previewHtml,
     workerError,

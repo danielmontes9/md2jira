@@ -4,7 +4,7 @@ import {
   adfInlineToHtml,
   adfBlockToHtml,
 } from '../src/components/jira-output/adf-renderer.js'
-import type { AdfDocument, AdfInlineNode } from 'md2jira-core'
+import type { AdfDocument, AdfBlockNode, AdfInlineNode } from 'md2jira-core'
 
 describe('adfInlineToHtml', () => {
   it('returns plain escaped text', () => {
@@ -124,7 +124,6 @@ describe('adfInlineToHtml', () => {
     // The defensive guard in adfInlineToHtml should extract attrs.text and escape it.
     const mentionNode = {
       type: 'text' as const,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       attrs: { text: '@alice <script>', id: 'user-123' },
     } as unknown as AdfInlineNode
     expect(adfInlineToHtml(mentionNode)).toBe('@alice &lt;script&gt;')
@@ -132,7 +131,6 @@ describe('adfInlineToHtml', () => {
 
   it('returns empty string for external inline nodes with neither .text nor attrs.text', () => {
     // e.g. an emoji or status node that has no extractable text representation.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const statusNode = {
       type: 'text' as const,
       attrs: { color: 'red' },
@@ -374,9 +372,8 @@ describe('adfBlockToHtml', () => {
     // The renderer should fall through and render the inner paragraph content.
     const result = adfBlockToHtml({
       type: 'expand',
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       content: [{ type: 'paragraph', content: [{ type: 'text', text: 'nested' }] }],
-    } as any)
+    } as unknown as AdfBlockNode)
     expect(result).toBe('<p>nested</p>')
   })
 

@@ -105,6 +105,6 @@ function convertInlineWikiToMd(text: string): string {
       .replace(/\[([^\]|]+)\]/g, '[$1]($1)')
       // Images: !url! → ![](url)
       // Images with params: !url|width=200! → ![](url)  (drop params)
-      .replace(/!([^!\n|]+)(?:\|[^!]*)?\!/g, '![]($1)')
+      .replace(/!([^!\n|]+)(?:\|[^!]*)?!/g, '![]($1)')
   )
 }

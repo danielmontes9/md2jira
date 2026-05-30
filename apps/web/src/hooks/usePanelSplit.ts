@@ -24,7 +24,9 @@ export function usePanelSplit(storageKey: string, initial = 50) {
         if (!Number.isNaN(parsed) && parsed >= SPLIT_MIN && parsed <= SPLIT_MAX) return parsed
       }
       /* v8 ignore next -- localStorage unavailable (sandboxed iframe, privacy mode) */
-    } catch {}
+    } catch {
+      /* localStorage unavailable */
+    }
     return initial
   })
 
@@ -40,7 +42,9 @@ export function usePanelSplit(storageKey: string, initial = 50) {
         try {
           localStorage.setItem(storageKey, String(next))
           /* v8 ignore next -- localStorage unavailable — preference not persisted */
-        } catch {}
+        } catch {
+          /* localStorage unavailable */
+        }
         return next
       })
     },

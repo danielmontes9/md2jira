@@ -66,7 +66,7 @@ export function useJiraCopy(
     setCopied(true)
     if (copiedTimerRef.current !== null) clearTimeout(copiedTimerRef.current)
     copiedTimerRef.current = setTimeout(() => setCopied(false), 2000)
-  }, [format, addToast])
+  }, [format, addToast, options?.clipboardFailMessage])
 
   return { copied, handleCopy }
 }

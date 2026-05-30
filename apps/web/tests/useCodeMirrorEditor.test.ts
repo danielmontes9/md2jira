@@ -18,7 +18,6 @@ vi.mock('@codemirror/state', () => ({
 }))
 
 vi.mock('@codemirror/view', () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const MockEditorView = vi.fn(function (
     this: Record<string, unknown>,
     { parent }: { parent: HTMLElement | null }

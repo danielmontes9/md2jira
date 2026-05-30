@@ -1,11 +1,10 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 
 /**
- * Returns 	rue when the browser reports no network connectivity and alse
+ * Returns true when the browser reports no network connectivity and false
  * when it recovers. Updates reactively via the native online/offline events.
  *
- * Note:
-avigator.onLine can return 	rue even when there is no real
+ * Note: navigator.onLine can return true even when there is no real
  * internet access (e.g. connected to a LAN with no upstream) - this is a
  * browser limitation. For PWA cache-notification purposes it is accurate enough.
  */
