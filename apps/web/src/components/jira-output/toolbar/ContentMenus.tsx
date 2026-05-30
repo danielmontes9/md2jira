@@ -3,7 +3,13 @@ import { useState, useDeferredValue, useEffect, useMemo } from 'react'
 // EditorToolbar chunk. It is NOT in the initial bundle because EditorToolbar
 // is lazy-loaded via React.lazy — this constant only loads on first render.
 import { TEXT_COLORS } from '../constants.js'
-import { INFO_PANEL_HTML, DECISION_PANEL_HTML } from './templates.js'
+import {
+  INFO_PANEL_HTML,
+  DECISION_PANEL_HTML,
+  NOTE_PANEL_HTML,
+  WARNING_PANEL_HTML,
+  SUCCESS_PANEL_HTML,
+} from './templates.js'
 import { MOD_KEY } from '../../../utils/keyboard.js'
 import {
   type DropKey,
@@ -411,6 +417,51 @@ export function InsertMenu({ exec, insertHtml, close, openKey, onOpen }: InsertM
           <div className="text-left">
             <div>{t('wysiwygDecision')}</div>
             <div className="text-xs text-neutral-400">{t('wysiwygDecisionDesc')}</div>
+          </div>
+        </button>
+        <button
+          type="button"
+          role="menuitem"
+          onMouseDown={(e) => {
+            e.preventDefault()
+            insertHtml(NOTE_PANEL_HTML)
+            close()
+          }}
+          className={DROP_ITEM_CLS}
+        >
+          <div className="text-left">
+            <div>{t('wysiwygNotePanel')}</div>
+            <div className="text-xs text-neutral-400">{t('wysiwygNotePanelDesc')}</div>
+          </div>
+        </button>
+        <button
+          type="button"
+          role="menuitem"
+          onMouseDown={(e) => {
+            e.preventDefault()
+            insertHtml(WARNING_PANEL_HTML)
+            close()
+          }}
+          className={DROP_ITEM_CLS}
+        >
+          <div className="text-left">
+            <div>{t('wysiwygWarningPanel')}</div>
+            <div className="text-xs text-neutral-400">{t('wysiwygWarningPanelDesc')}</div>
+          </div>
+        </button>
+        <button
+          type="button"
+          role="menuitem"
+          onMouseDown={(e) => {
+            e.preventDefault()
+            insertHtml(SUCCESS_PANEL_HTML)
+            close()
+          }}
+          className={DROP_ITEM_CLS}
+        >
+          <div className="text-left">
+            <div>{t('wysiwygSuccessPanel')}</div>
+            <div className="text-xs text-neutral-400">{t('wysiwygSuccessPanelDesc')}</div>
           </div>
         </button>
         <button

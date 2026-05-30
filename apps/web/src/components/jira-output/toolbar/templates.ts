@@ -13,3 +13,11 @@ export const INFO_PANEL_HTML = '<div data-type="info-panel"><p>ℹ️ Info panel
 
 export const DECISION_PANEL_HTML =
   '<div data-type="decision-panel"><p>📋 Decision: </p></div><p><br></p>'
+
+export const NOTE_PANEL_HTML = '<div data-type="note-panel"><p>📝 Note</p></div><p><br></p>'
+
+export const WARNING_PANEL_HTML =
+  '<div data-type="warning-panel"><p>⚠️ Warning</p></div><p><br></p>'
+
+export const SUCCESS_PANEL_HTML =
+  '<div data-type="success-panel"><p>✅ Success</p></div><p><br></p>'
