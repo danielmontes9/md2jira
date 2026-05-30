@@ -30,6 +30,17 @@ export function useAdfHtmlWorker(
   onFallbackRef.current = onFallback
   // Monotonically increasing request id — used to discard stale worker responses
   const workerReqRef = useRef(0)
+  // Ref for the stall-timeout id so the worker error handler can cancel it
+  // without needing access to the effect-local `timeoutId` variable.
+  const staleTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
+  // Always-current adfDoc so the worker load-error handler can render it
+  // immediately without waiting for the 5 s stall timeout.
+  const adfDocRef = useRef<AdfDocument | null>(null)
+  adfDocRef.current = adfDoc
+  // Set to true after the worker has replied at least once. The stall toast is
+  // suppressed on the very first timeout because Vite dev-mode module workers
+  // can take >5 s to warm up on first load — that is not a real stall.
+  const workerHasRespondedRef = useRef(false)
 
   useEffect(() => {
     if (!adfDoc) {
@@ -43,11 +54,19 @@ export function useAdfHtmlWorker(
         const w = new Worker(new URL('../workers/adf-worker.ts', import.meta.url), {
           type: 'module',
         })
-        // Clear the preview and drop the stale worker if it throws an unhandled
-        // error (e.g. malformed ADF payload from an external source).
+        // Worker failed to load (module resolution error in Vite dev, MIME type
+        // issue, etc.) — cancel the stall timeout and fall back to the synchronous
+        // renderer immediately. No toast: this is a load error, not a stall.
         w.addEventListener('error', () => {
-          setState({ html: '', workerError: true })
+          clearTimeout(staleTimeoutRef.current)
           workerRef.current = null
+          const doc = adfDocRef.current
+          if (!doc) return
+          import('../components/jira-output/adf-renderer.js')
+            .then(({ adfToHtml }) => {
+              setState({ html: adfToHtml(doc), workerError: false })
+            })
+            .catch(() => setState({ html: '', workerError: true }))
         })
         workerRef.current = w
       }
@@ -56,6 +75,7 @@ export function useAdfHtmlWorker(
       const onMessage = (e: MessageEvent<{ id: number; html: string; error?: boolean }>) => {
         if (e.data.id === id) {
           clearTimeout(timeoutId)
+          workerHasRespondedRef.current = true
           if (e.data.error) {
             setState({ html: '', workerError: true })
           } else {
@@ -73,11 +93,17 @@ export function useAdfHtmlWorker(
           .then(({ adfToHtml }) => {
             if (workerReqRef.current === id) {
               setState({ html: adfToHtml(adfDoc), workerError: false })
-              onFallbackRef.current?.()
+              // Only show the toast if the worker had previously worked — the first
+              // timeout is most likely Vite dev-mode warmup, not a real stall.
+              if (workerHasRespondedRef.current) {
+                onFallbackRef.current?.()
+              }
             }
           })
           .catch(() => setState({ html: '', workerError: true }))
       }, 5_000)
+      // Expose the timeout to the worker error handler so it can cancel immediately.
+      staleTimeoutRef.current = timeoutId
       worker.addEventListener('message', onMessage)
       worker.postMessage({ id, doc: adfDoc })
       return () => {

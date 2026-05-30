@@ -8,9 +8,19 @@ let _prefersDark = false
 let _mqlListeners: Array<(e: Partial<MediaQueryListEvent>) => void> = []
 const matchMediaStub = vi.fn().mockImplementation((query: string) => ({
   matches: query === '(prefers-color-scheme: dark)' ? _prefersDark : false,
-  addEventListener: vi.fn((_type: string, listener: (e: Partial<MediaQueryListEvent>) => void) => {
-    _mqlListeners.push(listener)
-  }),
+  addEventListener: vi.fn(
+    (
+      _type: string,
+      listener: (e: Partial<MediaQueryListEvent>) => void,
+      opts?: AddEventListenerOptions
+    ) => {
+      _mqlListeners.push(listener)
+      // Support AbortController cleanup: remove listener when signal fires.
+      opts?.signal?.addEventListener('abort', () => {
+        _mqlListeners = _mqlListeners.filter((l) => l !== listener)
+      })
+    }
+  ),
   removeEventListener: vi.fn(
     (_type: string, listener: (e: Partial<MediaQueryListEvent>) => void) => {
       _mqlListeners = _mqlListeners.filter((l) => l !== listener)
@@ -173,5 +183,30 @@ describe('useTheme', () => {
     })
 
     expect(result.current.theme).toBe('light')
+  })
+
+  it('removes the matchMedia listener when the hook unmounts', async () => {
+    _prefersDark = false
+    const useTheme = await importHook()
+    const { unmount } = renderHook(() => useTheme())
+    // Listener should be registered after mount
+    expect(_mqlListeners).toHaveLength(1)
+    unmount()
+    // AbortController.abort() should have removed it via the signal
+    expect(_mqlListeners).toHaveLength(0)
+  })
+
+  it('does not react to OS changes after unmount', async () => {
+    _prefersDark = false
+    const useTheme = await importHook()
+    const { result, unmount } = renderHook(() => useTheme())
+    expect(result.current.theme).toBe('light')
+    unmount()
+    // No listeners remain — firing the event should be a no-op (no crash)
+    expect(() => {
+      act(() => {
+        _mqlListeners.forEach((fn) => fn({ matches: true }))
+      })
+    }).not.toThrow()
   })
 })

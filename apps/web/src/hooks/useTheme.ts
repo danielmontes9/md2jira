@@ -43,12 +43,13 @@ export function useTheme(): { theme: Theme; toggleTheme: () => void } {
   // until a stored preference exists at startup).
   useEffect(() => {
     const mql = window.matchMedia('(prefers-color-scheme: dark)')
+    const ac = new AbortController()
     const handleChange = (e: MediaQueryListEvent) => {
       if (userSetRef.current) return
       setTheme(e.matches ? 'dark' : 'light')
     }
-    mql.addEventListener('change', handleChange)
-    return () => mql.removeEventListener('change', handleChange)
+    mql.addEventListener('change', handleChange, { signal: ac.signal })
+    return () => ac.abort()
   }, [])
 
   const toggleTheme = useCallback(() => {
