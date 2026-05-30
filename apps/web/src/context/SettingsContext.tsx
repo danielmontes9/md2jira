@@ -6,22 +6,29 @@ const LS_KEY = 'md2jira-settings'
 export type MaxHistoryEntries = 10 | 25 | 50 | 100
 
 /** Supported UI locales. */
-export type Locale = 'en' | 'es' | 'pt' | 'fr'
+export type Locale = 'en' | 'es' | 'pt' | 'fr' | 'de'
 
 interface SettingsState {
   historyEnabled: boolean
   maxHistoryEntries: MaxHistoryEntries
   locale: Locale
+  baseUrl: string
 }
 
 interface SettingsContextValue extends SettingsState {
   toggleHistory: () => void
   setMaxHistoryEntries: (n: MaxHistoryEntries) => void
   setLocale: (l: Locale) => void
+  setBaseUrl: (url: string) => void
 }
 
 // History is on by default — it's the app's most valuable persistence feature.
-const DEFAULT: SettingsState = { historyEnabled: true, maxHistoryEntries: 10, locale: 'en' }
+const DEFAULT: SettingsState = {
+  historyEnabled: true,
+  maxHistoryEntries: 10,
+  locale: 'en',
+  baseUrl: '',
+}
 
 function detectLocale(): Locale {
   try {
@@ -29,6 +36,7 @@ function detectLocale(): Locale {
     if (lang.startsWith('fr')) return 'fr'
     if (lang.startsWith('es')) return 'es'
     if (lang.startsWith('pt')) return 'pt'
+    if (lang.startsWith('de')) return 'de'
   } catch {
     // navigator.language unavailable
   }
@@ -50,9 +58,11 @@ function loadSettings(): SettingsState {
         parsed.locale === 'en' ||
         parsed.locale === 'es' ||
         parsed.locale === 'pt' ||
-        parsed.locale === 'fr'
+        parsed.locale === 'fr' ||
+        parsed.locale === 'de'
           ? parsed.locale
           : detectLocale(),
+      baseUrl: typeof parsed.baseUrl === 'string' ? parsed.baseUrl : DEFAULT.baseUrl,
     }
   } catch {
     return { ...DEFAULT, locale: detectLocale() }
@@ -90,9 +100,13 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     setSettings((prev) => ({ ...prev, locale: l }))
   }, [])
 
+  const setBaseUrl = useCallback((url: string) => {
+    setSettings((prev) => ({ ...prev, baseUrl: url }))
+  }, [])
+
   return (
     <SettingsContext.Provider
-      value={{ ...settings, toggleHistory, setMaxHistoryEntries, setLocale }}
+      value={{ ...settings, toggleHistory, setMaxHistoryEntries, setLocale, setBaseUrl }}
     >
       {children}
     </SettingsContext.Provider>

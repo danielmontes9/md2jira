@@ -5,9 +5,10 @@ import { en } from '../src/i18n/en.js'
 import { es } from '../src/i18n/es.js'
 import { pt } from '../src/i18n/pt.js'
 import { fr } from '../src/i18n/fr.js'
+import { de } from '../src/i18n/de.js'
 
 // Mutable locale — lets individual hook tests switch locale without a Provider tree.
-let mockLocale: 'en' | 'es' | 'pt' | 'fr' = 'en'
+let mockLocale: 'en' | 'es' | 'pt' | 'fr' | 'de' = 'en'
 
 vi.mock('../src/context/SettingsContext.js', () => ({
   useSettings: () => ({
@@ -81,8 +82,25 @@ describe('i18n locale completeness', () => {
     expect(different.length).toBeGreaterThanOrEqual(Math.ceil(enEntries.length / 2))
   })
 
+  it('de.ts has exactly the same keys as en.ts', () => {
+    expect(Object.keys(de).sort()).toEqual(EN_KEYS)
+  })
+
+  it('all de.ts values are non-empty strings', () => {
+    for (const [key, value] of Object.entries(de)) {
+      expect(typeof value, `de.${key}`).toBe('string')
+      expect((value as string).length, `de.${key}`).toBeGreaterThan(0)
+    }
+  })
+
+  it('de.ts has at least 50% of values different from en.ts', () => {
+    const enEntries = Object.entries(en)
+    const different = enEntries.filter(([key, enVal]) => de[key as keyof typeof en] !== enVal)
+    expect(different.length).toBeGreaterThanOrEqual(Math.ceil(enEntries.length / 2))
+  })
+
   it('every en key is present and non-empty in all locales simultaneously', () => {
-    const locales = { es, pt, fr } as const
+    const locales = { es, pt, fr, de } as const
     for (const key of Object.keys(en) as Array<keyof typeof en>) {
       for (const [name, locale] of Object.entries(locales)) {
         const val = locale[key]
@@ -132,6 +150,15 @@ describe('useTI — interpolation hook', () => {
     expect(typeof val).toBe('string')
     expect(val.length).toBeGreaterThan(0)
     expect(val).toContain('Mon Doc')
+  })
+
+  it('uses the locale-specific dict when locale is "de"', () => {
+    mockLocale = 'de'
+    const { result } = renderHook(() => useTI())
+    const val = result.current('selectEntryLabel', { title: 'Mein Dok' })
+    expect(typeof val).toBe('string')
+    expect(val.length).toBeGreaterThan(0)
+    expect(val).toContain('Mein Dok')
   })
 
   it('interpolates the placeholder in renameEntryAction', () => {

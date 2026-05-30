@@ -13,6 +13,7 @@ import { en } from './en.js'
 import { es } from './es.js'
 import { pt } from './pt.js'
 import { fr } from './fr.js'
+import { de } from './de.js'
 import type { StringKey } from './en.js'
 import { useSettings } from '../context/SettingsContext.js'
 
@@ -23,6 +24,7 @@ function getDict(locale: string): Record<StringKey, string> {
   if (locale === 'es') return es
   if (locale === 'pt') return pt
   if (locale === 'fr') return fr
+  if (locale === 'de') return de
   return en
 }
 

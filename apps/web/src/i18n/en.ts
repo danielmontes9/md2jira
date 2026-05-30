@@ -111,6 +111,8 @@ export const en = {
   underlineWarning: 'Underline formatting is not supported in Jira output and will be removed.',
   wikiEditDesyncWarning:
     'Wiki markup edits are independent \u2014 changes won\u2019t sync back to the Markdown source.',
+  confluenceEditDesyncWarning:
+    'Confluence Storage Format edits are independent \u2014 changes won\u2019t sync back to the Markdown source.',
   newDocumentSaved: 'Document saved to history.',
 
   // ── Shortcuts modal groups ────────────────────────────────────────────────
@@ -234,6 +236,7 @@ export const en = {
   jiraContentEditor: 'Jira content editor',
   wikiMarkupEditor: 'Wiki Markup editor',
   wikiMarkupPreview: 'Wiki markup preview',
+  confluenceMarkupEditor: 'Confluence Storage Format editor',
   viewModeGroup: 'View mode',
   // ── WYSIWYG toolbar — formatting buttons ─────────────────────────────────
   wysiwygBold: 'Bold',
@@ -333,6 +336,36 @@ export const en = {
   // ── Screen reader live region announcements ───────────────────────────────
   editModeEnabled: 'Edit mode enabled',
   copiedToClipboard: 'Copied to clipboard',
+  // ── Settings — Base URL ───────────────────────────────────────────────────
+  settingsBaseUrlLabel: 'Base URL for relative links',
+  settingsBaseUrlDescription:
+    'Prepended to relative links (e.g. /wiki/page \u2192 https://company.atlassian.net/wiki/page). Leave empty to keep links unchanged.',
+  settingsBaseUrlPlaceholder: 'https://your-instance.atlassian.net',
+  // ── Insert menu — additional panels ──────────────────────────────────────
+  wysiwygNotePanel: 'Note panel',
+  wysiwygNotePanelDesc: 'Highlight a note or tip in blue',
+  wysiwygWarningPanel: 'Warning panel',
+  wysiwygWarningPanelDesc: 'Highlight a warning or caution in yellow',
+  wysiwygSuccessPanel: 'Success panel',
+  wysiwygSuccessPanelDesc: 'Highlight a success or positive outcome in green',
+  // ── History diff ──────────────────────────────────────────────────────────
+  historyDiff: 'Diff',
+  historyDiffModalTitle: 'Compare with current document',
+  historyDiffNoChanges: 'No differences \u2014 this entry matches the current document.',
+  historyDiffLabelBefore: 'This entry',
+  historyDiffLabelAfter: 'Current',
+  historyDiffTruncated: 'Diff truncated to {n} lines per side', // ── Wiki \u2192 Markdown sync ─────────────────────────────────────────────────
+  wikiSyncToMarkdown: 'Sync to Markdown',
+  wikiSyncToMarkdownTitle:
+    'Convert the Wiki Markup back to Markdown and replace the editor content',
+  wikiSyncApplied: 'Wiki markup synced to Markdown source',
+  // ── Autosave indicator ────────────────────────────────────────────────────
+  autoSavedJustNow: 'Saved just now',
+  autoSavedMinutesAgo: 'Saved {n}m ago',
+  // ── Resize handle ─────────────────────────────────────────────────────────
+  resizeValueText: '{left}% left panel, {right}% right panel',
+  // ── Bulk delete confirmation ───────────────────────────────────────────────
+  historyDeleteSelectedConfirm: 'Confirm delete?',
 } as const
 
 export type StringKey = keyof typeof en

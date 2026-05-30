@@ -97,6 +97,8 @@ export const fr: Record<StringKey, string> = {
     'La mise en forme du soulignement n\u2019est pas prise en charge dans la sortie Jira et sera supprim\u00e9e.',
   wikiEditDesyncWarning:
     'Les \u00e9ditions Wiki Markup sont ind\u00e9pendantes \u2014 les modifications ne seront pas synchronis\u00e9es avec la source Markdown.',
+  confluenceEditDesyncWarning:
+    'Les \u00e9ditions du format de stockage Confluence sont ind\u00e9pendantes \u2014 les modifications ne seront pas synchronis\u00e9es avec la source Markdown.',
   newDocumentSaved: 'Document enregistr\u00e9 dans l\u2019historique.',
   // ── Shortcuts modal groups ────────────────────────────────────────────────
   scGroupFormatting: 'Mise en forme',
@@ -219,6 +221,7 @@ export const fr: Record<StringKey, string> = {
   jiraContentEditor: '\u00c9diteur de contenu Jira',
   wikiMarkupEditor: '\u00c9diteur Wiki Markup',
   wikiMarkupPreview: 'Pr\u00e9visualisation Wiki Markup',
+  confluenceMarkupEditor: '\u00c9diteur du format de stockage Confluence',
   viewModeGroup: 'Mode d\u2019affichage',
   // ── WYSIWYG toolbar — boutons de mise en forme ────────────────────────────
   wysiwygBold: 'Gras',
@@ -323,4 +326,31 @@ export const fr: Record<StringKey, string> = {
   // ── Annonces de r\u00e9gion aria-live ──────────────────────────────────────────
   editModeEnabled: 'Mode d\u2019\u00e9dition activ\u00e9',
   copiedToClipboard: 'Copi\u00e9 dans le presse-papiers',
+  // ── Param\u00e8tres \u2014 URL de base ────────────────────────────────────────────────────────────
+  settingsBaseUrlLabel: 'URL de base pour les liens relatifs',
+  settingsBaseUrlDescription:
+    'Ajout\u00e9 en pr\u00e9fixe aux liens relatifs (ex. /wiki/page \u2192 https://entreprise.atlassian.net/wiki/page). Laisser vide pour ne pas modifier les liens.',
+  settingsBaseUrlPlaceholder: 'https://votre-instance.atlassian.net',
+  wysiwygNotePanel: 'Panneau de note',
+  wysiwygNotePanelDesc: 'Mettre en \u00e9vidence une note ou un conseil en bleu',
+  wysiwygWarningPanel: 'Panneau d\u2019avertissement',
+  wysiwygWarningPanelDesc: 'Mettre en \u00e9vidence un avertissement ou une mise en garde en jaune',
+  wysiwygSuccessPanel: 'Panneau de succ\u00e8s',
+  wysiwygSuccessPanelDesc:
+    'Mettre en \u00e9vidence un succ\u00e8s ou r\u00e9sultat positif en vert',
+  historyDiff: 'Diff',
+  historyDiffModalTitle: 'Comparer avec le document actuel',
+  historyDiffNoChanges:
+    'Aucune diff\u00e9rence \u2014 cette entr\u00e9e correspond au document actuel.',
+  historyDiffLabelBefore: 'Cette entr\u00e9e',
+  historyDiffLabelAfter: 'Actuel',
+  historyDiffTruncated: 'Diff tronqu\u00e9 \u00e0 {n} lignes par c\u00f4t\u00e9',
+  wikiSyncToMarkdown: 'Synchroniser vers Markdown',
+  wikiSyncToMarkdownTitle:
+    'Convertit le Wiki Markup en Markdown et remplace le contenu de l\u2019\u00e9diteur',
+  wikiSyncApplied: 'Wiki Markup synchronis\u00e9 avec la source Markdown',
+  autoSavedJustNow: 'Enregistr\u00e9 \u00e0 l\u2019instant',
+  autoSavedMinutesAgo: 'Enregistr\u00e9 il y a {n} min',
+  resizeValueText: '{left}% panneau gauche, {right}% panneau droit',
+  historyDeleteSelectedConfirm: 'Confirmer la suppression\u00a0?',
 } as const

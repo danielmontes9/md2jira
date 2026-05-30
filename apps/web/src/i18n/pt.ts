@@ -106,6 +106,8 @@ export const pt: Record<StringKey, string> = {
   underlineWarning: 'Sublinhado n\u00e3o \u00e9 suportado na sa\u00edda Jira e ser\u00e1 removido.',
   wikiEditDesyncWarning:
     'Edi\u00e7\u00f5es de Wiki Markup s\u00e3o independentes \u2014 as altera\u00e7\u00f5es n\u00e3o ser\u00e3o sincronizadas de volta com o Markdown original.',
+  confluenceEditDesyncWarning:
+    'Edi\u00e7\u00f5es do Confluence Storage Format s\u00e3o independentes \u2014 as altera\u00e7\u00f5es n\u00e3o ser\u00e3o sincronizadas com o Markdown original.',
   newDocumentSaved: 'Documento salvo no hist\u00f3rico.',
 
   // ── Shortcuts modal groups ────────────────────────────────────────────────
@@ -226,6 +228,7 @@ export const pt: Record<StringKey, string> = {
   jiraContentEditor: 'Editor de conte\u00fado Jira',
   wikiMarkupEditor: 'Editor de Wiki Markup',
   wikiMarkupPreview: 'Pr\u00e9-visualiza\u00e7\u00e3o de Wiki Markup',
+  confluenceMarkupEditor: 'Editor do Confluence Storage Format',
   viewModeGroup: 'Modo de visualiza\u00e7\u00e3o',
   // ── WYSIWYG toolbar — bot\u00f5es de formata\u00e7\u00e3o ──────────────────────────────
   wysiwygBold: 'Negrito',
@@ -329,4 +332,29 @@ export const pt: Record<StringKey, string> = {
   // ── An\u00fancios de regi\u00e3o aria-live ──────────────────────────────────────────
   editModeEnabled: 'Modo de edi\u00e7\u00e3o ativado',
   copiedToClipboard: 'Copiado para a \u00e1rea de transfer\u00eancia',
+  // ── Configura\u00e7\u00f5es \u2014 URL base ────────────────────────────────────────────────────────────────────
+  settingsBaseUrlLabel: 'URL base para links relativos',
+  settingsBaseUrlDescription:
+    'Adicionada como prefixo a links relativos (ex. /wiki/p\u00e1gina \u2192 https://empresa.atlassian.net/wiki/p\u00e1gina). Deixe vazio para manter os links sem altera\u00e7\u00e3o.',
+  settingsBaseUrlPlaceholder: 'https://sua-inst\u00e2ncia.atlassian.net',
+  wysiwygNotePanel: 'Painel de nota',
+  wysiwygNotePanelDesc: 'Destacar uma nota ou dica em azul',
+  wysiwygWarningPanel: 'Painel de aviso',
+  wysiwygWarningPanelDesc: 'Destacar um aviso ou precau\u00e7\u00e3o em amarelo',
+  wysiwygSuccessPanel: 'Painel de sucesso',
+  wysiwygSuccessPanelDesc: 'Destacar um sucesso ou resultado positivo em verde',
+  historyDiff: 'Diff',
+  historyDiffModalTitle: 'Comparar com o documento atual',
+  historyDiffNoChanges: 'Sem diferen\u00e7as \u2014 esta entrada corresponde ao documento atual.',
+  historyDiffLabelBefore: 'Esta entrada',
+  historyDiffLabelAfter: 'Atual',
+  historyDiffTruncated: 'Diff truncado a {n} linhas por lado',
+  wikiSyncToMarkdown: 'Sincronizar para Markdown',
+  wikiSyncToMarkdownTitle:
+    'Converte o Wiki Markup de volta para Markdown e substitui o conte\u00fado do editor',
+  wikiSyncApplied: 'Wiki Markup sincronizado com a fonte Markdown',
+  autoSavedJustNow: 'Salvo agora',
+  autoSavedMinutesAgo: 'Salvo h\u00e1 {n} min',
+  resizeValueText: '{left}% painel esquerdo, {right}% painel direito',
+  historyDeleteSelectedConfirm: 'Confirmar exclusão?',
 } as const

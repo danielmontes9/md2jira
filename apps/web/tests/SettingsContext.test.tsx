@@ -34,7 +34,7 @@ describe('SettingsContext — default state (empty localStorage)', () => {
 
   it('locale defaults to a valid locale string', () => {
     const { result } = renderHook(() => useSettings(), { wrapper })
-    expect(['en', 'es', 'pt', 'fr']).toContain(result.current.locale)
+    expect(['en', 'es', 'pt', 'fr', 'de']).toContain(result.current.locale)
   })
 
   it('exposes toggleHistory, setLocale, setMaxHistoryEntries as functions', () => {
