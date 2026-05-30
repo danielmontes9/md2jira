@@ -1,3 +1,30 @@
+# [2.4.0](https://github.com/danielmontes9/md2jira/compare/v2.3.0...v2.4.0) (2026-05-30)
+
+
+### Bug Fixes
+
+* **web:** align optional prop types and fix useOutputConversion call signature ([420fa9a](https://github.com/danielmontes9/md2jira/commit/420fa9af60ed6a158b09e44eb539ab460e4ca6f1))
+* **web:** use AbortController for event cleanup and improve ADF worker error handling ([946c4a7](https://github.com/danielmontes9/md2jira/commit/946c4a7be04dfd80cfe6322f9c745a97de2217db))
+
+
+### Features
+
+* **core:** implement image conversion for Wiki Markup, ADF, and Confluence ([4cb2cd4](https://github.com/danielmontes9/md2jira/commit/4cb2cd47330761c0620211a9762cfc2bb2433d93))
+* **web:** add base URL setting for relative link resolution ([d3df6c5](https://github.com/danielmontes9/md2jira/commit/d3df6c58203087e6433e92095e6012ea54f660cc))
+* **web:** add BrokenImage NodeView with broken-image placeholder and export AlignedTable extensions ([4a08152](https://github.com/danielmontes9/md2jira/commit/4a08152a0926c3769f750c53e95f2a1baae4310a))
+* **web:** add Confluence edit mode and wiki-to-markdown sync ([33d501f](https://github.com/danielmontes9/md2jira/commit/33d501f1d3b958ec1a99423d31f885d7a3ddeb88))
+* **web:** add German locale and expand i18n keys for new features ([fcc5853](https://github.com/danielmontes9/md2jira/commit/fcc5853fbe587703a1c5b7c3356775d59b0b577b))
+* **web:** add history diff viewer, bulk delete confirmation, and autosave indicator ([a509c71](https://github.com/danielmontes9/md2jira/commit/a509c71506a828973ea3ec153f48634d4d4b0988))
+* **web:** add Note, Warning, and Success WYSIWYG insert panels ([bab743c](https://github.com/danielmontes9/md2jira/commit/bab743cedcfcf8771f4805c8743fbe644d73e9db))
+* **web:** add tiptap doc-tree serializer with OWASP A03 URL guards ([d86efa0](https://github.com/danielmontes9/md2jira/commit/d86efa010aa4314f1e3495709a4a31e386b81da2))
+* **web:** Alt+N opens new-document modal; guard editor on clearHistory ([5e9f548](https://github.com/danielmontes9/md2jira/commit/5e9f54885e50d779c0d078084f99cdd6a9fe96fa))
+* **web:** animated modal exit with ModalCloseButton and ConfirmModal ([d351ecd](https://github.com/danielmontes9/md2jira/commit/d351ecd2da064a47e9e42d8e23001a61a0418c81))
+* **web:** HistorySidebar — bulk-delete, rename, diff view, SIDEBAR_CLOSE_MS ([ba42cd5](https://github.com/danielmontes9/md2jira/commit/ba42cd5e9077ac58dd7543c15df634c29c496563))
+* **web:** new-document modal with name input and newDocumentTrigger prop ([71220ad](https://github.com/danielmontes9/md2jira/commit/71220ad4c312bdb4a7a280b37c6d01058c0c0a89))
+* **web:** render ADF mediaSingle images and update CSP for external images ([db3d1db](https://github.com/danielmontes9/md2jira/commit/db3d1db67d05e6a6f7a2ba5f6843f899caee5dfb))
+* **web:** show warning toast when document exceeds URL-sharing limit ([402edd7](https://github.com/danielmontes9/md2jira/commit/402edd76b0aee8b81fb3750e5cc4c1d107caca62))
+* **web:** useDocumentHistory — rename, deleteEntries, saveContent, lastSavedAt ([75fbb0b](https://github.com/danielmontes9/md2jira/commit/75fbb0b59764cd452b0f9923b43cd1dfd85ef431))
+
 # [2.3.0](https://github.com/danielmontes9/md2jira/compare/v2.2.0...v2.3.0) (2026-05-29)
 
 
