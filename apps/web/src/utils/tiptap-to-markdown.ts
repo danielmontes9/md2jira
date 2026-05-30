@@ -16,16 +16,15 @@ export function tiptapDocToMarkdown(doc: Node): string {
 }
 
 /**
- * Returns true if the document contains any textStyle marks with a non-empty
- * color attribute. Used to surface a warning toast before the color is
- * silently stripped by the Markdown → Jira conversion pipeline.
+ * Traverses the document and returns true as soon as a mark satisfying
+ * `predicate` is found. Short-circuits on first match.
  */
-export function hasColorMarks(doc: Node): boolean {
+function hasMarkWhere(doc: Node, predicate: (mark: Mark) => boolean): boolean {
   let found = false
   doc.descendants((node) => {
     if (found) return false // short-circuit once detected
     for (const mark of node.marks) {
-      if (mark.type.name === 'textStyle' && (mark.attrs as { color?: string }).color) {
+      if (predicate(mark)) {
         found = true
         return false
       }
@@ -34,6 +33,19 @@ export function hasColorMarks(doc: Node): boolean {
   })
   return found
 }
+
+/**
+ * Returns true if the document contains any textStyle marks with a non-empty
+ * color attribute. Used to surface a warning toast before the color is
+ * silently stripped by the Markdown → Jira conversion pipeline.
+ */
+export function hasColorMarks(doc: Node): boolean {
+  return hasMarkWhere(
+    doc,
+    (m) => m.type.name === 'textStyle' && !!(m.attrs as { color?: string }).color
+  )
+}
+
 /**
  * Returns true if the document contains any underline marks.
  * Underline is not a standard Markdown element and will be serialized as the
@@ -41,19 +53,9 @@ export function hasColorMarks(doc: Node): boolean {
  * formatting will be lost in the Jira output — used to surface a warning.
  */
 export function hasUnderlineMarks(doc: Node): boolean {
-  let found = false
-  doc.descendants((node) => {
-    if (found) return false // short-circuit once detected
-    for (const mark of node.marks) {
-      if (mark.type.name === 'underline') {
-        found = true
-        return false
-      }
-    }
-    return undefined // continue traversal
-  })
-  return found
+  return hasMarkWhere(doc, (m) => m.type.name === 'underline')
 }
+
 // ─── Context ─────────────────────────────────────────────────────────────────
 
 interface Ctx {
@@ -122,6 +124,21 @@ function serializeNode(node: Node, ctx: Ctx): string {
 
     case 'hardBreak':
       return '  \n'
+
+    case 'image': {
+      const attrs = node.attrs as { src?: string; alt?: string; title?: string }
+      // OWASP A03: only emit URLs that pass SAFE_SRC_RE into the serialized
+      // Markdown. Unsafe schemes (javascript:, data:text/, data:image/svg+xml)
+      // and protocol-relative URLs (//host) are replaced with '#'. The HTML
+      // preview already guards via sanitizeUrl(), but the exported Markdown
+      // must also be safe at the source.
+      const rawSrc = attrs.src ?? ''
+      const src = SAFE_SRC_RE.test(rawSrc) ? rawSrc : rawSrc ? '#' : ''
+      // Escape ] inside alt — an unescaped ] closes the ![...] span and
+      // produces syntactically invalid Markdown (e.g. ![click]here](url)).
+      const alt = (attrs.alt ?? '').replace(/]/g, '\\]')
+      return `![${alt}](${src}${escapeTitle(attrs.title)})\n\n`
+    }
 
     case 'table':
       return serializeTable(node)
@@ -201,7 +218,37 @@ function escapeMd(text: string): string {
   return text.replace(/[\\*_`~[\]]/g, '\\$&')
 }
 
-/** * Priority order for mark wrapping: higher number → applied first (innermost).
+/**
+ * URL schemes and path patterns that are safe to emit in Markdown output.
+ * javascript: and data:text/ can be executed by downstream parsers that
+ * don't sanitize. Relative paths (root-relative, ./, ../), fragment anchors
+ * (#), and action protocols (mailto:, tel:) are safe and preserved.
+ * Protocol-relative URLs (//host) are excluded — they inherit the page
+ * protocol and cannot be validated statically.
+ * data:image/svg+xml is excluded — SVG can contain embedded <script> elements
+ * that execute in some rendering contexts. Only raster subtypes are permitted.
+ * The (?=[;,]) lookahead after the subtype group is intentional: it ensures
+ * that a crafted subtype like "pngEVIL" does not match via prefix (RFC 2397
+ * requires the subtype to be followed immediately by ';' or ','). Removing
+ * the lookahead would silently re-open this bypass — do not simplify it.
+ * Reused by both the image node serializer and the link mark serializer.
+ *
+ * The leading ^ anchors the entire group. Adding a new alternative inside
+ * the group without ensuring it is anchored would be a runtime gap, not a
+ * compile-time error, so review changes to this constant carefully.
+ */
+const SAFE_SRC_RE =
+  /^(https?:\/\/|data:image\/(?:png|jpe?g|gif|webp|avif)(?=[;,])|\/(?!\/)|\.\.\/|\.\/|#|mailto:|tel:)/i
+
+/**
+ * Escapes " inside a Markdown link/image title and wraps it in the
+ * standard ` "title"` suffix. Returns an empty string when title is absent.
+ */
+function escapeTitle(title: string | undefined): string {
+  return title ? ` "${title.replace(/"/g, '\\"')}"` : ''
+}
+
+/** Priority order for mark wrapping: higher number → applied first (innermost).
  * `code` is last because backtick spans cannot contain other Markdown syntax.
  */
 const MARK_PRIORITY: Record<string, number> = {
@@ -266,7 +313,9 @@ function applyMark(mark: Mark, text: string): string {
     }
     case 'link': {
       const { href = '', title } = mark.attrs as { href?: string; title?: string }
-      return title ? `[${text}](${href} "${title}")` : `[${text}](${href})`
+      // Same OWASP A03 guard as the image node serializer: reject unsafe schemes.
+      const safeHref = SAFE_SRC_RE.test(href) ? href : href ? '#' : ''
+      return `[${text}](${safeHref}${escapeTitle(title)})`
     }
     default:
       return text
