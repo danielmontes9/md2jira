@@ -1,11 +1,108 @@
-import { useRef, useCallback, useMemo, useState, useEffect, Suspense, memo } from 'react'
+import { useRef, useCallback, useMemo, useState, useEffect, useId, Suspense, memo } from 'react'
 import { useFileImportExport } from '../hooks/useFileImportExport.js'
 import { useCodeMirrorEditor } from '../hooks/useCodeMirrorEditor.js'
 import { useToast } from '../context/ToastContext.js'
 import { lazyNamed } from '../utils/lazy-named.js'
 import { useT } from '../i18n/index.js'
+import { Modal, ModalCloseButton, useModalClose } from './Modal.js'
 
 const ShortcutsModalLazy = lazyNamed(() => import('./ShortcutsModal.js'), 'ShortcutsModal')
+
+// ── New document confirm modal ────────────────────────────────────────────
+
+function NewDocConfirmContent({
+  onRequestConfirm,
+  modalId,
+}: {
+  onRequestConfirm: (name: string) => void
+  modalId: string
+}) {
+  const t = useT()
+  const handleClose = useModalClose()
+  const [docName, setDocName] = useState('')
+  const inputId = `${modalId}-name`
+
+  function handleConfirm() {
+    onRequestConfirm(docName.trim())
+    handleClose()
+  }
+
+  return (
+    <div className="w-full max-w-sm rounded-xl border border-neutral-200 bg-white p-6 shadow-xl dark:border-neutral-700 dark:bg-neutral-900">
+      <h2
+        id={modalId}
+        className="mb-4 text-base font-semibold text-neutral-900 dark:text-neutral-100"
+      >
+        {t('newDocumentModalTitle')}
+      </h2>
+      <div className="mb-5">
+        <label
+          htmlFor={inputId}
+          className="mb-1.5 block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+        >
+          {t('newDocumentNameLabel')}
+        </label>
+        <input
+          id={inputId}
+          type="text"
+          value={docName}
+          onChange={(e) => setDocName(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleConfirm()
+          }}
+          placeholder={t('newDocumentNamePlaceholder')}
+          maxLength={60}
+          autoFocus
+          className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-100 dark:placeholder:text-neutral-500 dark:focus:border-blue-400"
+        />
+      </div>
+      <div className="flex justify-end gap-2">
+        <ModalCloseButton
+          className="rounded-lg px-4 py-2 text-sm text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+          aria-label={t('clearEditorNo')}
+        >
+          {t('clearEditorNo')}
+        </ModalCloseButton>
+        <button
+          type="button"
+          onClick={handleConfirm}
+          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+        >
+          {t('newDocumentCreate')}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function NewDocConfirmModal({
+  onConfirm,
+  onCancel,
+}: {
+  onConfirm: (name: string) => void
+  onCancel: () => void
+}) {
+  const modalId = useId()
+  // useRef so the name is available synchronously inside the setTimeout closure
+  // when Modal.onClose fires after ANIM_MS — avoids a stale-closure bug.
+  const pendingNameRef = useRef<string | null>(null)
+  return (
+    <Modal
+      onClose={() => {
+        if (pendingNameRef.current !== null) onConfirm(pendingNameRef.current)
+        else onCancel()
+      }}
+      ariaLabelledBy={modalId}
+    >
+      <NewDocConfirmContent
+        onRequestConfirm={(name) => {
+          pendingNameRef.current = name
+        }}
+        modalId={modalId}
+      />
+    </Modal>
+  )
+}
 
 interface MarkdownInputProps {
   value: string
@@ -13,6 +110,18 @@ interface MarkdownInputProps {
   isDark: boolean
   onSave?: () => void
   historyEnabled?: boolean
+  /**
+   * When provided, called with the new document name instead of invoking
+   * `onSave` + `onChange` directly. Lets App.tsx handle saving current
+   * content and setting the new content in a single coordinated step.
+   */
+  onNewDocument?: (name: string) => void
+  /**
+   * Increment this value to programmatically open the new-document modal
+   * from outside the component (e.g. the Alt+N keyboard shortcut in App.tsx).
+   * The component tracks the previous value and opens the modal on each change.
+   */
+  newDocumentTrigger?: number
 }
 
 export const MarkdownInput = memo(function MarkdownInput({
@@ -21,15 +130,15 @@ export const MarkdownInput = memo(function MarkdownInput({
   isDark,
   onSave,
   historyEnabled = false,
+  onNewDocument,
+  newDocumentTrigger,
 }: MarkdownInputProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [showShortcuts, setShowShortcuts] = useState(false)
   const [copiedMd, setCopiedMd] = useState(false)
   const [confirmNew, setConfirmNew] = useState(false)
   const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const confirmNewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const resetCopied = useCallback(() => setCopiedMd(false), [])
-  const resetConfirmNew = useCallback(() => setConfirmNew(false), [])
   const addToast = useToast()
   const t = useT()
 
@@ -38,22 +147,20 @@ export const MarkdownInput = memo(function MarkdownInput({
     if (value === '' && confirmNew) setConfirmNew(false)
   }, [value, confirmNew])
 
-  // Auto-dismiss the "New" confirmation after 5 s if the user doesn't act
+  // Ref so the trigger effect can read the current value without it being a dep.
+  const valueRef = useRef(value)
+  valueRef.current = value
+
+  // Open the modal when App.tsx increments the trigger (e.g. Alt+N shortcut).
+  // Tracks the previous value so only a genuine increment triggers the modal.
+  const prevNewDocTrigger = useRef(newDocumentTrigger ?? 0)
   useEffect(() => {
-    if (!confirmNew) {
-      if (confirmNewTimerRef.current !== null) {
-        clearTimeout(confirmNewTimerRef.current)
-        confirmNewTimerRef.current = null
-      }
-      return
+    const current = newDocumentTrigger ?? 0
+    if (current !== prevNewDocTrigger.current) {
+      prevNewDocTrigger.current = current
+      if (valueRef.current.length > 0) setConfirmNew(true)
     }
-    /* v8 ignore next -- setTimeout callback fires asynchronously; covered by fake-timer tests */
-    confirmNewTimerRef.current = setTimeout(resetConfirmNew, 5_000)
-    /* v8 ignore next 3 -- cleanup runs on effect re-run; covered when confirmNew toggles */
-    return () => {
-      if (confirmNewTimerRef.current !== null) clearTimeout(confirmNewTimerRef.current)
-    }
-  }, [confirmNew, resetConfirmNew])
+  }, [newDocumentTrigger])
 
   const { undo, redo, openSearch } = useCodeMirrorEditor({
     containerRef,
@@ -126,41 +233,16 @@ export const MarkdownInput = memo(function MarkdownInput({
           </label>
           <div className="flex flex-wrap items-center justify-end gap-2">
             {/* New document */}
-            {value.length > 0 &&
-              (confirmNew ? (
-                <div className="flex items-center gap-1">
-                  <span className="text-xs text-neutral-500 dark:text-neutral-400">
-                    {t('clearEditorPrompt')}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onSave?.()
-                      onChange('')
-                      setConfirmNew(false)
-                    }}
-                    className="rounded px-2 py-0.5 text-xs font-medium text-red-500 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
-                  >
-                    {t('clearEditorYes')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setConfirmNew(false)}
-                    className="rounded px-2 py-0.5 text-xs text-neutral-400 hover:bg-neutral-100 dark:text-neutral-500 dark:hover:bg-neutral-800 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
-                  >
-                    {t('clearEditorNo')}
-                  </button>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setConfirmNew(true)}
-                  className="whitespace-nowrap rounded-md border border-neutral-300 px-3 py-1 text-xs font-medium text-neutral-600 transition-colors hover:bg-neutral-100 dark:border-neutral-600 dark:text-neutral-300 dark:hover:bg-neutral-800 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
-                  title={t('newDocumentTitle')}
-                >
-                  {t('newDocument')}
-                </button>
-              ))}
+            {value.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setConfirmNew(true)}
+                className="whitespace-nowrap rounded-md border border-neutral-300 px-3 py-1 text-xs font-medium text-neutral-600 transition-colors hover:bg-neutral-100 dark:border-neutral-600 dark:text-neutral-300 dark:hover:bg-neutral-800 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
+                title={t('newDocumentTitle')}
+              >
+                {t('newDocument')}
+              </button>
+            )}
             {/* File group: Import + Export + Shortcuts */}
             <div
               role="group"
@@ -267,6 +349,20 @@ export const MarkdownInput = memo(function MarkdownInput({
       <Suspense fallback={null}>
         {showShortcuts && <ShortcutsModalLazy onClose={() => setShowShortcuts(false)} />}
       </Suspense>
+      {confirmNew && (
+        <NewDocConfirmModal
+          onConfirm={(name) => {
+            setConfirmNew(false) // always dismiss modal regardless of path
+            if (onNewDocument) {
+              onNewDocument(name)
+            } else {
+              onSave?.()
+              onChange(name ? `# ${name}\n\n` : '')
+            }
+          }}
+          onCancel={() => setConfirmNew(false)}
+        />
+      )}
 
       <input
         ref={fileInputRef}

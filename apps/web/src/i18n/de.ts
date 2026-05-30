@@ -296,6 +296,11 @@ export const de: Record<StringKey, string> = {
   // ── Skip link ─────────────────────────────────────────────────────────────
   skipToMainContent: 'Zum Hauptinhalt springen',
 
+  // ── Neues-Dokument-Modal ──────────────────────────────────────────────────
+  newDocumentModalTitle: 'Neues Dokument',
+  newDocumentNameLabel: 'Dokumentname',
+  newDocumentNamePlaceholder: 'Optional',
+  newDocumentCreate: 'Erstellen',
   // ── Tooltip titles ────────────────────────────────────────────────────────
   newDocumentTitle: 'Neues Dokument (leert den Editor)',
   importHistoryTitle: 'Verlauf aus JSON importieren',
@@ -388,4 +393,6 @@ export const de: Record<StringKey, string> = {
   autoSavedMinutesAgo: 'Vor {n} Min. gespeichert',
   resizeValueText: '{left}% linkes Panel, {right}% rechtes Panel',
   historyDeleteSelectedConfirm: 'Löschen bestätigen?',
+  historyBulkDeleteTitle: 'Ausgewählte Dokumente löschen?',
+  historyBulkDeleteWarning: 'Diese Aktion kann nicht rückgängig gemacht werden.',
 } as const

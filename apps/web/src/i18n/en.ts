@@ -285,6 +285,11 @@ export const en = {
   wikiCodeLabel: 'Wiki markup code',
   // ── Skip link ─────────────────────────────────────────────────────────────
   skipToMainContent: 'Skip to main content',
+  // ── New document modal ─────────────────────────────────────────────────────
+  newDocumentModalTitle: 'New document',
+  newDocumentNameLabel: 'Document name',
+  newDocumentNamePlaceholder: 'Optional',
+  newDocumentCreate: 'Create',
   // ── Tooltip titles ────────────────────────────────────────────────────────
   newDocumentTitle: 'New document (clears editor)',
   importHistoryTitle: 'Import history from JSON',
@@ -366,6 +371,8 @@ export const en = {
   resizeValueText: '{left}% left panel, {right}% right panel',
   // ── Bulk delete confirmation ───────────────────────────────────────────────
   historyDeleteSelectedConfirm: 'Confirm delete?',
+  historyBulkDeleteTitle: 'Delete selected documents?',
+  historyBulkDeleteWarning: 'This action cannot be undone.',
 } as const
 
 export type StringKey = keyof typeof en

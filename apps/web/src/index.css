@@ -80,3 +80,76 @@
 *::-webkit-scrollbar-corner {
   background: transparent;
 }
+
+/* ── Enter / exit animations ─────────────────────────────────────────────── */
+
+@keyframes slide-in-from-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-out-to-right {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes ui-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes ui-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.sidebar-panel {
+  animation: slide-in-from-right 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.sidebar-panel-closing {
+  animation: slide-out-to-right 0.22s ease-in both;
+}
+.sidebar-backdrop {
+  animation: ui-fade-in 0.28s ease both;
+}
+.sidebar-backdrop-closing {
+  animation: ui-fade-out 0.22s ease-in both;
+}
+.modal-dialog {
+  animation: ui-fade-in 0.2s ease both;
+}
+.modal-dialog-closing {
+  animation: ui-fade-out 0.18s ease-in both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-panel,
+  .sidebar-panel-closing,
+  .sidebar-backdrop,
+  .sidebar-backdrop-closing,
+  .modal-dialog,
+  .modal-dialog-closing {
+    animation: none !important;
+  }
+  /* Suppress any browser-default transition on the native ::backdrop pseudoelement. */
+  dialog::backdrop {
+    transition: none !important;
+    animation: none !important;
+  }
+}

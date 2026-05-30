@@ -276,7 +276,12 @@ export const es: Record<StringKey, string> = {
   wikiCodeLabel: 'C\u00f3digo Wiki Markup',
   // ── Enlace de salto ───────────────────────────────────────────────────────
   skipToMainContent: 'Ir al contenido principal',
-  // ── T\u00edtulos de tooltip ─────────────────────────────────────────────────
+  // ── Modal de nuevo documento ──────────────────────────────────────────────
+  newDocumentModalTitle: 'Nuevo documento',
+  newDocumentNameLabel: 'Nombre del documento',
+  newDocumentNamePlaceholder: 'Opcional',
+  newDocumentCreate: 'Crear',
+  // ── Títulos de tooltip ─────────────────────────────────────────────────────
   newDocumentTitle: 'Nuevo documento (limpia el editor)',
   importHistoryTitle: 'Importar historial desde JSON',
   exportHistoryTitle: 'Exportar historial como JSON',
@@ -358,4 +363,6 @@ export const es: Record<StringKey, string> = {
   autoSavedMinutesAgo: 'Guardado hace {n} min',
   resizeValueText: '{left}% panel izquierdo, {right}% panel derecho',
   historyDeleteSelectedConfirm: '¿Confirmar eliminación?',
+  historyBulkDeleteTitle: '¿Eliminar los documentos seleccionados?',
+  historyBulkDeleteWarning: 'Esta acción no se puede deshacer.',
 } as const

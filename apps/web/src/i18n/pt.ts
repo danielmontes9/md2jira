@@ -277,8 +277,13 @@ export const pt: Record<StringKey, string> = {
   adfCodeLabel: 'C\u00f3digo ADF JSON',
   wikiCodeLabel: 'C\u00f3digo Wiki Markup',
   // ── Link de pular ─────────────────────────────────────────────────────────
-  skipToMainContent: 'Ir para o conte\u00fado principal',
-  // ── T\u00edtulos de tooltip ──────────────────────────────────────────────────
+  skipToMainContent: 'Ir para o conteúdo principal',
+  // ── Modal de novo documento ───────────────────────────────────────────────
+  newDocumentModalTitle: 'Novo documento',
+  newDocumentNameLabel: 'Nome do documento',
+  newDocumentNamePlaceholder: 'Opcional',
+  newDocumentCreate: 'Criar',
+  // ── Títulos de tooltip ──────────────────────────────────────────────────────
   newDocumentTitle: 'Novo documento (limpa o editor)',
   importHistoryTitle: 'Importar hist\u00f3rico de JSON',
   exportHistoryTitle: 'Exportar hist\u00f3rico como JSON',
@@ -357,4 +362,6 @@ export const pt: Record<StringKey, string> = {
   autoSavedMinutesAgo: 'Salvo h\u00e1 {n} min',
   resizeValueText: '{left}% painel esquerdo, {right}% painel direito',
   historyDeleteSelectedConfirm: 'Confirmar exclusão?',
+  historyBulkDeleteTitle: 'Excluir documentos selecionados?',
+  historyBulkDeleteWarning: 'Esta ação não pode ser desfeita.',
 } as const

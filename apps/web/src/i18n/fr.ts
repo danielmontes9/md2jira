@@ -272,6 +272,11 @@ export const fr: Record<StringKey, string> = {
   wikiCodeLabel: 'Code Wiki Markup',
   // ── Lien d\u2019acc\u00e8s rapide ───────────────────────────────────────────────
   skipToMainContent: 'Passer au contenu principal',
+  // ── Modal nouveau document ────────────────────────────────────────────────
+  newDocumentModalTitle: 'Nouveau document',
+  newDocumentNameLabel: 'Nom du document',
+  newDocumentNamePlaceholder: 'Facultatif',
+  newDocumentCreate: 'Créer',
   // ── Titres de tooltip ─────────────────────────────────────────────────────
   newDocumentTitle: 'Nouveau document (efface l\u2019\u00e9diteur)',
   importHistoryTitle: 'Importer l\u2019historique depuis JSON',
@@ -353,4 +358,6 @@ export const fr: Record<StringKey, string> = {
   autoSavedMinutesAgo: 'Enregistr\u00e9 il y a {n} min',
   resizeValueText: '{left}% panneau gauche, {right}% panneau droit',
   historyDeleteSelectedConfirm: 'Confirmer la suppression\u00a0?',
+  historyBulkDeleteTitle: 'Supprimer les documents sélectionnés ?',
+  historyBulkDeleteWarning: 'Cette action est irréversible.',
 } as const
