@@ -191,6 +191,18 @@ function AppContent() {
   // Adaptive debounce: 300 ms for small docs, 800 ms for large docs.
   const { isDeepLinkActive } = useDeepLink(markdown, format)
 
+  // Warn once (via toast) the moment the document grows beyond the URL-safe
+  // limit and sharing becomes unavailable. Only fires on the true→false
+  // transition — not on initial load when the document is already too large.
+  const prevIsDeepLinkRef = useRef<boolean | null>(null)
+  useEffect(() => {
+    const prev = prevIsDeepLinkRef.current
+    prevIsDeepLinkRef.current = isDeepLinkActive
+    if (prev === true && !isDeepLinkActive) {
+      addToast(t('docTooLargeForUrl'), 'warning')
+    }
+  }, [isDeepLinkActive, addToast, t])
+
   /**
    * Wrap `setMarkdown` so that any user edit clears `loadedEntryId`:
    * once the user types, the loaded entry is no longer the canonical version.
