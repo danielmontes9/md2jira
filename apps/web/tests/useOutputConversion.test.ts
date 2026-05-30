@@ -54,7 +54,9 @@ describe('useOutputConversion — wiki format', () => {
 
   it('passes markdown to convert() for small documents', () => {
     renderHook(() => useOutputConversion(baseOpts({ format: 'wiki', markdown: 'short md' })))
-    expect(vi.mocked(convert)).toHaveBeenCalledWith('short md')
+    // opts is undefined when no baseUrl is provided; the implementation passes
+    // convert(markdown, opts) which forwards undefined as the second argument.
+    expect(vi.mocked(convert)).toHaveBeenCalledWith('short md', undefined)
   })
 
   it('isLoadingPreview is always false for wiki format', () => {

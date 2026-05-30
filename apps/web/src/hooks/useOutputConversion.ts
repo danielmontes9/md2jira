@@ -14,7 +14,7 @@ interface UseOutputConversionOptions {
   markdown: string
   format: OutputFormat
   /** Optional base URL prepended to relative links during conversion. */
-  baseUrl?: string
+  baseUrl?: string | undefined
   /**
    * Called when the ADF worker stalls and falls back to synchronous rendering.
    * Typically used to show a warning toast.

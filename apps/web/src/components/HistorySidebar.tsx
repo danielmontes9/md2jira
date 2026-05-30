@@ -142,7 +142,7 @@ interface HistoryEntryRowProps {
   isRenaming: boolean
   isSelected: boolean
   selectMode: boolean
-  currentMarkdown?: string
+  currentMarkdown?: string | undefined
   renameValue: string
   onLoad: () => void
   onDelete: () => void
