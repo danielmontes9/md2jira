@@ -636,8 +636,71 @@
     display: block;
   }
 
-  /* Rule 2: TipTap Image extension (inline: false) drops the <figure> wrapper
-     and renders a bare <img> as a ProseMirror block node inside .ProseMirror */
+  /* ── ADF image NodeView wrapper (pure-DOM ProseMirror NodeView) ── */
+  /* The Image extension renders into .adf-image-wrapper instead of a bare <img>.      */
+  /* This gives us full control for broken-image fallback without React portal issues.  */
+  .jira-preview .adf-image-wrapper {
+    display: flex;
+    justify-content: center;
+    margin: 0.75em 0;
+    /* Prevents the URL span from overflowing a narrow preview panel. */
+    overflow: hidden;
+  }
+
+  .jira-preview .adf-image-wrapper .adf-image {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+  }
+
+  /* ── Broken image placeholder ── */
+  /* Visual language matches pre and blockquote:                               */
+  /*   stone-50 background (#fafaf9), solid border (#d4d4d4), radius 6px.    */
+  .jira-preview .adf-image-wrapper .adf-img-broken {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3em; /* relative — scales with font-size and browser zoom */
+    width: 100%;
+    max-width: 480px;
+    padding: 1em 1.2em;
+    border: 1px solid #d4d4d4; /* solid — same as pre, hr, table cells */
+    border-radius: 6px; /* same as pre */
+    background: #fafaf9; /* stone-50 — same as pre and blockquote */
+    color: #737373; /* neutral-500 — same as blockquote text */
+    font-size: 0.875em; /* ≈13px on a 15px base; scales with browser zoom */
+    line-height: 1.5;
+  }
+
+  .dark .jira-preview .adf-image-wrapper .adf-img-broken {
+    border-color: #404040; /* same as dark pre / dark table cells */
+    background: #1c1917; /* stone-900 — same as dark pre */
+    color: #a3a3a3; /* same as dark blockquote text */
+  }
+
+  .jira-preview .adf-image-wrapper .adf-img-broken svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    opacity: 0.45;
+  }
+
+  .jira-preview .adf-image-wrapper .adf-img-broken__label {
+    font-weight: 500;
+  }
+
+  .jira-preview .adf-image-wrapper .adf-img-broken__url {
+    max-width: 380px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.85em; /* relative to parent 0.875em — scales with browser zoom */
+    opacity: 0.7;
+  }
+
+  /* Rule 2 (legacy): TipTap may still render bare <img> in non-NodeView contexts */
   .jira-preview .ProseMirror img {
     display: block;
     max-width: 100%;

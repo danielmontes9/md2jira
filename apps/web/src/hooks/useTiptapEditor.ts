@@ -30,7 +30,7 @@ import {
 // Extend TableCell and TableHeader to carry a text-alignment attribute.
 // This lets the tiptap-to-markdown serializer output the correct Markdown
 // column-alignment markers (`:---:`, `---:`) when cells carry inline styles.
-const AlignedTableCell = TableCell.extend({
+export const AlignedTableCell = TableCell.extend({
   addAttributes() {
     return {
       ...this.parent?.(),
@@ -47,7 +47,7 @@ const AlignedTableCell = TableCell.extend({
   },
 })
 
-const AlignedTableHeader = TableHeader.extend({
+export const AlignedTableHeader = TableHeader.extend({
   addAttributes() {
     return {
       ...this.parent?.(),
@@ -63,6 +63,105 @@ const AlignedTableHeader = TableHeader.extend({
     }
   },
 })
+
+// ── Broken image NodeView ─────────────────────────────────────────────────────
+// Defined at module level (not inside useMemo) so the extension class identity
+// is stable across re-renders and HMR reloads. The NodeView factory runs
+// per-image in the browser; document.createElement is safe here because
+// apps/web is browser-only.
+const BrokenImageExtension = Image.extend({
+  addNodeView() {
+    return ({ node }) => {
+      // `alt` is mutable so update() can sync it in-place without recreating.
+      let alt = node.attrs['alt'] as string | null
+      const src = node.attrs['src'] as string | null
+
+      const wrapper = document.createElement('div')
+      wrapper.className = 'adf-image-wrapper'
+
+      // ── Broken placeholder — VISIBLE BY DEFAULT ───────────────────────────
+      // We show it immediately and hide it only on a successful load. This
+      // avoids any race with the 'error' event: Chromium may skip loading (and
+      // thus skip firing events) for images with display:none.
+      const box = document.createElement('div')
+      box.className = 'adf-img-broken'
+      // No inline display:none — the CSS rule (display:flex) is in effect.
+      // Security: box.innerHTML is set to a static SVG literal only — no user
+      // data. The URL is injected exclusively via urlSpan.textContent (not
+      // innerHTML) below, which prevents XSS regardless of src content.
+      box.innerHTML =
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<rect x="3" y="3" width="18" height="18" rx="2"/>' +
+        '<circle cx="8.5" cy="8.5" r="1.5"/>' +
+        '<polyline points="21 15 16 10 5 21"/>' +
+        '<line x1="3" y1="3" x2="21" y2="21"/>' +
+        '</svg>' +
+        '<span class="adf-img-broken__label">Image not found</span>'
+      if (src && src !== '#') {
+        const urlSpan = document.createElement('span')
+        urlSpan.className = 'adf-img-broken__url'
+        // textContent (not innerHTML) — safely renders any URL without XSS risk.
+        urlSpan.textContent = src
+        box.appendChild(urlSpan)
+      }
+
+      // Shared mutable reference accessed by the factory closure, update(),
+      // and destroy(). null when src is missing or invalid.
+      let imgEl: HTMLImageElement | null = null
+
+      const handleLoad = () => {
+        // Image decoded successfully — swap: hide placeholder, reveal img.
+        box.style.display = 'none'
+        if (imgEl) imgEl.style.removeProperty('display')
+      }
+
+      if (!src || src === '#') {
+        // No valid URL — show placeholder; no <img> element needed.
+        wrapper.appendChild(box)
+      } else {
+        imgEl = document.createElement('img')
+        imgEl.alt = alt ?? ''
+        imgEl.className = 'adf-image'
+        // Start hidden — placeholder is already visible.
+        imgEl.style.display = 'none'
+
+        imgEl.addEventListener('load', handleLoad, { once: true })
+        // No 'error' handler needed: placeholder is visible by default.
+
+        wrapper.appendChild(imgEl)
+        wrapper.appendChild(box)
+
+        imgEl.src = src
+
+        // Handle synchronous cache-hit (browser resolves immediately).
+        if (imgEl.complete && imgEl.naturalWidth > 0) {
+          handleLoad()
+        }
+      }
+
+      return {
+        dom: wrapper,
+        update(newNode: { attrs: Record<string, unknown> }) {
+          // Different src → recreate the NodeView for the new image.
+          if (newNode.attrs['src'] !== src) return false
+          // Same src — sync alt in-place without destroying and recreating.
+          const newAlt = (newNode.attrs['alt'] as string | null) ?? ''
+          if (imgEl && newAlt !== (alt ?? '')) {
+            imgEl.alt = newAlt
+            alt = newAlt
+          }
+          return true
+        },
+        ignoreMutation: () => true,
+        destroy() {
+          // Remove the load listener if the image is still in-flight, preventing
+          // a stale closure from mutating a detached DOM element.
+          if (imgEl) imgEl.removeEventListener('load', handleLoad)
+        },
+      }
+    }
+  },
+}).configure({ inline: false })
 
 interface UseTiptapEditorOptions {
   previewHtml: string
@@ -145,9 +244,7 @@ export function useTiptapEditor({
       AlignedTableCell,
       TaskList,
       TaskItem.configure({ nested: true }),
-      // Enables rendering of <img> and <figure class="adf-media-single"> nodes
-      // generated by adf-renderer.ts for ADF mediaSingle blocks.
-      Image.configure({ inline: false }),
+      BrokenImageExtension,
     ],
     []
   )
