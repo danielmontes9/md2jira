@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { Modal } from '../src/components/Modal.js'
 
@@ -6,6 +6,11 @@ import { Modal } from '../src/components/Modal.js'
 beforeEach(() => {
   HTMLDialogElement.prototype.showModal = vi.fn()
   HTMLDialogElement.prototype.close = vi.fn()
+  vi.useFakeTimers()
+})
+
+afterEach(() => {
+  vi.useRealTimers()
 })
 
 describe('Modal', () => {
@@ -47,6 +52,7 @@ describe('Modal', () => {
     const dialog = document.querySelector('dialog')!
     // Click on the dialog itself (backdrop), not a child
     fireEvent.click(dialog)
+    vi.runAllTimers()
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 
@@ -71,6 +77,7 @@ describe('Modal', () => {
     const dialog = document.querySelector('dialog')!
     const cancelEvent = new Event('cancel', { bubbles: true })
     dialog.dispatchEvent(cancelEvent)
+    vi.runAllTimers()
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 })

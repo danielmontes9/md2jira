@@ -22,7 +22,7 @@ function makeOpts(overrides: Partial<Parameters<typeof useKeyboardShortcuts>[0]>
     saveNow: vi.fn(),
     setFormat: vi.fn(),
     setShowHistory: vi.fn(),
-    setMarkdown: vi.fn(),
+    onTriggerNewDocument: vi.fn(),
     ...overrides,
   }
 }
@@ -106,21 +106,34 @@ describe('useKeyboardShortcuts — Alt+H', () => {
 // ---------------------------------------------------------------------------
 
 describe('useKeyboardShortcuts — Alt+N', () => {
-  it('calls saveNow and setMarkdown("") on Alt+N', () => {
+  it('calls onTriggerNewDocument on Alt+N', () => {
     const opts = makeOpts()
     renderHook(() => useKeyboardShortcuts(opts))
     key(document, 'n', { altKey: true })
-    expect(opts.saveNow).toHaveBeenCalledOnce()
-    expect(opts.setMarkdown).toHaveBeenCalledWith('')
+    expect(opts.onTriggerNewDocument).toHaveBeenCalledOnce()
+  })
+
+  it('does NOT call saveNow directly on Alt+N (saving happens inside the modal confirm)', () => {
+    const opts = makeOpts()
+    renderHook(() => useKeyboardShortcuts(opts))
+    key(document, 'n', { altKey: true })
+    expect(opts.saveNow).not.toHaveBeenCalled()
   })
 
   it('does NOT trigger when Alt+Shift+N is pressed', () => {
     const opts = makeOpts()
     renderHook(() => useKeyboardShortcuts(opts))
     key(document, 'n', { altKey: true, shiftKey: true })
-    // Alt+Shift+N is not a registered shortcut — saveNow and setMarkdown should not be called
-    expect(opts.saveNow).not.toHaveBeenCalled()
-    expect(opts.setMarkdown).not.toHaveBeenCalled()
+    // Alt+Shift+N is not a registered shortcut
+    expect(opts.onTriggerNewDocument).not.toHaveBeenCalled()
+  })
+
+  it('removes the document listener on unmount (Alt+N no longer fires)', () => {
+    const opts = makeOpts()
+    const { unmount } = renderHook(() => useKeyboardShortcuts(opts))
+    unmount()
+    key(document, 'n', { altKey: true })
+    expect(opts.onTriggerNewDocument).not.toHaveBeenCalled()
   })
 })
 

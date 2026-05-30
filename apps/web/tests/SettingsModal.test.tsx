@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach } from 'vitest'
+import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest'
 import { render, screen, fireEvent, act, waitFor } from '@testing-library/react'
 import { SettingsModal } from '../src/components/SettingsModal.js'
 import { SettingsProvider } from '../src/context/SettingsContext.js'
@@ -41,6 +41,9 @@ afterEach(() => {
 // ── Rendering ──────────────────────────────────────────────────────────────
 
 describe('SettingsModal — rendering', () => {
+  beforeEach(() => vi.useFakeTimers())
+  afterEach(() => vi.useRealTimers())
+
   it('renders the settings title', () => {
     renderModal()
     expect(screen.getByText('Settings')).toBeInTheDocument()
@@ -50,6 +53,7 @@ describe('SettingsModal — rendering', () => {
     const onClose = vi.fn()
     renderModal({ onClose })
     fireEvent.click(screen.getByRole('button', { name: 'Close settings' }))
+    vi.runAllTimers()
     expect(onClose).toHaveBeenCalledOnce()
   })
 

@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { describe, it, expect, vi, beforeAll, afterAll, beforeEach, afterEach } from 'vitest'
+import { render, screen, fireEvent, act, within } from '@testing-library/react'
 import { axe } from 'vitest-axe'
 import { HistorySidebar } from '../src/components/HistorySidebar.js'
 import type { HistoryEntry } from '../src/hooks/useDocumentHistory.js'
@@ -72,11 +72,22 @@ describe('HistorySidebar — with entries', () => {
     expect(onLoadEntry).toHaveBeenCalledWith('1')
   })
 
-  it('calls onDeleteEntry when the delete button is clicked', () => {
+  it('clicking delete opens a confirm modal; confirming calls onDeleteEntry', () => {
+    vi.useFakeTimers()
     const onDeleteEntry = vi.fn()
     render(<HistorySidebar {...baseProps} history={entries} onDeleteEntry={onDeleteEntry} />)
+    // First click opens the modal — onDeleteEntry must NOT fire yet
     fireEvent.click(screen.getByRole('button', { name: /delete "Doc One"/i }))
+    expect(screen.getByText('Confirm delete?')).toBeInTheDocument()
+    expect(onDeleteEntry).not.toHaveBeenCalled()
+    // Click Delete in the modal — action deferred until exit animation completes
+    fireEvent.click(screen.getByRole('button', { name: /^delete$/i }))
+    expect(onDeleteEntry).not.toHaveBeenCalled()
+    act(() => {
+      vi.runAllTimers()
+    })
     expect(onDeleteEntry).toHaveBeenCalledWith('1')
+    vi.useRealTimers()
   })
 })
 
@@ -152,15 +163,44 @@ describe('HistorySidebar — active indicator', () => {
     render(<HistorySidebar {...baseProps} history={entries} />)
     expect(screen.queryByTestId('active-indicator')).not.toBeInTheDocument()
   })
+
+  it('shows the active indicator for the entry whose id matches activeEntryId', () => {
+    // activeEntryId = string: O(1) lookup — content does not matter
+    render(<HistorySidebar {...baseProps} history={entries} activeEntryId="1" />)
+    expect(screen.getByTestId('active-indicator')).toBeInTheDocument()
+  })
+
+  it('does not show the active indicator when activeEntryId is null even if content matches', () => {
+    // activeEntryId = null means "nothing loaded" — overrides content comparison
+    render(
+      <HistorySidebar
+        {...baseProps}
+        history={entries}
+        currentMarkdown={'# Doc One\n\nContent.'}
+        activeEntryId={null}
+      />
+    )
+    expect(screen.queryByTestId('active-indicator')).not.toBeInTheDocument()
+  })
+
+  it('does not show the active indicator when activeEntryId points to a deleted/non-existent entry', () => {
+    // Covers the race condition where loadedEntryId holds a stale ID after bulk delete
+    render(<HistorySidebar {...baseProps} history={entries} activeEntryId="999" />)
+    expect(screen.queryByTestId('active-indicator')).not.toBeInTheDocument()
+  })
 })
 
 // ── Keyboard & close ─────────────────────────────────────────────────────────
 
 describe('HistorySidebar — keyboard & close', () => {
+  beforeEach(() => vi.useFakeTimers())
+  afterEach(() => vi.useRealTimers())
+
   it('calls onClose when the close button is clicked', () => {
     const onClose = vi.fn()
     render(<HistorySidebar {...baseProps} onClose={onClose} />)
     fireEvent.click(screen.getByRole('button', { name: /close document history/i }))
+    vi.runAllTimers()
     expect(onClose).toHaveBeenCalledOnce()
   })
 
@@ -171,6 +211,7 @@ describe('HistorySidebar — keyboard & close', () => {
     )
     const aside = container.querySelector('aside')!
     fireEvent.keyDown(aside, { key: 'Escape' })
+    vi.runAllTimers()
     expect(onClose).toHaveBeenCalledOnce()
   })
 })
@@ -225,23 +266,39 @@ describe('HistorySidebar — select mode & bulk delete', () => {
   })
 
   it('calls onDeleteEntries with selected ids when Delete selected is clicked', () => {
+    vi.useFakeTimers()
     const onDeleteEntries = vi.fn()
     render(<HistorySidebar {...baseProps} history={entries} onDeleteEntries={onDeleteEntries} />)
     fireEvent.click(screen.getByRole('button', { name: /enter bulk selection mode/i }))
     fireEvent.click(screen.getByLabelText(/select "Doc One"/i))
-    const deleteBtn = screen.getByRole('button', { name: /delete selected/i })
-    expect(deleteBtn).not.toBeDisabled()
-    fireEvent.click(deleteBtn)
+    // Single click opens the confirmation modal
+    fireEvent.click(screen.getByRole('button', { name: /delete selected/i }))
+    expect(
+      screen.getByRole('heading', { name: /delete selected documents\?/i })
+    ).toBeInTheDocument()
+    expect(onDeleteEntries).not.toHaveBeenCalled()
+    // Confirm in modal — action deferred until exit animation completes
+    fireEvent.click(screen.getByRole('button', { name: /^delete$/i }))
+    act(() => {
+      vi.runAllTimers()
+    })
     expect(onDeleteEntries).toHaveBeenCalledWith(['1'])
+    vi.useRealTimers()
   })
 
   it('falls back to calling onDeleteEntry for each id when onDeleteEntries is not provided', () => {
+    vi.useFakeTimers()
     const onDeleteEntry = vi.fn()
     render(<HistorySidebar {...baseProps} history={entries} onDeleteEntry={onDeleteEntry} />)
     fireEvent.click(screen.getByRole('button', { name: /enter bulk selection mode/i }))
     fireEvent.click(screen.getByLabelText(/select "Doc Two"/i))
     fireEvent.click(screen.getByRole('button', { name: /delete selected/i }))
+    fireEvent.click(screen.getByRole('button', { name: /^delete$/i }))
+    act(() => {
+      vi.runAllTimers()
+    })
     expect(onDeleteEntry).toHaveBeenCalledWith('2')
+    vi.useRealTimers()
   })
 
   it('exits select mode when Cancel is clicked', () => {
@@ -253,13 +310,19 @@ describe('HistorySidebar — select mode & bulk delete', () => {
   })
 
   it('exits select mode automatically after bulk delete', () => {
+    vi.useFakeTimers()
     const onDeleteEntries = vi.fn()
     render(<HistorySidebar {...baseProps} history={entries} onDeleteEntries={onDeleteEntries} />)
     fireEvent.click(screen.getByRole('button', { name: /enter bulk selection mode/i }))
     fireEvent.click(screen.getByLabelText(/select "Doc One"/i))
     fireEvent.click(screen.getByRole('button', { name: /delete selected/i }))
+    fireEvent.click(screen.getByRole('button', { name: /^delete$/i }))
+    act(() => {
+      vi.runAllTimers()
+    })
     // After deletion the sidebar should return to normal mode
     expect(screen.queryByRole('button', { name: /^cancel$/i })).not.toBeInTheDocument()
+    vi.useRealTimers()
   })
 
   it('Select all button selects all filtered entries', () => {
@@ -292,38 +355,38 @@ describe('HistorySidebar — select mode & bulk delete', () => {
     expect(screen.getByRole('button', { name: /delete selected \(2\)/i })).toBeInTheDocument()
   })
 
-  it('first click on Delete selected shows confirm state', () => {
+  it('clicking Delete selected opens a confirmation modal', () => {
     render(<HistorySidebar {...baseProps} history={entries} />)
     fireEvent.click(screen.getByRole('button', { name: /enter bulk selection mode/i }))
     fireEvent.click(screen.getByLabelText(/select "Doc One"/i))
     fireEvent.click(screen.getByRole('button', { name: /delete selected \(1\)/i }))
-    // Button label should have changed to the confirmation text
-    expect(screen.getByRole('button', { name: /confirm delete\?/i })).toBeInTheDocument()
+    // Confirmation modal should appear
+    expect(
+      screen.getByRole('heading', { name: /delete selected documents\?/i })
+    ).toBeInTheDocument()
   })
 
-  it('second click on confirm button executes the deletion', () => {
+  it('Cancel button in bulk delete modal closes it without deleting', () => {
+    vi.useFakeTimers()
     const onDeleteEntries = vi.fn()
     render(<HistorySidebar {...baseProps} history={entries} onDeleteEntries={onDeleteEntries} />)
     fireEvent.click(screen.getByRole('button', { name: /enter bulk selection mode/i }))
     fireEvent.click(screen.getByLabelText(/select "Doc One"/i))
-    // First click — confirm mode
     fireEvent.click(screen.getByRole('button', { name: /delete selected \(1\)/i }))
-    // Second click — execute
-    fireEvent.click(screen.getByRole('button', { name: /confirm delete\?/i }))
-    expect(onDeleteEntries).toHaveBeenCalledWith(['1'])
-  })
-
-  it('confirm state resets when all entries are deselected', () => {
-    render(<HistorySidebar {...baseProps} history={entries} />)
-    fireEvent.click(screen.getByRole('button', { name: /enter bulk selection mode/i }))
-    fireEvent.click(screen.getByLabelText(/select "Doc One"/i))
-    // Enter confirm mode
-    fireEvent.click(screen.getByRole('button', { name: /delete selected \(1\)/i }))
-    expect(screen.getByRole('button', { name: /confirm delete\?/i })).toBeInTheDocument()
-    // Deselect — confirm state should reset
-    fireEvent.click(screen.getByLabelText(/select "Doc One"/i))
-    expect(screen.queryByRole('button', { name: /confirm delete\?/i })).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /delete selected$/i })).toBeDisabled()
+    expect(
+      screen.getByRole('heading', { name: /delete selected documents\?/i })
+    ).toBeInTheDocument()
+    // Discriminate by accessible name so we target the modal, not the sidebar
+    const dialog = screen.getByRole('dialog', { name: /delete selected documents/i })
+    fireEvent.click(within(dialog).getByRole('button', { name: /^cancel$/i }))
+    act(() => {
+      vi.runAllTimers()
+    })
+    expect(onDeleteEntries).not.toHaveBeenCalled()
+    expect(
+      screen.queryByRole('heading', { name: /delete selected documents\?/i })
+    ).not.toBeInTheDocument()
+    vi.useRealTimers()
   })
 })
 
@@ -685,11 +748,14 @@ describe('HistorySidebar — diff button', () => {
   })
 
   it('closes the diff modal when the close button inside it is clicked', () => {
+    vi.useFakeTimers()
     render(<HistorySidebar {...baseProps} history={entries} currentMarkdown="# New doc" />)
     fireEvent.click(screen.getByRole('button', { name: /^diff$/i }))
     expect(screen.getByText(/compare with current document/i)).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: /^close$/i }))
+    act(() => vi.runAllTimers())
     expect(screen.queryByText(/compare with current document/i)).not.toBeInTheDocument()
+    vi.useRealTimers()
   })
 })
 

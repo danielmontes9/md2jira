@@ -117,38 +117,87 @@ describe('MarkdownInput — new document flow', () => {
     expect(screen.getByTitle('New document (clears editor)')).toBeInTheDocument()
   })
 
-  it('clicking New shows the clear editor confirmation', () => {
+  it('clicking New shows the new document modal', () => {
     renderInput({ value: '# Hello' })
     fireEvent.click(screen.getByTitle('New document (clears editor)'))
-    expect(screen.getByText('Clear editor?')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Yes' })).toBeInTheDocument()
+    expect(screen.getByText('New document')).toBeInTheDocument()
+    expect(screen.getByLabelText('Document name')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Create' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'No' })).toBeInTheDocument()
   })
 
-  it('clicking No dismisses the confirmation', () => {
+  it('clicking No dismisses the modal', () => {
+    vi.useFakeTimers()
     renderInput({ value: '# Hello' })
     fireEvent.click(screen.getByTitle('New document (clears editor)'))
     fireEvent.click(screen.getByRole('button', { name: 'No' }))
-    expect(screen.queryByText('Clear editor?')).not.toBeInTheDocument()
+    act(() => {
+      vi.runAllTimers()
+    })
+    expect(screen.queryByText('New document')).not.toBeInTheDocument()
+    vi.useRealTimers()
   })
 
-  it('clicking Yes calls onChange with empty string and dismisses confirmation', () => {
+  it('clicking Create with no name calls onChange with empty string', () => {
+    vi.useFakeTimers()
     const onChange = vi.fn()
     renderInput({ value: '# Hello', onChange })
     fireEvent.click(screen.getByTitle('New document (clears editor)'))
-    fireEvent.click(screen.getByRole('button', { name: 'Yes' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Create' }))
+    // Action is deferred until after the exit animation completes (200 ms)
+    expect(onChange).not.toHaveBeenCalled()
+    act(() => {
+      vi.runAllTimers()
+    })
     expect(onChange).toHaveBeenCalledWith('')
-    expect(screen.queryByText('Clear editor?')).not.toBeInTheDocument()
+    expect(screen.queryByText('New document')).not.toBeInTheDocument()
+    vi.useRealTimers()
   })
 
-  it('clicking Yes calls onSave before clearing when onSave is provided', () => {
+  it('clicking Create with a name calls onChange with a heading', () => {
+    vi.useFakeTimers()
+    const onChange = vi.fn()
+    renderInput({ value: '# Hello', onChange })
+    fireEvent.click(screen.getByTitle('New document (clears editor)'))
+    fireEvent.change(screen.getByLabelText('Document name'), { target: { value: 'Sprint 42' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Create' }))
+    expect(onChange).not.toHaveBeenCalled()
+    act(() => {
+      vi.runAllTimers()
+    })
+    expect(onChange).toHaveBeenCalledWith('# Sprint 42\n\n')
+    vi.useRealTimers()
+  })
+
+  it('clicking Create calls onSave before clearing when onSave is provided', () => {
+    vi.useFakeTimers()
     const onChange = vi.fn()
     const onSave = vi.fn()
     renderInput({ value: '# Hello', onChange, onSave })
     fireEvent.click(screen.getByTitle('New document (clears editor)'))
-    fireEvent.click(screen.getByRole('button', { name: 'Yes' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Create' }))
+    act(() => {
+      vi.runAllTimers()
+    })
     expect(onSave).toHaveBeenCalled()
     expect(onChange).toHaveBeenCalledWith('')
+    vi.useRealTimers()
+  })
+
+  it('clicking Create with onNewDocument provided calls onNewDocument instead of onChange', () => {
+    vi.useFakeTimers()
+    const onChange = vi.fn()
+    const onNewDocument = vi.fn()
+    renderInput({ value: '# Hello', onChange, onNewDocument })
+    fireEvent.click(screen.getByTitle('New document (clears editor)'))
+    fireEvent.change(screen.getByLabelText('Document name'), { target: { value: 'My Doc' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Create' }))
+    act(() => {
+      vi.runAllTimers()
+    })
+    expect(onNewDocument).toHaveBeenCalledWith('My Doc')
+    expect(onChange).not.toHaveBeenCalled()
+    vi.useRealTimers()
   })
 })
 
@@ -310,23 +359,60 @@ describe('MarkdownInput — copy markdown', () => {
 // ── confirmNew timer ──────────────────────────────────────────────────────────
 
 describe('MarkdownInput — confirmNew auto-dismiss', () => {
-  it('auto-dismisses the confirmation after 5000 ms', () => {
-    vi.useFakeTimers()
-    renderInput({ value: '# Hello' })
-    fireEvent.click(screen.getByTitle('New document (clears editor)'))
-    expect(screen.getByText('Clear editor?')).toBeInTheDocument()
-    act(() => {
-      vi.advanceTimersByTime(5001)
-    })
-    expect(screen.queryByText('Clear editor?')).not.toBeInTheDocument()
-    vi.useRealTimers()
-  })
-
   it('dismisses confirmNew when value becomes empty', () => {
     const { rerender } = renderInput({ value: '# Hello' })
     fireEvent.click(screen.getByTitle('New document (clears editor)'))
-    expect(screen.getByText('Clear editor?')).toBeInTheDocument()
+    expect(screen.getByText('New document')).toBeInTheDocument()
     rerender(<MarkdownInput value="" onChange={vi.fn()} isDark={false} />)
-    expect(screen.queryByText('Clear editor?')).not.toBeInTheDocument()
+    expect(screen.queryByText('New document')).not.toBeInTheDocument()
+  })
+})
+
+// ── newDocumentTrigger prop ───────────────────────────────────────────────────
+
+describe('MarkdownInput — newDocumentTrigger', () => {
+  it('opens the new-document modal when trigger increments and editor has content', () => {
+    const { rerender } = renderInput({ value: '# Hello', newDocumentTrigger: 0 })
+    expect(screen.queryByText('New document')).not.toBeInTheDocument()
+    rerender(
+      <MarkdownInput value="# Hello" onChange={vi.fn()} isDark={false} newDocumentTrigger={1} />
+    )
+    // Wrap in act because the useEffect triggers a state update
+    act(() => {})
+    expect(screen.getByText('New document')).toBeInTheDocument()
+  })
+
+  it('does NOT open the modal when trigger increments but editor is empty', () => {
+    const { rerender } = renderInput({ value: '', newDocumentTrigger: 0 })
+    rerender(<MarkdownInput value="" onChange={vi.fn()} isDark={false} newDocumentTrigger={1} />)
+    act(() => {})
+    expect(screen.queryByText('New document')).not.toBeInTheDocument()
+  })
+
+  it('opens the modal again on each subsequent trigger increment after cancelling', () => {
+    vi.useFakeTimers()
+    const { rerender } = renderInput({ value: '# Hello', newDocumentTrigger: 0 })
+
+    // First trigger — opens modal
+    rerender(
+      <MarkdownInput value="# Hello" onChange={vi.fn()} isDark={false} newDocumentTrigger={1} />
+    )
+    act(() => {})
+    expect(screen.getByText('New document')).toBeInTheDocument()
+
+    // Cancel the modal (label is 'No')
+    fireEvent.click(screen.getByRole('button', { name: 'No' }))
+    act(() => {
+      vi.runAllTimers()
+    })
+    expect(screen.queryByText('New document')).not.toBeInTheDocument()
+
+    // Second trigger — modal should open again
+    rerender(
+      <MarkdownInput value="# Hello" onChange={vi.fn()} isDark={false} newDocumentTrigger={2} />
+    )
+    act(() => {})
+    expect(screen.getByText('New document')).toBeInTheDocument()
+    vi.useRealTimers()
   })
 })

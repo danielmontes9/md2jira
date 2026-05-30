@@ -716,4 +716,64 @@ describe('App – history sidebar', () => {
     // Reset the mock so other tests are not affected
     ;(localStorage.getItem as ReturnType<typeof vi.fn>).mockReset()
   })
+
+  it('clearing history empties the editor when a history entry is currently loaded', () => {
+    const entry = {
+      id: 'hist-002',
+      title: 'My Entry',
+      content: '# My Entry',
+      savedAt: Date.now(),
+    }
+    ;(localStorage.getItem as ReturnType<typeof vi.fn>).mockImplementation((key: string) =>
+      key === 'md2jira-doc-history' ? JSON.stringify([entry]) : null
+    )
+
+    render(<App />)
+
+    // Load the entry from the sidebar so loadedEntryId is set
+    fireEvent.click(screen.getByRole('button', { name: /document history/i }))
+    const sidebar = screen.getByRole('dialog', { name: /recent documents/i })
+    fireEvent.click(within(sidebar).getAllByRole('button', { name: /My Entry/i })[0]!)
+
+    // Sidebar closed after load — reopen it
+    fireEvent.click(screen.getByRole('button', { name: /document history/i }))
+    const sidebar2 = screen.getByRole('dialog', { name: /recent documents/i })
+
+    // Clear all → confirm
+    fireEvent.click(within(sidebar2).getByRole('button', { name: /clear all/i }))
+    fireEvent.click(within(sidebar2).getByRole('button', { name: /^yes$/i }))
+
+    // Editor must be cleared because content came from a history entry
+    const textarea = screen.getByPlaceholderText('Paste your Markdown here...')
+    expect(textarea).toHaveValue('')
+    ;(localStorage.getItem as ReturnType<typeof vi.fn>).mockReset()
+  })
+
+  it('clearing history preserves editor content when editing a new document (guard)', () => {
+    const entry = {
+      id: 'hist-003',
+      title: 'Old Entry',
+      content: '# Old Entry',
+      savedAt: Date.now(),
+    }
+    ;(localStorage.getItem as ReturnType<typeof vi.fn>).mockImplementation((key: string) =>
+      key === 'md2jira-doc-history' ? JSON.stringify([entry]) : null
+    )
+
+    render(<App />)
+
+    // Type something in the editor without loading from history (loadedEntryId stays null)
+    const textarea = screen.getByPlaceholderText('Paste your Markdown here...')
+    fireEvent.change(textarea, { target: { value: '# My New Draft' } })
+
+    // Open sidebar and clear all
+    fireEvent.click(screen.getByRole('button', { name: /document history/i }))
+    const sidebar = screen.getByRole('dialog', { name: /recent documents/i })
+    fireEvent.click(within(sidebar).getByRole('button', { name: /clear all/i }))
+    fireEvent.click(within(sidebar).getByRole('button', { name: /^yes$/i }))
+
+    // Editor must be preserved — the guard prevents data loss for new documents
+    expect(textarea).toHaveValue('# My New Draft')
+    ;(localStorage.getItem as ReturnType<typeof vi.fn>).mockReset()
+  })
 })

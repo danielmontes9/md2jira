@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeAll, afterAll, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeAll, afterAll, afterEach, beforeEach } from 'vitest'
 import React from 'react'
 import { render, screen, fireEvent, act } from '@testing-library/react'
 import { Header } from '../src/components/Header.js'
@@ -157,9 +157,12 @@ describe('InfoModal', () => {
   })
 
   it('calls onClose when close button is clicked', () => {
+    vi.useFakeTimers()
     const onClose = vi.fn()
     renderWithSettings(<InfoModal onClose={onClose} />)
     fireEvent.click(screen.getByRole('button', { name: /close/i }))
+    vi.runAllTimers()
+    vi.useRealTimers()
     expect(onClose).toHaveBeenCalledOnce()
   })
 })
@@ -184,9 +187,12 @@ describe('ShortcutsModal', () => {
   })
 
   it('calls onClose when close button is clicked', () => {
+    vi.useFakeTimers()
     const onClose = vi.fn()
     renderWithSettings(<ShortcutsModal onClose={onClose} />)
     fireEvent.click(screen.getByRole('button', { name: /close/i }))
+    vi.runAllTimers()
+    vi.useRealTimers()
     expect(onClose).toHaveBeenCalledOnce()
   })
 
@@ -276,9 +282,12 @@ describe('ShareModal — i18n', () => {
   })
 
   it('calls onClose when the ShareModal close callback is invoked', () => {
+    vi.useFakeTimers()
     const onClose = vi.fn()
     renderWithSettings(<ShareModal url="https://example.com" onClose={onClose} />)
     fireEvent.click(screen.getByRole('button', { name: /close/i }))
+    vi.runAllTimers()
+    vi.useRealTimers()
     expect(onClose).toHaveBeenCalledOnce()
   })
 })
