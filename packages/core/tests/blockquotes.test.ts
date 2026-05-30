@@ -69,7 +69,7 @@ describe('transformBlockquote', () => {
   it('emits a code block inside a blockquote without bq. prefix (Jira limitation)', () => {
     const code = { type: 'code' as const, lang: 'js', meta: null, value: 'const x = 1' }
     const node = bq([code])
-    expect(transformBlockquote(node)).toBe('{code:language=js}\nconst x = 1\n{code}')
+    expect(transformBlockquote(node)).toBe('{code:language=javascript}\nconst x = 1\n{code}')
   })
 })
 
@@ -151,7 +151,7 @@ describe('transformPanel — wiki markup', () => {
     const code = { type: 'code' as const, lang: 'js', meta: null, value: 'const x = 1' }
     const node = bq([para([text('[!NOTE]')]), code])
     expect(transformPanel(node, 'NOTE')).toBe(
-      '{note}\n{code:language=js}\nconst x = 1\n{code}\n{note}'
+      '{note}\n{code:language=javascript}\nconst x = 1\n{code}\n{note}'
     )
   })
 

@@ -98,7 +98,7 @@ describe('lists', () => {
 describe('code blocks', () => {
   it('converts code block with language', () => {
     expect(convert('```js\nconsole.log("hi")\n```')).toBe(
-      '{code:language=js}\nconsole.log("hi")\n{code}'
+      '{code:language=javascript}\nconsole.log("hi")\n{code}'
     )
   })
 
@@ -190,7 +190,7 @@ Some *bold* text and a [link|https://example.com].
 * Item 1
 * Item 2
 
-{code:language=js}
+{code:language=javascript}
 const x = 1
 {code}
 
@@ -293,7 +293,7 @@ describe('code blocks — edge cases', () => {
 
   it('preserves indentation in code blocks', () => {
     const md = '```js\nfunction foo() {\n  return 1\n}\n```'
-    expect(convert(md)).toBe('{code:language=js}\nfunction foo() {\n  return 1\n}\n{code}')
+    expect(convert(md)).toBe('{code:language=javascript}\nfunction foo() {\n  return 1\n}\n{code}')
   })
 
   it('handles code block with many languages', () => {
@@ -424,7 +424,7 @@ describe('blockquotes — complex children', () => {
     const md = '> Example:\n>\n> ```js\nconsole.log("hi")\n```'
     const result = convert(md)
     expect(result).toContain('bq. Example:')
-    expect(result).toContain('{code:language=js}')
+    expect(result).toContain('{code:language=javascript}')
   })
 })
 
@@ -551,7 +551,7 @@ describe('convert — GFM Alert panels (complex bodies)', () => {
     const md = '> [!NOTE]\n>\n> ```js\nconst x = 1\n```'
     const result = convert(md)
     expect(result).toContain('{note}')
-    expect(result).toContain('{code:language=js}')
+    expect(result).toContain('{code:language=javascript}')
     expect(result).toContain('const x = 1')
   })
 
