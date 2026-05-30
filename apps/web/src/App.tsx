@@ -119,6 +119,15 @@ function UpdateBanner({
 
 function AppContent() {
   const [markdown, setMarkdown] = useState(() => getInitialMarkdown(PLACEHOLDER))
+  /** ID of the history entry currently loaded in the editor (null if new/edited). */
+  const [loadedEntryId, setLoadedEntryId] = useState<string | null>(null)
+  /** Increment to programmatically open the new-document modal (e.g. Alt+N shortcut). */
+  const [newDocTrigger, setNewDocTrigger] = useState(0)
+  // Mirror in a ref so handleDeleteEntry/handleDeleteEntries can read the
+  // latest value without adding loadedEntryId to their dependency arrays —
+  // prevents those callbacks from being recreated on every sidebar load action.
+  const loadedEntryIdRef = useRef(loadedEntryId)
+  loadedEntryIdRef.current = loadedEntryId // synchronous assignment — safe in render body
   const [format, setFormat] = useState<OutputFormat>(getStoredFormat)
   const handleFormatChange = useCallback((fmt: OutputFormat) => setFormat(fmt), [])
   const { theme, toggleTheme } = useTheme()
@@ -133,6 +142,7 @@ function AppContent() {
     deleteEntries,
     clearHistory,
     saveNow,
+    saveContent,
     renameEntry,
     lastSavedAt,
   } = useDocumentHistory({
@@ -181,13 +191,101 @@ function AppContent() {
   // Adaptive debounce: 300 ms for small docs, 800 ms for large docs.
   const { isDeepLinkActive } = useDeepLink(markdown, format)
 
+  /**
+   * Wrap `setMarkdown` so that any user edit clears `loadedEntryId`:
+   * once the user types, the loaded entry is no longer the canonical version.
+   */
+  const handleMarkdownChange = useCallback((v: string) => {
+    setMarkdown(v)
+    setLoadedEntryId(null)
+  }, [])
+
+  /**
+   * Called when the user confirms the "New document" modal.
+   * Saves the current document first, then sets the new content and
+   * immediately persists the new named document so it isn't lost on tab close.
+   */
+  const handleNewDocument = useCallback(
+    (name: string) => {
+      // saveNow / saveContent self-guard via enabledRef — no need to check historyEnabled here.
+      saveNow()
+      const newContent = name ? `# ${name}\n\n` : ''
+      setMarkdown(newContent)
+      setLoadedEntryId(null)
+      setShowHistory(false) // close sidebar if it was open
+      if (name) saveContent(newContent)
+    },
+    [saveNow, saveContent]
+  )
+
+  // ── Stable callbacks for HistorySidebar — defined with useCallback so
+  // memo() on HistorySidebar is not invalidated on every keystroke. ──────────
+  const handleLoadEntry = useCallback(
+    (id: string) => {
+      const c = loadEntry(id)
+      if (c != null) {
+        setMarkdown(c)
+        setLoadedEntryId(id)
+        setShowHistory(false)
+      }
+    },
+    // loadEntry has empty deps in the hook (reads from historyRef) — permanently
+    // stable. Listed here for linter compliance only; this callback never recreates.
+    [loadEntry]
+  )
+
+  const handleDeleteEntry = useCallback(
+    (id: string) => {
+      deleteEntry(id)
+      if (loadedEntryIdRef.current === id) {
+        setMarkdown('')
+        setLoadedEntryId(null)
+      }
+    },
+    [deleteEntry]
+  )
+
+  const handleDeleteEntries = useCallback(
+    (ids: string[]) => {
+      const idSet = new Set(ids)
+      deleteEntries(ids)
+      if (loadedEntryIdRef.current !== null && idSet.has(loadedEntryIdRef.current)) {
+        setMarkdown('')
+        setLoadedEntryId(null)
+      }
+    },
+    [deleteEntries]
+  )
+
+  const handleClearHistory = useCallback(() => {
+    clearHistory()
+    // Only clear the editor if the current content came from a history entry.
+    // If the user is editing a new document (loadedEntryId is null), preserve it
+    // to avoid silent data loss when clearing the history sidebar.
+    if (loadedEntryIdRef.current !== null) {
+      setMarkdown('')
+      setLoadedEntryId(null)
+    }
+  }, [clearHistory])
+
+  const handleHistoryClose = useCallback(() => setShowHistory(false), [])
+
+  const handleImportSuccess = useCallback(
+    (count: number) => {
+      if (count > 0) addToast(t('historyImportSuccess'), 'success')
+    },
+    [addToast, t]
+  )
+
+  const handleTriggerNewDocument = useCallback(() => setNewDocTrigger((n) => n + 1), [])
+
   // Global keyboard shortcuts: Ctrl+S, Alt+H, Alt+N, Alt+Shift+A/W/C
   useKeyboardShortcuts({
     historyEnabled,
     saveNow,
     setFormat,
     setShowHistory,
-    setMarkdown,
+    onTriggerNewDocument: handleTriggerNewDocument,
   })
 
   // Shows a warning toast if the ADF worker stalls and the 5 s fallback activates.
@@ -331,10 +429,12 @@ function AppContent() {
           >
             <MarkdownInput
               value={markdown}
-              onChange={setMarkdown}
+              onChange={handleMarkdownChange}
               isDark={theme === 'dark'}
               onSave={saveNow}
               historyEnabled={historyEnabled}
+              onNewDocument={handleNewDocument}
+              newDocumentTrigger={newDocTrigger}
             />
           </ErrorBoundary>
         </section>
@@ -387,7 +487,7 @@ function AppContent() {
               previewHtml={previewHtml}
               isPending={isPending}
               isLoadingPreview={isLoadingPreview}
-              onMarkdownChange={setMarkdown}
+              onMarkdownChange={handleMarkdownChange}
             />
           </ErrorBoundary>
         </section>
@@ -397,21 +497,14 @@ function AppContent() {
         <HistorySidebar
           history={history}
           currentMarkdown={markdown}
-          onLoadEntry={(id) => {
-            const c = loadEntry(id)
-            if (c != null) {
-              setMarkdown(c)
-              setShowHistory(false)
-            }
-          }}
-          onDeleteEntry={deleteEntry}
-          onDeleteEntries={deleteEntries}
-          onClearHistory={clearHistory}
-          onClose={() => setShowHistory(false)}
+          activeEntryId={loadedEntryId}
+          onLoadEntry={handleLoadEntry}
+          onDeleteEntry={handleDeleteEntry}
+          onDeleteEntries={handleDeleteEntries}
+          onClearHistory={handleClearHistory}
+          onClose={handleHistoryClose}
           onRenameEntry={renameEntry}
-          onImportSuccess={(count) => {
-            if (count > 0) addToast(t('historyImportSuccess'), 'success')
-          }}
+          onImportSuccess={handleImportSuccess}
         />
       )}
       <Suspense fallback={null}>
