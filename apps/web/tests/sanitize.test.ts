@@ -85,7 +85,7 @@ describe('stripTags — tag-stripping fallback', () => {
   })
 
   it('removes script tags', () => {
-    expect(stripTags('<script>alert(1)</script>')).toBe('alert(1)')
+    expect(stripTags('<script>alert(1)</script>')).toBe('')
   })
 
   it('leaves plain text unchanged', () => {

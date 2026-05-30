@@ -24,12 +24,17 @@ import('dompurify')
 
 /** Strip all HTML tags as a last-resort fallback when DOMPurify is unavailable.
  *
- * The regex consumes quoted attribute values before matching '>' so that
- * attributes containing literal '>' (e.g. <img src="x>">) are handled
- * correctly and no residual markup leaks into the output.
+ * Dangerous block elements (<script>, <style>) are removed together with their
+ * inner content first so their text bodies never appear in the output.
+ * The tag-stripping regex then consumes quoted attribute values before matching
+ * '>' so that attributes containing literal '>' (e.g. <img src="x>">) are
+ * handled correctly and no residual markup leaks into the output.
  */
 export function stripTags(html: string): string {
-  return html.replace(/<(?:[^>"']|"[^"]*"|'[^']*')*>/g, '')
+  return html
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '')
+    .replace(/<(?:[^>"']|"[^"]*"|'[^']*')*>/g, '')
 }
 
 /** Sanitize HTML with DOMPurify, falling back to tag-stripping if unavailable. */
