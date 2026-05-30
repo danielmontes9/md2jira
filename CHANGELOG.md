@@ -1,3 +1,10 @@
+## [2.4.1](https://github.com/danielmontes9/md2jira/compare/v2.4.0...v2.4.1) (2026-05-30)
+
+
+### Bug Fixes
+
+* **web:** resolve all ESLint errors and warnings for CI lint step ([ec76b52](https://github.com/danielmontes9/md2jira/commit/ec76b52b39a23c7b1160edceaa294b7188dcfb6d))
+
 # [2.4.0](https://github.com/danielmontes9/md2jira/compare/v2.3.0...v2.4.0) (2026-05-30)
 
 
