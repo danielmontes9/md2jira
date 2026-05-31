@@ -6,6 +6,9 @@ on:
   push:
     branches: [main]
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
 jobs:
   ci:
     name: Lint · Typecheck · Test
@@ -72,16 +75,18 @@ jobs:
           exit $FAILED
 
       - name: Upload core coverage
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         if: always()
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: packages/core/coverage/lcov.info
           flags: core
 
       - name: Upload web coverage
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         if: always()
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: apps/web/coverage/lcov.info
           flags: web
 

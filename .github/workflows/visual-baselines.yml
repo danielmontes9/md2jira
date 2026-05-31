@@ -17,7 +17,10 @@ on:
       - 'apps/web/src/index.css'
 
 permissions:
-  contents: write   # required to push the generated PNG files back to the branch
+  contents: write # required to push the generated PNG files back to the branch
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
 jobs:
   update-baselines:
