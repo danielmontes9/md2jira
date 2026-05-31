@@ -1,3 +1,10 @@
+## [2.4.6](https://github.com/danielmontes9/md2jira/compare/v2.4.5...v2.4.6) (2026-05-31)
+
+
+### Performance Improvements
+
+* **e2e:** increase CI workers to 2 and reduce retries from 2 to 1 ([7d55979](https://github.com/danielmontes9/md2jira/commit/7d5597908b209aa4cf3d5d010e511ffd8345679a))
+
 ## [2.4.5](https://github.com/danielmontes9/md2jira/compare/v2.4.4...v2.4.5) (2026-05-30)
 
 
