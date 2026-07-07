@@ -1,3 +1,10 @@
+## [2.4.8](https://github.com/danielmontes9/md2jira/compare/v2.4.7...v2.4.8) (2026-07-07)
+
+
+### Bug Fixes
+
+* **ci:** rebase visual baseline updates ([68692e1](https://github.com/danielmontes9/md2jira/commit/68692e13af3debf8385f2017c6958834de507d12))
+
 ## [2.4.7](https://github.com/danielmontes9/md2jira/compare/v2.4.6...v2.4.7) (2026-07-07)
 
 
