@@ -1,3 +1,10 @@
+## [2.4.10](https://github.com/danielmontes9/md2jira/compare/v2.4.9...v2.4.10) (2026-07-07)
+
+
+### Bug Fixes
+
+* **web:** relax visual diff threshold ([b92aab3](https://github.com/danielmontes9/md2jira/commit/b92aab35e7e967501103a2d2f74377141be0db28))
+
 ## [2.4.9](https://github.com/danielmontes9/md2jira/compare/v2.4.8...v2.4.9) (2026-07-07)
 
 
