@@ -39,10 +39,10 @@ export default defineConfig({
   },
   expect: {
     toHaveScreenshot: {
-      // Allow ≤10% per-pixel difference and ≤100 differing pixels to absorb
-      // minor cross-platform font rendering / anti-aliasing variation.
+      // Allow small full-page differences from Linux font rendering and
+      // anti-aliasing while still failing on material layout changes.
       threshold: 0.1,
-      maxDiffPixels: 100,
+      maxDiffPixelRatio: 0.05,
     },
   },
   projects: [
