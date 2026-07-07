@@ -247,15 +247,21 @@ test('Typing in edit mode updates the Markdown input panel', async ({ page, brow
   test.skip(browserName !== 'chromium', 'TipTap editable target is only stable in Chromium')
   await page.goto('/')
 
-  // Clear the default content and start fresh
+  // Start from minimal content so the ADF preview mounts before edit mode.
   const textarea = page.getByRole('textbox', { name: 'Markdown input' })
-  await textarea.fill('')
+  await textarea.fill('Seed')
+  await page
+    .getByRole('status', { name: 'Rendering Jira preview' })
+    .waitFor({ state: 'hidden', timeout: 10000 })
+  await expect(page.getByRole('textbox', { name: 'Jira content editor' })).toBeVisible()
 
   // Enter ADF edit mode
   await page.getByRole('button', { name: /edit/i }).click()
+  await expect(page.getByRole('toolbar', { name: 'Text formatting' })).toBeVisible()
 
-  // The TipTap editor should be focusable — click into it and type
+  // TipTap applies contenteditable to the inner ProseMirror element.
   const editor = page.locator('.ProseMirror[contenteditable="true"]')
+  await expect(editor).toBeVisible()
   await editor.click()
   await page.keyboard.type('Hello WYSIWYG')
 
