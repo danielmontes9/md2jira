@@ -1,3 +1,10 @@
+## [2.4.7](https://github.com/danielmontes9/md2jira/compare/v2.4.6...v2.4.7) (2026-07-07)
+
+
+### Bug Fixes
+
+* **web:** stabilize e2e accessibility tests ([75c1160](https://github.com/danielmontes9/md2jira/commit/75c1160dd689cfd724e2e9be3e8725886ec18594))
+
 ## [2.4.6](https://github.com/danielmontes9/md2jira/compare/v2.4.5...v2.4.6) (2026-05-31)
 
 
