@@ -168,6 +168,7 @@ export const MarkdownInput = memo(function MarkdownInput({
     onChange,
     isDark,
     placeholderText: t('markdownPlaceholder'),
+    editorLabel: t('markdownInputEditor'),
     ...(historyEnabled && onSave ? { onSave } : {}),
   })
 
@@ -297,7 +298,7 @@ export const MarkdownInput = memo(function MarkdownInput({
             <button
               type="button"
               onClick={undo}
-              className="rounded px-2 py-0.5 text-xs text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-500 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
+              className="rounded px-2 py-0.5 text-xs text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
               aria-label={t('undoAction')}
               title={`${t('undoAction')} (Ctrl+Z)`}
             >
@@ -306,7 +307,7 @@ export const MarkdownInput = memo(function MarkdownInput({
             <button
               type="button"
               onClick={redo}
-              className="rounded px-2 py-0.5 text-xs text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-500 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
+              className="rounded px-2 py-0.5 text-xs text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
               aria-label={t('redoAction')}
               title={`${t('redoAction')} (Ctrl+Y)`}
             >
@@ -315,7 +316,7 @@ export const MarkdownInput = memo(function MarkdownInput({
             <button
               type="button"
               onClick={openSearch}
-              className="rounded px-2 py-0.5 text-xs text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-500 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
+              className="rounded px-2 py-0.5 text-xs text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
               aria-label={t('findReplace')}
               title={`${t('findReplace')} (Ctrl+F)`}
             >
@@ -325,7 +326,7 @@ export const MarkdownInput = memo(function MarkdownInput({
               <button
                 type="button"
                 onClick={onSave}
-                className="rounded px-2 py-0.5 text-xs text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-blue-600 dark:text-neutral-500 dark:hover:bg-neutral-800 dark:hover:text-blue-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
+                className="rounded px-2 py-0.5 text-xs text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-blue-600 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-blue-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
                 aria-label={t('saveToHistory')}
                 title={t('saveToHistory')}
               >
@@ -336,7 +337,7 @@ export const MarkdownInput = memo(function MarkdownInput({
           <span
             aria-label={`${wordCount.toLocaleString()} words, ${value.length.toLocaleString()} characters`}
             title={`${wordCount.toLocaleString()} words, ${value.length.toLocaleString()} characters`}
-            className="select-none text-xs tabular-nums text-neutral-400 dark:text-neutral-500"
+            className="select-none text-xs tabular-nums text-neutral-600 dark:text-neutral-300"
           >
             {wordCount.toLocaleString()} words · {value.length.toLocaleString()} chars
           </span>

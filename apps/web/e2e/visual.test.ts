@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
 
 /**
  * Visual regression tests — pixel-level comparison against committed baselines.
@@ -19,18 +19,32 @@ import { test, expect } from '@playwright/test'
  *   pnpm --filter web test:e2e:visual
  */
 
+async function waitForHeaderImage(page: Page): Promise<void> {
+  await page.waitForFunction(() => {
+    const img = document.querySelector<HTMLImageElement>('img[alt="Buy Me A Coffee"]')
+    return !img || (img.complete && img.naturalWidth > 0)
+  })
+}
+
+async function waitForAdfPreview(page: Page): Promise<void> {
+  await page
+    .getByRole('status', { name: 'Rendering Jira preview' })
+    .waitFor({ state: 'hidden', timeout: 10000 })
+  await expect(page.getByRole('textbox', { name: 'Jira content editor' })).toBeVisible()
+}
+
 test('default state — Jira Cloud preview', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('textbox', { name: 'Markdown input' }).waitFor()
-  // Wait for ADF preview heading to appear — the worker renders the PLACEHOLDER
-  // asynchronously; polling for real content is more reliable than a fixed timeout.
-  await page.locator('[aria-label="Jira content editor"] h1').waitFor({ timeout: 5000 })
+  await waitForHeaderImage(page)
+  await waitForAdfPreview(page)
   await expect(page).toHaveScreenshot('default-state.png')
 })
 
 test('Wiki Markup mode', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('textbox', { name: 'Markdown input' }).waitFor()
+  await waitForHeaderImage(page)
   await page.getByRole('radio', { name: 'Wiki Markup' }).click()
   // Wiki conversion is synchronous, but wait for the pre element to be visible
   // before snapshotting to guard against layout shifts on slow CI runners.
@@ -39,19 +53,24 @@ test('Wiki Markup mode', async ({ page }) => {
 })
 
 test('dark mode', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'dark' })
+  await page.addInitScript(() => {
+    localStorage.setItem('theme', 'dark')
+  })
   await page.goto('/')
   await page.getByRole('textbox', { name: 'Markdown input' }).waitFor()
-  // Theme toggle label is "Switch to dark mode" or "Switch to light mode"
-  await page.getByRole('button', { name: /switch to/i }).click()
+  await waitForHeaderImage(page)
   // Wait for the 'dark' class to appear on <html> — deterministic alternative
   // to waitForTimeout() that is immune to CI load spikes.
   await page.waitForFunction(() => document.documentElement.classList.contains('dark'))
+  await waitForAdfPreview(page)
   await expect(page).toHaveScreenshot('dark-mode.png')
 })
 
 test('ADF code view', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('textbox', { name: 'Markdown input' }).waitFor()
+  await waitForHeaderImage(page)
   await page.getByRole('radio', { name: 'Code' }).waitFor()
   await page.getByRole('radio', { name: 'Code' }).click()
   await expect(page).toHaveScreenshot('adf-code-view.png')
@@ -60,8 +79,8 @@ test('ADF code view', async ({ page }) => {
 test('WYSIWYG edit mode with formatting toolbar', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('textbox', { name: 'Markdown input' }).waitFor()
-  // Wait for the ADF preview to fully render before enabling edit mode
-  await page.locator('[aria-label="Jira content editor"] h1').waitFor({ timeout: 5000 })
+  await waitForHeaderImage(page)
+  await waitForAdfPreview(page)
   await page.getByRole('button', { name: /edit/i }).click()
   // Wait for the toolbar to animate in
   await page.getByRole('toolbar', { name: 'Text formatting' }).waitFor()
@@ -71,6 +90,7 @@ test('WYSIWYG edit mode with formatting toolbar', async ({ page }) => {
 test('offline banner', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('textbox', { name: 'Markdown input' }).waitFor()
+  await waitForHeaderImage(page)
   // Simulate losing network connectivity
   await page.context().setOffline(true)
   await page.evaluate(() => window.dispatchEvent(new Event('offline')))

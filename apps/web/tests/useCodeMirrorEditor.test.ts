@@ -25,15 +25,18 @@ vi.mock('@codemirror/view', () => {
     this.state = { doc: { toString: () => '' } }
     this.dispatch = vi.fn()
     this.destroy = vi.fn()
+    this.scrollDOM = document.createElement('div')
     if (parent) parent.setAttribute('data-codemirror-mock', 'true')
   }) as unknown as { new (opts: { parent: HTMLElement | null }): object } & {
     theme: ReturnType<typeof vi.fn>
     updateListener: { of: ReturnType<typeof vi.fn> }
     lineWrapping: object
+    contentAttributes: { of: ReturnType<typeof vi.fn> }
   } & ReturnType<typeof vi.fn>
   MockEditorView.theme = vi.fn(() => ({}))
   MockEditorView.updateListener = { of: vi.fn(() => ({})) }
   MockEditorView.lineWrapping = {}
+  MockEditorView.contentAttributes = { of: vi.fn(() => ({})) }
   return {
     EditorView: MockEditorView,
     keymap: { of: vi.fn(() => ({})) },

@@ -33,11 +33,13 @@ test('Wiki Markup mode has no WCAG 2.1 A/AA violations', async ({ page }) => {
 })
 
 test('dark mode has no WCAG 2.1 A/AA violations', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'dark' })
+  await page.addInitScript(() => {
+    localStorage.setItem('theme', 'dark')
+  })
   await page.goto('/')
   await page.getByRole('textbox', { name: 'Markdown input' }).waitFor()
-
-  // Toggle to dark mode
-  await page.getByRole('button', { name: /theme/i }).click()
+  await expect(page.locator('html')).toHaveClass(/dark/)
 
   const results = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])

@@ -212,7 +212,7 @@ export const en = {
   mainContent: 'Main content',
   jiraOutputPanel: 'Jira output',
   fileActions: 'File actions',
-  markdownInputEditor: 'Markdown input editor',
+  markdownInputEditor: 'Markdown input',
   notificationsLabel: 'Notifications',
   // ── Header external link labels ───────────────────────────────────────────
   supportProject: 'Support the project \u2014 Buy me a coffee',

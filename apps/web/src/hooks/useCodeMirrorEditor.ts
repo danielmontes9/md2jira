@@ -42,7 +42,7 @@ const lightTheme = EditorView.theme(
     '.cm-gutters': {
       backgroundColor: '#fafafa',
       borderRight: '1px solid #e5e5e5',
-      color: '#a3a3a3',
+      color: '#525252',
       padding: '0 8px 0 4px',
       minWidth: '2.5rem',
     },
@@ -115,7 +115,7 @@ const darkTheme = EditorView.theme(
     '.cm-gutters': {
       backgroundColor: '#0a0a0a',
       borderRight: '1px solid #262626',
-      color: '#525252',
+      color: '#a3a3a3',
       padding: '0 8px 0 4px',
       minWidth: '2.5rem',
     },
@@ -177,10 +177,10 @@ const lightHighlight = HighlightStyle.define([
   { tag: [tags.heading4, tags.heading5, tags.heading6], color: '#60a5fa', fontWeight: '600' },
   { tag: tags.strong, fontWeight: '700' },
   { tag: tags.emphasis, fontStyle: 'italic' },
-  { tag: tags.strikethrough, textDecoration: 'line-through', color: '#737373' },
+  { tag: tags.strikethrough, textDecoration: 'line-through', color: '#525252' },
   { tag: tags.monospace, color: '#be123c', fontFamily: FONT },
   { tag: tags.link, color: '#2563eb' },
-  { tag: tags.url, color: '#0284c7' },
+  { tag: tags.url, color: '#0369a1' },
   { tag: tags.quote, color: '#6b7280', fontStyle: 'italic' },
   { tag: tags.meta, color: '#9333ea' },
   { tag: tags.processingInstruction, color: '#9333ea' },
@@ -397,6 +397,7 @@ interface UseCodeMirrorOptions {
   onChange: (value: string) => void
   isDark: boolean
   placeholderText?: string
+  editorLabel?: string
   onSave?: () => void
 }
 
@@ -412,6 +413,7 @@ export function useCodeMirrorEditor({
   onChange,
   isDark,
   placeholderText = 'Paste your Markdown here...',
+  editorLabel = 'Markdown input',
   onSave,
 }: UseCodeMirrorOptions): UseCodeMirrorReturn {
   const viewRef = useRef<EditorView | null>(null)
@@ -424,6 +426,7 @@ export function useCodeMirrorEditor({
   const internalChangeRef = useRef(false)
 
   const themeCompartment = useRef(new Compartment())
+  const accessibilityCompartment = useRef(new Compartment())
 
   useEffect(() => {
     const container = containerRef.current
@@ -469,10 +472,14 @@ export function useCodeMirrorEditor({
         cmPlaceholder(placeholderText),
         updateListener,
         EditorView.lineWrapping,
+        accessibilityCompartment.current.of(
+          EditorView.contentAttributes.of({ 'aria-label': editorLabel })
+        ),
       ],
     })
 
     const view = new EditorView({ state, parent: container })
+    view.scrollDOM.tabIndex = 0
     viewRef.current = view
 
     return () => {
@@ -509,6 +516,18 @@ export function useCodeMirrorEditor({
       ]),
     })
   }, [isDark])
+
+  // Keep the generated CodeMirror editable element discoverable by assistive
+  // tech and Playwright's role locators when the app language changes.
+  useEffect(() => {
+    const view = viewRef.current
+    if (!view) return
+    view.dispatch({
+      effects: accessibilityCompartment.current.reconfigure(
+        EditorView.contentAttributes.of({ 'aria-label': editorLabel })
+      ),
+    })
+  }, [editorLabel])
 
   const undo = useCallback(() => {
     const view = viewRef.current

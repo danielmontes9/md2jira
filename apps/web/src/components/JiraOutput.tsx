@@ -137,13 +137,13 @@ export const JiraOutput = memo(function JiraOutput({
       />
 
       {format === 'adf' && viewMode === 'code' && (
-        <div className="border-b border-neutral-200 bg-neutral-50 px-4 py-1.5 text-xs text-neutral-400 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-500">
+        <div className="border-b border-neutral-200 bg-neutral-50 px-4 py-1.5 text-xs text-neutral-600 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-300">
           {t('adfCodeHint')}
         </div>
       )}
       {format === 'wiki' && (
         <div className="flex items-center justify-between border-b border-neutral-200 bg-neutral-50 px-4 py-1.5 dark:border-neutral-800 dark:bg-neutral-950">
-          <span className="text-xs text-neutral-400 dark:text-neutral-500">
+          <span className="text-xs text-neutral-600 dark:text-neutral-300">
             {t('wikiCodeHint')}
           </span>
           {editMode && onMarkdownChange && (
@@ -163,7 +163,7 @@ export const JiraOutput = memo(function JiraOutput({
         </div>
       )}
       {format === 'confluence' && (
-        <div className="border-b border-neutral-200 bg-neutral-50 px-4 py-1.5 text-xs text-neutral-400 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-500">
+        <div className="border-b border-neutral-200 bg-neutral-50 px-4 py-1.5 text-xs text-neutral-600 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-300">
           {t('confluenceCodeHint')}
         </div>
       )}

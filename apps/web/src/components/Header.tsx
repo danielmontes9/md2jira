@@ -100,7 +100,7 @@ export const Header = memo(function Header({
               href={GITHUB_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 rounded-full border border-neutral-200 px-3 py-1 text-xs text-neutral-500 transition-colors hover:border-yellow-400 hover:text-yellow-500 dark:border-neutral-700 dark:text-neutral-400 dark:hover:border-yellow-500 dark:hover:text-yellow-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
+              className="flex items-center gap-1.5 rounded-full border border-neutral-200 px-3 py-1 text-xs text-neutral-600 transition-colors hover:border-yellow-400 hover:text-yellow-600 dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-yellow-500 dark:hover:text-yellow-400 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500"
               aria-label={t('starOnGitHub')}
             >
               {t('starOnGitHub')}

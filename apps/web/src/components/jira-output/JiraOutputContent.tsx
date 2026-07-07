@@ -135,7 +135,7 @@ export function JiraOutputContent({
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
             />
           </svg>
-          <p className="text-sm text-neutral-400 dark:text-neutral-500">
+          <p className="text-sm text-neutral-600 dark:text-neutral-300">
             {renderingPreviewLabel ?? t('renderingPreview')}
           </p>
         </div>
