@@ -1,3 +1,10 @@
+## [2.4.9](https://github.com/danielmontes9/md2jira/compare/v2.4.8...v2.4.9) (2026-07-07)
+
+
+### Bug Fixes
+
+* **web:** exclude visual tests from e2e script ([5382758](https://github.com/danielmontes9/md2jira/commit/53827584e4e3d338ad446b55b3d91ae42a051c27))
+
 ## [2.4.8](https://github.com/danielmontes9/md2jira/compare/v2.4.7...v2.4.8) (2026-07-07)
 
 
