@@ -26,11 +26,13 @@ vi.mock('@codemirror/view', () => {
         state: { doc: { toString: () => '' } },
         dispatch: mockDispatch,
         destroy: mockDestroy,
+        scrollDOM: document.createElement('div'),
       }
     }),
     {
       theme: vi.fn(() => ({})),
       lineWrapping: {} as object,
+      contentAttributes: { of: vi.fn(() => ({})) },
       updateListener: {
         of: vi.fn((cb: unknown) => {
           updateListenerRef.current = cb as typeof updateListenerRef.current
