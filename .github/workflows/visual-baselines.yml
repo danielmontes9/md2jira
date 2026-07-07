@@ -75,5 +75,15 @@ jobs:
             echo "No baseline changes detected — nothing to commit."
           else
             git commit -m "test(web): update visual regression baselines [skip ci]"
-            git push
+            for attempt in 1 2 3; do
+              git pull --rebase origin "${GITHUB_REF_NAME}"
+              if git push; then
+                break
+              fi
+              if [ "$attempt" = "3" ]; then
+                echo "Failed to push baseline update after rebasing."
+                exit 1
+              fi
+              sleep 5
+            done
           fi
