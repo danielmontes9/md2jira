@@ -1,3 +1,10 @@
+## [2.4.11](https://github.com/danielmontes9/md2jira/compare/v2.4.10...v2.4.11) (2026-11-07)
+
+
+### Bug Fixes
+
+* **web:** preserve links on inline code ([a5ddc64](https://github.com/danielmontes9/md2jira/commit/a5ddc64258a0f2394c965b2612ab7118d75bbdff)), closes [#1](https://github.com/danielmontes9/md2jira/issues/1)
+
 ## [2.4.10](https://github.com/danielmontes9/md2jira/compare/v2.4.9...v2.4.10) (2026-07-07)
 
 
