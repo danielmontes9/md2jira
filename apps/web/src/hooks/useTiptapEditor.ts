@@ -2,6 +2,7 @@ import { useEffect, useCallback, useRef, useMemo } from 'react'
 import { useEditorLossyMarks } from './useEditorLossyMarks.js'
 import { useEditor, type Editor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
+import { Code } from '@tiptap/extension-code'
 import Underline from '@tiptap/extension-underline'
 import Subscript from '@tiptap/extension-subscript'
 import Superscript from '@tiptap/extension-superscript'
@@ -232,6 +233,11 @@ export function useTiptapEditor({
         // extension registration with the explicit Underline import below,
         // which is required so chain.toggleUnderline() resolves correctly.
         underline: false,
+        code: false,
+      }),
+      // Inline code may carry a link in ADF; keep other formatting excluded.
+      Code.extend({
+        excludes: 'bold italic strike underline subscript superscript textStyle code',
       }),
       Underline,
       Subscript,

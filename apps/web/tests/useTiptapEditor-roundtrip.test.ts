@@ -14,10 +14,53 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { useTiptapEditor } from '../src/hooks/useTiptapEditor.js'
+import { convertToAdf } from 'md2jira-core'
+import { adfToHtml } from '../src/components/jira-output/adf-renderer.js'
+import { tiptapDocToMarkdown } from '../src/utils/tiptap-to-markdown.js'
 
 describe('useTiptapEditor — edit roundtrip', () => {
   afterEach(() => {
     vi.restoreAllMocks()
+  })
+
+  it.each([
+    [
+      '[`Jira Docs`](https://confluence.atlassian.com/jira)',
+      '[`Jira Docs`](https://confluence.atlassian.com/jira)',
+    ],
+    [
+      '[Read `Jira Docs` here](https://confluence.atlassian.com/jira)',
+      '[Read ](https://confluence.atlassian.com/jira)[`Jira Docs`](https://confluence.atlassian.com/jira)[ here](https://confluence.atlassian.com/jira)',
+    ],
+    [
+      '[Jira Docs](https://confluence.atlassian.com/jira)',
+      '[Jira Docs](https://confluence.atlassian.com/jira)',
+    ],
+  ])('preserves links through preview and editing: %s', async (markdown, serialized) => {
+    const previewHtml = adfToHtml(convertToAdf(markdown))
+    const cb = vi.fn()
+    const { result } = renderHook(() =>
+      useTiptapEditor({ previewHtml: '', onMarkdownChange: cb, debounceMs: 10 })
+    )
+
+    await waitFor(() => expect(result.current.editor).not.toBeNull())
+    act(() => {
+      result.current.editor!.commands.setContent(previewHtml, { emitUpdate: false })
+    })
+
+    expect(result.current.editor!.getHTML()).toContain(
+      'href="https://confluence.atlassian.com/jira"'
+    )
+    expect(tiptapDocToMarkdown(result.current.editor!.state.doc)).toBe(serialized)
+
+    act(() => {
+      result.current.editor!.setEditable(true)
+      result.current.editor!.commands.insertContentAt(
+        result.current.editor!.state.doc.content.size,
+        '<p>edited</p>'
+      )
+    })
+    await waitFor(() => expect(cb).toHaveBeenCalledWith(`${serialized}\n\nedited`))
   })
 
   it('calls onMarkdownChange after user edits (debounce + PM serializer roundtrip)', async () => {
