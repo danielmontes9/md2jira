@@ -15,6 +15,18 @@
 
 ---
 
+## Design System
+
+For changes to the web interface, branding, icons, or documentation imagery, read and follow [the md2jira design system](output/brandkit/DESIGN.md) before editing.
+
+- Use the approved identity references preserved in `output/brandkit/`: `md2jira-brand-concept.png` and `md2jira-logo-transparent.png`.
+- Preserve the integrated Markdown M/right-arrow symbol, lowercase `md2jira` wordmark, blue accent, and existing light/dark interface patterns.
+- Use the existing SVG assets and header implementation for production geometry; the PNG references are design originals, not runtime dependencies.
+- Preserve the original Buy Me a Coffee artwork when capturing documentation images.
+- Keep visual changes within the requested scope. The concept board does not authorize redesigning the application or adding features.
+
+---
+
 ## Architecture Rules NON-NEGOTIABLE
 
 1. **`packages/core` must be 100% framework-agnostic.** Never import React, DOM APIs, `window`, `document`, or any browser-specific module inside `packages/core/`. Violations break CLI and VSCode extension compatibility.
