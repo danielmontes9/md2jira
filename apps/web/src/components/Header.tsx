@@ -58,9 +58,19 @@ export const Header = memo(function Header({
     <Fragment>
       <header className="flex flex-col gap-y-2 border-b border-neutral-200 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-x-2 sm:px-6 sm:py-4 dark:border-neutral-800">
         {/* Row 1 (mobile) / Center (desktop) */}
-        <h1 className="text-center sm:order-2 sm:min-w-0 sm:flex-1 truncate bg-linear-to-r from-blue-800 to-blue-300 bg-clip-text text-base font-bold text-transparent sm:text-2xl">
-          md2jira-previewer
-          <span className="ml-2 hidden text-sm font-normal text-neutral-500 sm:inline dark:text-neutral-400">
+        <h1 className="flex min-w-0 items-center justify-center gap-2.5 text-neutral-950 sm:order-2 sm:flex-1 dark:text-neutral-100">
+          <svg
+            viewBox="0 0 96 74"
+            className="h-7 w-9 shrink-0 text-blue-700 sm:h-8 sm:w-10 dark:text-blue-400"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path d="M0 0h14l18 18L50 0h14v40h10V30l22 22-22 22V64H50V26L32 44 14 26v38H0Z" />
+          </svg>
+          <span className="shrink-0 text-2xl font-bold tracking-tight sm:text-3xl">
+            md<span className="text-blue-700 dark:text-blue-400">2</span>jira
+          </span>
+          <span className="hidden truncate text-sm font-normal text-neutral-500 sm:inline dark:text-neutral-400">
             {t('appSubtitle')}
           </span>
         </h1>

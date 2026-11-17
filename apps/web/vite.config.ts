@@ -42,13 +42,14 @@ export default defineConfig(({ mode }) => ({
         'maskable-icon-*.png',
       ],
       manifest: {
-        name: 'md2jira Converter',
+        name: 'md2jira',
         short_name: 'md2jira',
         description: 'Convert Markdown to Jira Wiki Markup instantly',
         theme_color: '#1d4ed8',
         background_color: '#ffffff',
         display: 'standalone',
-        start_url: '/',
+        start_url: '.',
+        scope: '.',
         icons: [
           {
             src: 'pwa-64x64.png',
@@ -72,7 +73,7 @@ export default defineConfig(({ mode }) => ({
             purpose: 'maskable',
           },
           {
-            src: '/icon.svg',
+            src: 'icon.svg',
             sizes: 'any',
             type: 'image/svg+xml',
             purpose: 'any',
