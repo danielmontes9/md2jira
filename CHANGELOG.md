@@ -1,3 +1,10 @@
+## [2.5.1](https://github.com/danielmontes9/md2jira/compare/v2.5.0...v2.5.1) (2026-11-17)
+
+
+### Bug Fixes
+
+* **ci:** resolve high-risk dependency advisories ([708de40](https://github.com/danielmontes9/md2jira/commit/708de4006d7cc16c328019ef18e69f729d150704)), closes [hi#risk](https://github.com/hi/issues/risk)
+
 # [2.5.0](https://github.com/danielmontes9/md2jira/compare/v2.4.11...v2.5.0) (2026-11-17)
 
 
