@@ -1,3 +1,10 @@
+## [2.5.2](https://github.com/danielmontes9/md2jira/compare/v2.5.1...v2.5.2) (2026-11-17)
+
+
+### Bug Fixes
+
+* **ci:** pin Playwright jobs to Ubuntu 24.04 ([76f5c7f](https://github.com/danielmontes9/md2jira/commit/76f5c7f0091eff145f2713c00d87c02ccbf2468e))
+
 ## [2.5.1](https://github.com/danielmontes9/md2jira/compare/v2.5.0...v2.5.1) (2026-11-17)
 
 
