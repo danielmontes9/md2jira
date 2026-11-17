@@ -26,7 +26,7 @@ By participating, you agree to our [Code of Conduct](CODE_OF_CONDUCT.md). Please
 
 ### Prerequisites
 
-- **Node.js** >= 18
+- **Node.js** >= 22
 - **pnpm** >= 9 (`npm install -g pnpm`)
 - **Git**
 

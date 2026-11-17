@@ -120,7 +120,7 @@ pnpm add -g md2jira-cli
 ### Run the web app locally
 
 ```bash
-# Requires pnpm and Node.js >= 18
+# Requires pnpm and Node.js >= 22
 git clone https://github.com/danielmontes9/md2jira.git
 cd md2jira
 pnpm install

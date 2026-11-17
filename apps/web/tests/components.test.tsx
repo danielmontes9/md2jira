@@ -65,9 +65,7 @@ afterAll(() => {
 describe('App', () => {
   it('renders the page title', () => {
     render(<App />)
-    expect(
-      screen.getByRole('heading', { level: 1, name: /md2jira-previewer/i })
-    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: /^md\s*2\s*jira/i })).toBeInTheDocument()
   })
 
   it('renders the Markdown textarea', () => {

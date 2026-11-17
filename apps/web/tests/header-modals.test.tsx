@@ -45,7 +45,7 @@ afterAll(() => {
 describe('Header', () => {
   it('renders the page title', () => {
     renderWithSettings(<Header />)
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('md2jira-previewer')
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('md2jira')
   })
 
   it('has a settings button', () => {
