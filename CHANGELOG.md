@@ -1,3 +1,15 @@
+# [2.5.0](https://github.com/danielmontes9/md2jira/compare/v2.4.11...v2.5.0) (2026-11-17)
+
+
+### Bug Fixes
+
+* **web:** remove dash separators from UI copy ([65cf114](https://github.com/danielmontes9/md2jira/commit/65cf114960401f93c9f14e75f5729aed09b33943))
+
+
+### Features
+
+* **web:** apply md2jira brand identity ([cd7651c](https://github.com/danielmontes9/md2jira/commit/cd7651cfcc1041e74587f2bfb740627d84bb51ef))
+
 ## [2.4.11](https://github.com/danielmontes9/md2jira/compare/v2.4.10...v2.4.11) (2026-11-07)
 
 
