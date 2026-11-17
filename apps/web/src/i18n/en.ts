@@ -17,13 +17,13 @@ export const en = {
   appSubtitle: 'Markdown to Jira Wiki Markup & ADF',
 
   // ── System banners ────────────────────────────────────────────────────────
-  offlineBanner: "You're offline — the app is running from cache. Conversions still work.",
+  offlineBanner: "You're offline: the app is running from cache. Conversions still work.",
   updateAvailable: 'A new version is available.',
   updateNow: 'Update now',
 
   // ── Error banners ─────────────────────────────────────────────────────────
-  conversionError: 'Conversion error — check your Markdown for unsupported syntax.',
-  adfRenderError: 'Preview rendering failed — the ADF output could not be displayed.',
+  conversionError: 'Conversion error: check your Markdown for unsupported syntax.',
+  adfRenderError: 'Preview rendering failed: the ADF output could not be displayed.',
   switchToWiki: 'Switch to Wiki Markup',
   retry: 'Retry',
 
@@ -65,10 +65,10 @@ export const en = {
   viewCode: 'Code',
   editToggle: 'Edit',
   viewToggle: 'View',
-  adfCodeHint: 'Copies as rich text \u2014 paste directly into Jira Cloud comments',
-  wikiCodeHint: 'Raw Wiki Markup \u2014 copy and paste into Jira Server/Data Center',
+  adfCodeHint: 'Copies as rich text: paste directly into Jira Cloud comments',
+  wikiCodeHint: 'Raw Wiki Markup: copy and paste into Jira Server/Data Center',
   confluenceCodeHint:
-    'Confluence Storage Format (XHTML) \u2014 import via REST API or paste into a Confluence page',
+    'Confluence Storage Format (XHTML): import via REST API or paste into a Confluence page',
   copyConfluenceMarkup: 'Copy Confluence Storage Format to clipboard',
 
   // ── History sidebar ───────────────────────────────────────────────────────
@@ -106,13 +106,13 @@ export const en = {
   importSuccess: 'Imported',
   exportSuccess: 'Exported',
   clipboardFail: 'Failed to copy to clipboard',
-  adfWorkerStalled: 'ADF preview stalled \u2014 using fallback renderer.',
+  adfWorkerStalled: 'ADF preview stalled: using fallback renderer.',
   colorWarning: 'Color formatting is not supported in Jira output and will be removed.',
   underlineWarning: 'Underline formatting is not supported in Jira output and will be removed.',
   wikiEditDesyncWarning:
-    'Wiki markup edits are independent \u2014 changes won\u2019t sync back to the Markdown source.',
+    'Wiki markup edits are independent: changes won\u2019t sync back to the Markdown source.',
   confluenceEditDesyncWarning:
-    'Confluence Storage Format edits are independent \u2014 changes won\u2019t sync back to the Markdown source.',
+    'Confluence Storage Format edits are independent: changes won\u2019t sync back to the Markdown source.',
   newDocumentSaved: 'Document saved to history.',
 
   // ── Shortcuts modal groups ────────────────────────────────────────────────
@@ -127,14 +127,14 @@ export const en = {
   // ── Info modal ────────────────────────────────────────────────────────────
   infoSubtitle: 'Open-source Markdown \u2192 Jira converter',
   infoDescription:
-    'md2jira converts Markdown documents into Jira Wiki Markup and Atlassian Document Format (ADF). Paste your Markdown on the left, get Jira-ready content on the right \u2014 copy and paste directly into any Jira Cloud issue, comment, or description.',
+    'md2jira converts Markdown documents into Jira Wiki Markup and Atlassian Document Format (ADF). Paste your Markdown on the left, get Jira-ready content on the right: copy and paste directly into any Jira Cloud issue, comment, or description.',
   infoPackages: 'Packages',
   infoLicense: 'MIT License',
   infoViewOnGithub: 'View on GitHub \u2192',
   infoCoreDesc:
-    'Pure TypeScript conversion engine. Zero browser dependencies \u2014 works in Node.js, browsers, and VSCode extensions.',
+    'Pure TypeScript conversion engine. Zero browser dependencies: works in Node.js, browsers, and VSCode extensions.',
   infoCliDesc: 'Command-line tool to convert Markdown files from your terminal.',
-  infoWebDesc: 'This web app \u2014 live two-panel converter built with React 18 + Vite.',
+  infoWebDesc: 'This web app: live two-panel converter built with React 18 + Vite.',
 
   // ── Header ────────────────────────────────────────────────────────────────
   shareLink: 'Share link',
@@ -142,7 +142,7 @@ export const en = {
   tooLarge: 'Too large',
   docTooLargeForUrl: 'Document too large for URL sharing',
   documentHistory: 'Document history',
-  historyDisabledHint: 'Document history (disabled \u2014 enable in Settings)',
+  historyDisabledHint: 'Document history (disabled: enable in Settings)',
   shareOrExport: 'Share or export',
   noContentToShare: 'No content to share or export yet',
 
@@ -215,7 +215,7 @@ export const en = {
   markdownInputEditor: 'Markdown input',
   notificationsLabel: 'Notifications',
   // ── Header external link labels ───────────────────────────────────────────
-  supportProject: 'Support the project \u2014 Buy me a coffee',
+  supportProject: 'Support the project: Buy me a coffee',
   starOnGitHub: 'Star on GitHub',
   viewOnGitHub: 'View project on GitHub',
   // ── Interpolated history entry labels ─────────────────────────────────────
@@ -266,7 +266,7 @@ export const en = {
   wysiwygActionItem: 'Action item',
   wysiwygActionItemDesc: 'Create and assign action items',
   wysiwygMention: 'Mention',
-  wysiwygMentionDesc: 'Insert @mention \u2014 cursor lands after the @ symbol',
+  wysiwygMentionDesc: 'Insert @mention: cursor lands after the @ symbol',
   wysiwygInsertTable: 'Table',
   wysiwygInsertTableDesc: 'Insert a table',
   wysiwygInfoPanel: 'Info panel',
@@ -332,7 +332,7 @@ export const en = {
   scLabelBlockquote: 'Blockquote',
   // ── Format menu — footnote ────────────────────────────────────────────────
   wysiwygSubSupNote:
-    'Subscript and superscript are editor-only \u2014 they serialize to HTML tags in exported Markdown.',
+    'Subscript and superscript are editor-only: they serialize to HTML tags in exported Markdown.',
   renderError: 'Render error',
   retriesRemaining: 'remaining',
   retriesRemainingOne: 'remaining',
@@ -356,7 +356,7 @@ export const en = {
   // ── History diff ──────────────────────────────────────────────────────────
   historyDiff: 'Diff',
   historyDiffModalTitle: 'Compare with current document',
-  historyDiffNoChanges: 'No differences \u2014 this entry matches the current document.',
+  historyDiffNoChanges: 'No differences: this entry matches the current document.',
   historyDiffLabelBefore: 'This entry',
   historyDiffLabelAfter: 'Current',
   historyDiffTruncated: 'Diff truncated to {n} lines per side', // ── Wiki \u2192 Markdown sync ─────────────────────────────────────────────────

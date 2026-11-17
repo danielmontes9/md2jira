@@ -7,15 +7,15 @@ export const de: Record<StringKey, string> = {
 
   // ── System banners ────────────────────────────────────────────────────────
   offlineBanner:
-    'Du bist offline \u2014 die App l\u00e4uft aus dem Cache. Konvertierungen funktionieren weiterhin.',
+    'Du bist offline: die App l\u00e4uft aus dem Cache. Konvertierungen funktionieren weiterhin.',
   updateAvailable: 'Eine neue Version ist verf\u00fcgbar.',
   updateNow: 'Jetzt aktualisieren',
 
   // ── Error banners ─────────────────────────────────────────────────────────
   conversionError:
-    'Konvertierungsfehler \u2014 \u00fcberpr\u00fcfe das Markdown auf nicht unterst\u00fctzte Syntax.',
+    'Konvertierungsfehler: \u00fcberpr\u00fcfe das Markdown auf nicht unterst\u00fctzte Syntax.',
   adfRenderError:
-    'Vorschau-Rendering fehlgeschlagen \u2014 die ADF-Ausgabe konnte nicht angezeigt werden.',
+    'Vorschau-Rendering fehlgeschlagen: die ADF-Ausgabe konnte nicht angezeigt werden.',
   switchToWiki: 'Zu Wiki Markup wechseln',
   retry: 'Erneut versuchen',
 
@@ -57,10 +57,10 @@ export const de: Record<StringKey, string> = {
   viewCode: 'Code',
   editToggle: 'Bearbeiten',
   viewToggle: 'Ansicht',
-  adfCodeHint: 'Als Rich Text kopiert \u2014 direkt in Jira Cloud-Kommentare einf\u00fcgen',
-  wikiCodeHint: 'Rohes Wiki Markup \u2014 in Jira Server/Data Center kopieren und einf\u00fcgen',
+  adfCodeHint: 'Als Rich Text kopiert: direkt in Jira Cloud-Kommentare einf\u00fcgen',
+  wikiCodeHint: 'Rohes Wiki Markup: in Jira Server/Data Center kopieren und einf\u00fcgen',
   confluenceCodeHint:
-    'Confluence Storage Format (XHTML) \u2014 per REST API importieren oder in eine Confluence-Seite einf\u00fcgen',
+    'Confluence Storage Format (XHTML): per REST API importieren oder in eine Confluence-Seite einf\u00fcgen',
   copyConfluenceMarkup: 'Confluence Storage Format in die Zwischenablage kopieren',
 
   // ── History sidebar ───────────────────────────────────────────────────────
@@ -98,15 +98,15 @@ export const de: Record<StringKey, string> = {
   importSuccess: 'Importiert',
   exportSuccess: 'Exportiert',
   clipboardFail: 'Kopieren in die Zwischenablage fehlgeschlagen',
-  adfWorkerStalled: 'ADF-Vorschau blockiert \u2014 Fallback-Renderer wird verwendet.',
+  adfWorkerStalled: 'ADF-Vorschau blockiert: Fallback-Renderer wird verwendet.',
   colorWarning:
     'Farbformatierung wird in der Jira-Ausgabe nicht unterst\u00fctzt und wird entfernt.',
   underlineWarning:
     'Unterstreichungsformatierung wird in der Jira-Ausgabe nicht unterst\u00fctzt und wird entfernt.',
   wikiEditDesyncWarning:
-    'Wiki-Markup-Bearbeitungen sind unabh\u00e4ngig \u2014 \u00c4nderungen werden nicht mit der Markdown-Quelle synchronisiert.',
+    'Wiki-Markup-Bearbeitungen sind unabh\u00e4ngig: \u00c4nderungen werden nicht mit der Markdown-Quelle synchronisiert.',
   confluenceEditDesyncWarning:
-    'Confluence-Storage-Format-Bearbeitungen sind unabh\u00e4ngig \u2014 \u00c4nderungen werden nicht mit der Markdown-Quelle synchronisiert.',
+    'Confluence-Storage-Format-Bearbeitungen sind unabh\u00e4ngig: \u00c4nderungen werden nicht mit der Markdown-Quelle synchronisiert.',
   newDocumentSaved: 'Dokument im Verlauf gespeichert.',
 
   // ── Shortcuts modal groups ────────────────────────────────────────────────
@@ -121,14 +121,14 @@ export const de: Record<StringKey, string> = {
   // ── Info modal ────────────────────────────────────────────────────────────
   infoSubtitle: 'Open-Source Markdown \u2192 Jira-Konverter',
   infoDescription:
-    'md2jira konvertiert Markdown-Dokumente in Jira Wiki Markup und Atlassian Document Format (ADF). F\u00fcge dein Markdown links ein, erhalte Jira-fertigen Inhalt rechts \u2014 direkt in ein Jira Cloud-Issue, einen Kommentar oder eine Beschreibung kopieren und einf\u00fcgen.',
+    'md2jira konvertiert Markdown-Dokumente in Jira Wiki Markup und Atlassian Document Format (ADF). F\u00fcge dein Markdown links ein, erhalte Jira-fertigen Inhalt rechts: direkt in ein Jira Cloud-Issue, einen Kommentar oder eine Beschreibung kopieren und einf\u00fcgen.',
   infoPackages: 'Pakete',
   infoLicense: 'MIT-Lizenz',
   infoViewOnGithub: 'Auf GitHub ansehen \u2192',
   infoCoreDesc:
-    'Reines TypeScript-Konvertierungsmodul. Keine Browser-Abh\u00e4ngigkeiten \u2014 funktioniert in Node.js, Browsern und VSCode-Erweiterungen.',
+    'Reines TypeScript-Konvertierungsmodul. Keine Browser-Abh\u00e4ngigkeiten: funktioniert in Node.js, Browsern und VSCode-Erweiterungen.',
   infoCliDesc: 'Befehlszeilentool zum Konvertieren von Markdown-Dateien aus deinem Terminal.',
-  infoWebDesc: 'Diese Web-App \u2014 Echtzeit-Zwei-Panel-Konverter mit React 18 + Vite.',
+  infoWebDesc: 'Diese Web-App: Echtzeit-Zwei-Panel-Konverter mit React 18 + Vite.',
 
   // ── Header ────────────────────────────────────────────────────────────────
   shareLink: 'Link teilen',
@@ -136,7 +136,7 @@ export const de: Record<StringKey, string> = {
   tooLarge: 'Zu gro\u00df',
   docTooLargeForUrl: 'Dokument zu gro\u00df f\u00fcr URL-Freigabe',
   documentHistory: 'Dokumentverlauf',
-  historyDisabledHint: 'Dokumentverlauf (deaktiviert \u2014 in Einstellungen aktivieren)',
+  historyDisabledHint: 'Dokumentverlauf (deaktiviert: in Einstellungen aktivieren)',
   shareOrExport: 'Teilen oder exportieren',
   noContentToShare: 'Noch kein Inhalt zum Teilen oder Exportieren',
 
@@ -215,7 +215,7 @@ export const de: Record<StringKey, string> = {
   notificationsLabel: 'Benachrichtigungen',
 
   // ── Header external link labels ───────────────────────────────────────────
-  supportProject: 'Projekt unterst\u00fctzen \u2014 Kauf mir einen Kaffee',
+  supportProject: 'Projekt unterst\u00fctzen: Kauf mir einen Kaffee',
   starOnGitHub: 'Auf GitHub mit Stern markieren',
   viewOnGitHub: 'Projekt auf GitHub ansehen',
 
@@ -272,7 +272,7 @@ export const de: Record<StringKey, string> = {
   wysiwygActionItem: 'Aufgabe',
   wysiwygActionItemDesc: 'Aufgaben erstellen und zuweisen',
   wysiwygMention: 'Erw\u00e4hnung',
-  wysiwygMentionDesc: '@Erw\u00e4hnung einf\u00fcgen \u2014 Cursor landet nach dem @-Symbol',
+  wysiwygMentionDesc: '@Erw\u00e4hnung einf\u00fcgen: Cursor landet nach dem @-Symbol',
   wysiwygInsertTable: 'Tabelle',
   wysiwygInsertTableDesc: 'Eine Tabelle einf\u00fcgen',
   wysiwygInfoPanel: 'Info-Panel',
@@ -349,7 +349,7 @@ export const de: Record<StringKey, string> = {
 
   // ── Format menu — footnote ────────────────────────────────────────────────
   wysiwygSubSupNote:
-    'Tief- und Hochstellung sind nur im Editor \u2014 sie werden als HTML-Tags im exportierten Markdown serialisiert.',
+    'Tief- und Hochstellung sind nur im Editor: sie werden als HTML-Tags im exportierten Markdown serialisiert.',
   renderError: 'Renderfehler',
   retriesRemaining: 'verbleibend',
   retriesRemainingOne: 'verbleibend',
@@ -378,7 +378,7 @@ export const de: Record<StringKey, string> = {
   historyDiff: 'Diff',
   historyDiffModalTitle: 'Mit aktuellem Dokument vergleichen',
   historyDiffNoChanges:
-    'Keine Unterschiede \u2014 dieser Eintrag stimmt mit dem aktuellen Dokument \u00fcberein.',
+    'Keine Unterschiede: dieser Eintrag stimmt mit dem aktuellen Dokument \u00fcberein.',
   historyDiffLabelBefore: 'Dieser Eintrag',
   historyDiffLabelAfter: 'Aktuell',
   historyDiffTruncated: 'Diff auf {n} Zeilen je Seite begrenzt',

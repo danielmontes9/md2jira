@@ -6,14 +6,14 @@ export const fr: Record<StringKey, string> = {
   appSubtitle: 'Markdown vers Jira Wiki Markup et ADF',
   // ── System banners ────────────────────────────────────────────────────────
   offlineBanner:
-    'Vous \u00eates hors ligne \u2014 l\u2019app fonctionne depuis le cache. Les conversions continuent de fonctionner.',
+    'Vous \u00eates hors ligne: l\u2019app fonctionne depuis le cache. Les conversions continuent de fonctionner.',
   updateAvailable: 'Une nouvelle version est disponible.',
   updateNow: 'Mettre \u00e0 jour',
   // ── Error banners ─────────────────────────────────────────────────────────
   conversionError:
-    'Erreur de conversion \u2014 v\u00e9rifiez votre Markdown pour une syntaxe non prise en charge.',
+    'Erreur de conversion: v\u00e9rifiez votre Markdown pour une syntaxe non prise en charge.',
   adfRenderError:
-    'L\u2019aper\u00e7u a \u00e9chou\u00e9 \u2014 le document ADF n\u2019a pas pu \u00eatre affich\u00e9.',
+    'L\u2019aper\u00e7u a \u00e9chou\u00e9: le document ADF n\u2019a pas pu \u00eatre affich\u00e9.',
   switchToWiki: 'Passer au Wiki Markup',
   retry: 'R\u00e9essayer',
   // ── Panel labels ──────────────────────────────────────────────────────────
@@ -52,10 +52,10 @@ export const fr: Record<StringKey, string> = {
   viewCode: 'Code',
   editToggle: 'Modifier',
   viewToggle: 'Afficher',
-  adfCodeHint: 'Copie en texte enrichi \u2014 collez directement dans les commentaires Jira Cloud',
-  wikiCodeHint: 'Wiki Markup brut \u2014 copiez et collez dans Jira Server/Data Center',
+  adfCodeHint: 'Copie en texte enrichi: collez directement dans les commentaires Jira Cloud',
+  wikiCodeHint: 'Wiki Markup brut: copiez et collez dans Jira Server/Data Center',
   confluenceCodeHint:
-    'Format de stockage Confluence (XHTML) \u2014 importez via l\u2019API REST ou collez dans une page Confluence',
+    'Format de stockage Confluence (XHTML): importez via l\u2019API REST ou collez dans une page Confluence',
   copyConfluenceMarkup: 'Copier le format de stockage Confluence dans le presse-papiers',
   // ── History sidebar ───────────────────────────────────────────────────────
   recentDocuments: 'Documents r\u00e9cents',
@@ -89,16 +89,15 @@ export const fr: Record<StringKey, string> = {
   importSuccess: 'Import\u00e9',
   exportSuccess: 'Export\u00e9',
   clipboardFail: 'Impossible de copier dans le presse-papiers',
-  adfWorkerStalled:
-    'L\u2019aper\u00e7u ADF est bloqu\u00e9 \u2014 utilisation du rendu de secours.',
+  adfWorkerStalled: 'L\u2019aper\u00e7u ADF est bloqu\u00e9: utilisation du rendu de secours.',
   colorWarning:
     'La mise en forme des couleurs n\u2019est pas prise en charge dans la sortie Jira et sera supprim\u00e9e.',
   underlineWarning:
     'La mise en forme du soulignement n\u2019est pas prise en charge dans la sortie Jira et sera supprim\u00e9e.',
   wikiEditDesyncWarning:
-    'Les \u00e9ditions Wiki Markup sont ind\u00e9pendantes \u2014 les modifications ne seront pas synchronis\u00e9es avec la source Markdown.',
+    'Les \u00e9ditions Wiki Markup sont ind\u00e9pendantes: les modifications ne seront pas synchronis\u00e9es avec la source Markdown.',
   confluenceEditDesyncWarning:
-    'Les \u00e9ditions du format de stockage Confluence sont ind\u00e9pendantes \u2014 les modifications ne seront pas synchronis\u00e9es avec la source Markdown.',
+    'Les \u00e9ditions du format de stockage Confluence sont ind\u00e9pendantes: les modifications ne seront pas synchronis\u00e9es avec la source Markdown.',
   newDocumentSaved: 'Document enregistr\u00e9 dans l\u2019historique.',
   // ── Shortcuts modal groups ────────────────────────────────────────────────
   scGroupFormatting: 'Mise en forme',
@@ -111,16 +110,16 @@ export const fr: Record<StringKey, string> = {
   // ── Info modal ────────────────────────────────────────────────────────────
   infoSubtitle: 'Convertisseur Markdown \u2192 Jira open-source',
   infoDescription:
-    'md2jira convertit des documents Markdown en Wiki Markup Jira et en Format de Document Atlassian (ADF). Collez votre Markdown \u00e0 gauche, obtenez le contenu pr\u00eat pour Jira \u00e0 droite \u2014 copiez et collez directement dans n\u2019importe quel ticket, commentaire ou description Jira Cloud.',
+    'md2jira convertit des documents Markdown en Wiki Markup Jira et en Format de Document Atlassian (ADF). Collez votre Markdown \u00e0 gauche, obtenez le contenu pr\u00eat pour Jira \u00e0 droite: copiez et collez directement dans n\u2019importe quel ticket, commentaire ou description Jira Cloud.',
   infoPackages: 'Packages',
   infoLicense: 'Licence MIT',
   infoViewOnGithub: 'Voir sur GitHub \u2192',
   infoCoreDesc:
-    'Moteur de conversion TypeScript pur. Z\u00e9ro d\u00e9pendance navigateur \u2014 fonctionne dans Node.js, les navigateurs et les extensions VSCode.',
+    'Moteur de conversion TypeScript pur. Z\u00e9ro d\u00e9pendance navigateur: fonctionne dans Node.js, les navigateurs et les extensions VSCode.',
   infoCliDesc:
     'Outil en ligne de commande pour convertir des fichiers Markdown depuis votre terminal.',
   infoWebDesc:
-    'Cette application web \u2014 convertisseur live en deux panneaux construit avec React 18 + Vite.',
+    'Cette application web: convertisseur live en deux panneaux construit avec React 18 + Vite.',
   // ── Header ────────────────────────────────────────────────────────────────
   shareLink: 'Partager le lien',
   exportPdf: 'Exporter en PDF',
@@ -128,7 +127,7 @@ export const fr: Record<StringKey, string> = {
   docTooLargeForUrl: 'Document trop volumineux pour le partage par URL',
   documentHistory: 'Historique des documents',
   historyDisabledHint:
-    'Historique des documents (d\u00e9sactiv\u00e9 \u2014 activer dans les Param\u00e8tres)',
+    'Historique des documents (d\u00e9sactiv\u00e9: activer dans les Param\u00e8tres)',
   shareOrExport: 'Partager ou exporter',
   noContentToShare: 'Aucun contenu \u00e0 partager ou exporter pour l\u2019instant',
   // ── WYSIWYG toolbar ───────────────────────────────────────────────────────
@@ -200,7 +199,7 @@ export const fr: Record<StringKey, string> = {
   markdownInputEditor: '\u00c9diteur Markdown',
   notificationsLabel: 'Notifications',
   // ── Header external link labels ───────────────────────────────────────────
-  supportProject: 'Soutenir le projet \u2014 Offrez-moi un caf\u00e9',
+  supportProject: 'Soutenir le projet: Offrez-moi un caf\u00e9',
   starOnGitHub: 'Mettre une \u00e9toile sur GitHub',
   viewOnGitHub: 'Voir le projet sur GitHub',
   // ── Interpolated history entry labels ─────────────────────────────────────
@@ -251,8 +250,7 @@ export const fr: Record<StringKey, string> = {
   wysiwygActionItem: '\u00c9l\u00e9ment d\u2019action',
   wysiwygActionItemDesc: 'Cr\u00e9er et attribuer des \u00e9l\u00e9ments d\u2019action',
   wysiwygMention: 'Mention',
-  wysiwygMentionDesc:
-    'Ins\u00e9rer une @mention \u2014 le curseur se place apr\u00e8s le symbole @',
+  wysiwygMentionDesc: 'Ins\u00e9rer une @mention: le curseur se place apr\u00e8s le symbole @',
   wysiwygInsertTable: 'Tableau',
   wysiwygInsertTableDesc: 'Ins\u00e9rer un tableau',
   wysiwygInfoPanel: 'Panneau d\u2019information',
@@ -322,7 +320,7 @@ export const fr: Record<StringKey, string> = {
   scLabelBlockquote: 'Bloc de citation',
   // ── Menu format \u2014 note de bas de menu ──────────────────────────────────────
   wysiwygSubSupNote:
-    'L\u2019indice et l\u2019exposant ne sont que dans l\u2019\u00e9diteur \u2014 ils se s\u00e9rialisent en balises HTML dans le Markdown export\u00e9.',
+    'L\u2019indice et l\u2019exposant ne sont que dans l\u2019\u00e9diteur: ils se s\u00e9rialisent en balises HTML dans le Markdown export\u00e9.',
   renderError: 'Erreur de rendu',
   retriesRemaining: 'restants',
   retriesRemainingOne: 'restant',
@@ -345,8 +343,7 @@ export const fr: Record<StringKey, string> = {
     'Mettre en \u00e9vidence un succ\u00e8s ou r\u00e9sultat positif en vert',
   historyDiff: 'Diff',
   historyDiffModalTitle: 'Comparer avec le document actuel',
-  historyDiffNoChanges:
-    'Aucune diff\u00e9rence \u2014 cette entr\u00e9e correspond au document actuel.',
+  historyDiffNoChanges: 'Aucune diff\u00e9rence: cette entr\u00e9e correspond au document actuel.',
   historyDiffLabelBefore: 'Cette entr\u00e9e',
   historyDiffLabelAfter: 'Actuel',
   historyDiffTruncated: 'Diff tronqu\u00e9 \u00e0 {n} lignes par c\u00f4t\u00e9',
