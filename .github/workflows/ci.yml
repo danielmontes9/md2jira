@@ -41,7 +41,12 @@ jobs:
       - name: Dependency security audit
         # Fail the build if any dependency has a known HIGH or CRITICAL vulnerability.
         # Use --audit-level=high to allow low/moderate advisories that have no fix yet.
-        run: pnpm audit --audit-level=high
+        # Temporary exception: picomatch has no patched release for CVE-2026-112366.
+        # It is used by development/release tooling, not the core or CLI runtime.
+        # Remove this exception when a fixed release is available; keep all other
+        # HIGH/CRITICAL advisories blocking CI.
+        # https://github.com/advisories/GHSA-fc5q-39xc-vjpf
+        run: pnpm audit --audit-level=high --ignore CVE-2026-112366
 
       - name: Lint
         run: pnpm lint
