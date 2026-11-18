@@ -145,10 +145,10 @@ export function JiraOutputContent({
     return (
       <EditorContent
         editor={editor}
-        role="textbox"
-        aria-label={t('jiraContentEditor')}
-        aria-multiline={true}
-        aria-readonly={!(canEdit && editMode)}
+        role={editor ? undefined : 'textbox'}
+        aria-label={editor ? undefined : t('jiraContentEditor')}
+        aria-multiline={editor ? undefined : true}
+        aria-readonly={editor ? undefined : !(canEdit && editMode)}
         className={`jira-preview flex-1 overflow-auto p-6 text-sm text-neutral-900 outline-none transition-opacity duration-200 dark:text-neutral-100 ${isPending && !(canEdit && editMode) ? 'opacity-50' : ''}`}
       />
     )

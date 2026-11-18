@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, act, waitFor } from '@testing-library/react'
+import { useLayoutEffect, useRef } from 'react'
 import { useTiptapEditor } from '../src/hooks/useTiptapEditor.js'
 
 beforeEach(() => {
@@ -50,6 +51,30 @@ describe('useTiptapEditor', () => {
     const opts2 = { previewHtml: '<p>Two</p>', onMarkdownChange: undefined }
     const { rerender } = renderHook((opts) => useTiptapEditor(opts), { initialProps: opts1 })
     expect(() => rerender(opts2)).not.toThrow()
+  })
+
+  it('recovers when an editor is destroyed before the preview sync effect', async () => {
+    const { result, rerender } = renderHook(
+      ({ destroyBeforeSync, previewHtml }) => {
+        const state = useTiptapEditor({ previewHtml, onMarkdownChange: undefined })
+        const destroyedOnce = useRef(false)
+        useLayoutEffect(() => {
+          if (destroyBeforeSync && state.editor && !destroyedOnce.current) {
+            destroyedOnce.current = true
+            state.editor.destroy()
+          }
+        }, [destroyBeforeSync, state.editor])
+        return state
+      },
+      { initialProps: { destroyBeforeSync: false, previewHtml: '<p>Before</p>' } }
+    )
+
+    await waitFor(() => expect(result.current.editor).not.toBeNull())
+    expect(() => rerender({ destroyBeforeSync: true, previewHtml: '<p>After</p>' })).not.toThrow()
+    await waitFor(() => {
+      expect(result.current.editor?.isDestroyed).toBe(false)
+      expect(result.current.editor?.getHTML()).toBe('<p>After</p>')
+    })
   })
 
   it('provides exec and insertHtml as functions', () => {

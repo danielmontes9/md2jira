@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, renderHook, screen, fireEvent, act } from '@testing-library/react'
+import { useTiptapEditor } from '../src/hooks/useTiptapEditor.js'
 import { SettingsProvider } from '../src/context/SettingsContext.js'
 import { JiraOutputContent } from '../src/components/jira-output/JiraOutputContent.js'
 
@@ -44,6 +45,27 @@ describe('JiraOutputContent — code view', () => {
 })
 
 describe('JiraOutputContent — ADF preview', () => {
+  it('exposes one actual editor textbox and updates its readonly state', () => {
+    const { result } = renderHook(() =>
+      useTiptapEditor({ previewHtml: '<p>Hello</p>', onMarkdownChange: undefined })
+    )
+    const editor = result.current.editor
+    expect(editor).not.toBeNull()
+    renderWithSettings(
+      <JiraOutputContent {...baseProps} format="adf" viewMode="preview" editor={editor} />
+    )
+    const textbox = screen.getByRole('textbox', { name: 'Jira content editor' })
+    expect(textbox).toHaveClass('ProseMirror')
+    expect(textbox).toHaveAttribute('aria-multiline', 'true')
+    expect(textbox).toHaveAttribute('aria-readonly', 'true')
+
+    act(() => editor!.setEditable(true))
+
+    expect(screen.getAllByRole('textbox', { name: 'Jira content editor' })).toHaveLength(1)
+    expect(textbox).toHaveAttribute('aria-readonly', 'false')
+    expect(textbox).toHaveAttribute('contenteditable', 'true')
+  })
+
   it('renders the editor content area for adf preview', () => {
     renderWithSettings(<JiraOutputContent {...baseProps} format="adf" viewMode="preview" />)
     expect(screen.getByRole('textbox', { name: /jira content editor/i })).toBeInTheDocument()

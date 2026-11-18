@@ -167,6 +167,8 @@ const BrokenImageExtension = Image.extend({
 interface UseTiptapEditorOptions {
   previewHtml: string
   onMarkdownChange: ((md: string) => void) | undefined
+  /** Accessible name for the actual ProseMirror textbox. */
+  editorLabel?: string
   /** Debounce delay in ms for HTML→Markdown sync. @default 300 */
   debounceMs?: number
   /** When false, the TipTap editor is not created (saves resources). @default true */
@@ -207,6 +209,7 @@ export interface TiptapEditorState {
 export function useTiptapEditor({
   previewHtml,
   onMarkdownChange,
+  editorLabel = 'Jira content editor',
   debounceMs = 300,
   shouldCreate = true,
   onColorWarning,
@@ -260,11 +263,13 @@ export function useTiptapEditor({
     content: sanitize(previewHtml),
     editable: false,
     editorProps: {
-      attributes: {
+      attributes: () => ({
         // aria-label must live on the ProseMirror div (role="textbox") itself,
         // not on the EditorContent wrapper, to satisfy axe aria-input-field-name.
-        'aria-label': 'Jira content editor',
-      },
+        'aria-label': editorLabel,
+        'aria-multiline': 'true',
+        'aria-readonly': String(!editorRef.current?.isEditable),
+      }),
     },
     onUpdate: ({ editor: ed }) => {
       if (isExternalUpdateRef.current) return
@@ -297,7 +302,7 @@ export function useTiptapEditor({
   })
   // useEditor() is still called unconditionally to satisfy React hooks rules;
   // TipTap v3 does not expose a shouldCreate option in UseEditorOptions.
-  const activeEditor = shouldCreate ? editor : null
+  const activeEditor = shouldCreate && editor && !editor.isDestroyed ? editor : null
 
   // Keep ref in sync so exec/insertHtml always see the latest editor instance
   // without needing to list it as a useCallback dependency.
@@ -306,7 +311,7 @@ export function useTiptapEditor({
   // Sync external previewHtml into editor (only when not editing)
   // Uses activeEditor (not the raw editor) so we skip the sync when shouldCreate=false.
   useEffect(() => {
-    if (!activeEditor) return
+    if (!activeEditor || activeEditor.isDestroyed) return
     if (isExternalUpdateRef.current) {
       isExternalUpdateRef.current = false
       return

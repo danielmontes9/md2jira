@@ -70,13 +70,13 @@ export const Header = memo(function Header({
           <span className="shrink-0 text-2xl font-bold tracking-tight sm:text-3xl">
             md<span className="text-blue-700 dark:text-blue-400">2</span>jira
           </span>
-          <span className="hidden truncate text-sm font-normal text-neutral-500 sm:inline dark:text-neutral-400">
+          <span className="hidden truncate text-sm font-normal text-neutral-600 sm:inline dark:text-neutral-400">
             {t('appSubtitle')}
           </span>
         </h1>
 
         {/* Row 2 (mobile only): Subtitle */}
-        <p className="text-center text-sm text-neutral-500 sm:hidden dark:text-neutral-400">
+        <p className="text-center text-sm text-neutral-600 sm:hidden dark:text-neutral-400">
           {t('appSubtitle')}
         </p>
 

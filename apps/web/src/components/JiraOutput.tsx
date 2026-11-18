@@ -78,6 +78,7 @@ export const JiraOutput = memo(function JiraOutput({
   } = useTiptapEditor({
     previewHtml,
     onMarkdownChange,
+    editorLabel: t('jiraContentEditor'),
     shouldCreate,
     onColorWarning,
     onUnderlineWarning,
@@ -105,7 +106,8 @@ export const JiraOutput = memo(function JiraOutput({
 
   // Toggle TipTap editable state based on edit mode
   useEffect(() => {
-    if (editor) editor.setEditable(canEdit && editMode)
+    if (!editor || editor.isDestroyed) return
+    editor.setEditable(canEdit && editMode)
   }, [editor, canEdit, editMode])
 
   // Show a one-time warning when entering Wiki or Confluence edit mode so the user knows
