@@ -1,3 +1,10 @@
+## [2.5.3](https://github.com/danielmontes9/md2jira/compare/v2.5.2...v2.5.3) (2026-11-18)
+
+
+### Bug Fixes
+
+* **web:** resolve editor accessibility and crashes ([442f1a7](https://github.com/danielmontes9/md2jira/commit/442f1a7a1b34c268e583ce0c6d6973d0eb6a3ead))
+
 ## [2.5.2](https://github.com/danielmontes9/md2jira/compare/v2.5.1...v2.5.2) (2026-11-17)
 
 
